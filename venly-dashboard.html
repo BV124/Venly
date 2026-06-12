@@ -284,7 +284,7 @@ tbody tr:last-child td { border-bottom: none; }
 <body>
 
 <div id="venly-nav"></div>
-<script>renderNav({ activePage: "dashboard", loggedIn: !!localStorage.getItem("venly_current_user") });</script>
+<script>renderNav({ activePage: "dashboard", loggedIn: true });</script>
 
 <div class="page">
   <h1 class="page-title">My Account</h1>
@@ -1197,5 +1197,7 @@ loadUserListings();
 buildTable();
 
 </script>
+<div id="venly-footer"></div>
+<script>renderFooter();</script>
 </body>
 </html>

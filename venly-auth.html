@@ -447,9 +447,15 @@ function handleLogin() {
           return;
         }
         // Save session hint for other pages
-        localStorage.setItem('venly_current_user', JSON.stringify({ email: email, id: res.data.user.id }));
+        // Save session and redirect to dashboard
+        localStorage.setItem('venly_current_user', JSON.stringify({
+          id: res.data.user.id,
+          email: res.data.user.email,
+          name: ((res.data.user.user_metadata.first_name || '') + ' ' + (res.data.user.user_metadata.last_name || '')).trim()
+        }));
         document.getElementById('login-form-wrap').style.display = 'none';
         document.getElementById('login-success').style.display = 'block';
+        setTimeout(function() { window.location.href = 'venly-dashboard.html'; }, 1500);
       });
   } else {
     // DEMO MODE — simulates login
@@ -458,6 +464,7 @@ function handleLogin() {
       localStorage.setItem('venly_current_user', JSON.stringify({ email: email, name: 'Demo User' }));
       document.getElementById('login-form-wrap').style.display = 'none';
       document.getElementById('login-success').style.display = 'block';
+      setTimeout(function() { window.location.href = 'venly-dashboard.html'; }, 1500);
     }, 1200);
   }
 }
@@ -502,6 +509,7 @@ function handleSignup() {
       document.getElementById('signup-email-confirm').textContent = email;
       document.getElementById('signup-form-wrap').style.display = 'none';
       document.getElementById('signup-success').style.display = 'block';
+      // Note: user needs to verify email before they can log in
     });
   } else {
     // DEMO MODE — saves to localStorage so admin dashboard can read it
