@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Venly – Blog</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --red: #e03a2f; --red-light: #fdf0ef; --red-dark: #c2332a;
+  --text: #1a1a1a; --text-muted: #6b6b6b; --border: #e8e8e8;
+  --bg: #f7f7f5; --white: #ffffff; --radius: 14px; --radius-sm: 8px;
+}
+body { font-family: 'Inter', sans-serif; color: var(--text); font-size: 15px; line-height: 1.6; background: var(--white); }
+a { text-decoration: none; color: inherit; }
+
+/* NAV */
+nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 48px; height: 64px; }
+.logo { font-size: 22px; font-weight: 700; color: var(--red); letter-spacing: -0.5px; }
+.nav-links { display: flex; gap: 36px; list-style: none; }
+.nav-links a { color: var(--text); font-size: 14px; transition: color 0.15s; }
+.nav-links a:hover { color: var(--red); }
+.nav-right { display: flex; gap: 12px; }
+.btn { border-radius: var(--radius-sm); padding: 9px 22px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; border: 2px solid var(--red); transition: all 0.15s; }
+.btn-outline { background: transparent; color: var(--red); }
+.btn-outline:hover { background: var(--red-light); }
+.btn-primary { background: var(--red); color: #fff; }
+.btn-primary:hover { background: var(--red-dark); }
+
+/* PAGE HEADER */
+.page-header { padding: 56px 80px 0; max-width: 1200px; margin: 0 auto; }
+.blog-eyebrow { display: inline-flex; align-items: center; gap: 8px; background: var(--text); color: #fff; font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 20px; margin-bottom: 20px; letter-spacing: 0.02em; }
+.blog-eyebrow::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
+.page-header h1 { font-size: 52px; font-weight: 800; color: var(--text); letter-spacing: -2px; margin-bottom: 12px; line-height: 1.05; }
+.page-header p { font-size: 15px; color: var(--text-muted); max-width: 440px; line-height: 1.7; margin-bottom: 48px; }
+
+/* FEATURED POST */
+.featured-wrap { padding: 0 80px 64px; max-width: 1200px; margin: 0 auto; }
+.featured-card {
+  display: grid; grid-template-columns: 1fr 1fr;
+  border-radius: 20px; overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+  cursor: pointer; transition: box-shadow 0.2s, transform 0.2s;
+}
+.featured-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.12); }
+.featured-img { position: relative; height: 420px; overflow: hidden; }
+.featured-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s; }
+.featured-card:hover .featured-img img { transform: scale(1.04); }
+.featured-cat-badge { position: absolute; bottom: 16px; left: 16px; background: rgba(255,255,255,0.92); color: var(--text); font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 20px; letter-spacing: 0.06em; text-transform: uppercase; }
+.featured-body { padding: 48px 44px; display: flex; flex-direction: column; justify-content: center; background: var(--white); }
+.featured-label { font-size: 12px; font-weight: 700; color: var(--red); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 16px; }
+.featured-title { font-size: 30px; font-weight: 800; line-height: 1.2; letter-spacing: -0.5px; margin-bottom: 16px; color: var(--text); }
+.featured-excerpt { font-size: 14px; color: var(--text-muted); line-height: 1.7; margin-bottom: 28px; }
+.read-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--red); color: #fff; border: none; border-radius: 28px; padding: 12px 24px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.15s, transform 0.15s; width: fit-content; }
+.read-btn:hover { background: var(--red-dark); transform: translateX(2px); }
+.read-btn svg { width: 16px; height: 16px; }
+
+/* CATEGORY FILTERS */
+.filters-section { padding: 0 80px 40px; max-width: 1200px; margin: 0 auto; }
+.category-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.cat-pill { padding: 8px 20px; border-radius: 24px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; border: 1.5px solid var(--border); background: var(--white); color: var(--text-muted); transition: all 0.15s; }
+.cat-pill:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
+.cat-pill.active { background: var(--text); color: #fff; border-color: var(--text); }
+
+/* BLOG GRID */
+.blog-grid-wrap { padding: 0 80px 80px; max-width: 1200px; margin: 0 auto; }
+.blog-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+
+.blog-card { border-radius: var(--radius); border: 1px solid var(--border); background: var(--white); overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; }
+.blog-card:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(0,0,0,0.1); }
+.blog-card-img { position: relative; height: 220px; overflow: hidden; background: var(--bg); }
+.blog-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+.blog-card:hover .blog-card-img img { transform: scale(1.05); }
+.card-cat-badge { position: absolute; bottom: 12px; left: 12px; background: rgba(255,255,255,0.92); color: var(--text); font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 20px; letter-spacing: 0.06em; text-transform: uppercase; }
+.blog-card-body { padding: 20px 20px 24px; flex: 1; display: flex; flex-direction: column; }
+.blog-card-title { font-size: 16px; font-weight: 700; line-height: 1.3; margin-bottom: 10px; color: var(--text); letter-spacing: -0.2px; }
+.blog-card-excerpt { font-size: 13px; color: var(--text-muted); line-height: 1.6; flex: 1; margin-bottom: 16px; }
+.read-more { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--red); transition: gap 0.15s; }
+.blog-card:hover .read-more { gap: 10px; }
+.read-more svg { width: 14px; height: 14px; }
+
+.no-posts { text-align: center; padding: 60px 20px; color: var(--text-muted); grid-column: 1/-1; }
+.no-posts svg { width: 40px; height: 40px; margin-bottom: 12px; display: block; margin-left: auto; margin-right: auto; opacity: 0.3; }
+
+/* FOOTER */
+footer { background: #111; color: #fff; padding: 56px 80px 28px; }
+.footer-top { display: grid; grid-template-columns: 0.6fr repeat(4, 1fr); gap: 40px; padding-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.footer-logo { font-size: 22px; font-weight: 700; color: var(--red); }
+.footer-col h4 { font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+.footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.footer-col ul li a { font-size: 13px; color: rgba(255,255,255,0.55); transition: color 0.15s; }
+.footer-col ul li a:hover { color: #fff; }
+.footer-contact { margin-top: 32px; }
+.footer-contact h4 { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+.footer-contact p { font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.6; margin-bottom: 16px; }
+.footer-contact a { color: var(--red); }
+.social-links { display: flex; gap: 12px; }
+.social-links a { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.55); transition: all 0.15s; }
+.social-links a:hover { border-color: var(--red); color: var(--red); }
+.social-links svg { width: 15px; height: 15px; }
+.footer-bottom { text-align: center; padding-top: 20px; font-size: 12px; color: rgba(255,255,255,0.35); }
+.footer-bottom strong { color: rgba(255,255,255,0.6); }
+
+@media (max-width: 1000px) {
+  .featured-card { grid-template-columns: 1fr; }
+  .featured-img { height: 280px; }
+  .blog-grid { grid-template-columns: repeat(2, 1fr); }
+  .page-header, .featured-wrap, .filters-section, .blog-grid-wrap { padding-left: 32px; padding-right: 32px; }
+  nav { padding: 0 24px; }
+}
+@media (max-width: 640px) {
+  .blog-grid { grid-template-columns: 1fr; }
+  .nav-links { display: none; }
+  .page-header h1 { font-size: 36px; }
+  .page-header, .featured-wrap, .filters-section, .blog-grid-wrap { padding-left: 20px; padding-right: 20px; }
+  footer { padding: 40px 24px 20px; }
+  .footer-top { grid-template-columns: 1fr 1fr; }
+}
+</style>
+  <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="venly-config.js"></script>
+  <script src="venly-shared.js"></script>
+</head>
+<body>
+
+<div id="venly-nav"></div>
+<script>renderNav({ activePage: "blog", loggedIn: !!localStorage.getItem("venly_current_user") });</script>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="blog-eyebrow">The Venly blog</div>
+  <h1>Read all about it.</h1>
+  <p>Space tips, hosting guides, and the odd bit of Venly news. Grab a coffee and have a scroll.</p>
+</div>
+
+<!-- FEATURED POST -->
+<div class="featured-wrap">
+  <div class="featured-card" onclick="alert('Full blog post coming soon!')">
+    <div class="featured-img">
+      <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=900&q=80" alt="Featured post" />
+      <span class="featured-cat-badge">EVENT SPACE</span>
+    </div>
+    <div class="featured-body">
+      <div class="featured-label">Featured Read</div>
+      <div class="featured-title">How to Choose the Perfect Space for Your Next Event</div>
+      <div class="featured-excerpt">Size, location, vibe — there's a lot to think about when booking a venue. Here's a no-nonsense guide to finding a space that actually works for your event, not just one that looks good in photos.</div>
+      <button class="read-btn">
+        Read the story
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- CATEGORY FILTERS -->
+<div class="filters-section">
+  <div class="category-pills" id="cat-pills">
+    <button class="cat-pill active" onclick="filterCat('all', this)">All</button>
+    <button class="cat-pill" onclick="filterCat('event', this)">Event Spaces</button>
+    <button class="cat-pill" onclick="filterCat('meeting', this)">Meeting Spaces</button>
+    <button class="cat-pill" onclick="filterCat('shoot', this)">Shoot Locations</button>
+    <button class="cat-pill" onclick="filterCat('tips', this)">Hosting Tips</button>
+    <button class="cat-pill" onclick="filterCat('news', this)">Venly News</button>
+    <button class="cat-pill" onclick="filterCat('guides', this)">Guides</button>
+  </div>
+</div>
+
+<!-- BLOG GRID -->
+<div class="blog-grid-wrap">
+  <div class="blog-grid" id="blog-grid"></div>
+</div>
+
+<!-- FOOTER -->
+<div id="venly-footer"></div>
+<script>renderFooter();</script>
+
+<script>
+const posts = [
+  { cat: 'tips', title: '5 Things to Check Before Booking a Venue', excerpt: 'From parking to noise restrictions, these are the questions every event planner should ask before signing anything.', img: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80', badge: 'HOSTING TIPS' },
+  { cat: 'event', title: 'The Best Event Spaces in Auckland Right Now', excerpt: 'We rounded up the most unique, versatile, and downright stunning event spaces listed on Venly this month.', img: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&q=80', badge: 'EVENT SPACE' },
+  { cat: 'shoot', title: 'Why Your Next Shoot Needs a Proper Location', excerpt: 'Shooting in a carpark or your lounge isn\'t cutting it anymore. Here\'s why dedicated shoot locations are worth every cent.', img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80', badge: 'SHOOT LOCATION' },
+  { cat: 'meeting', title: 'Stop Booking Coffee Shops for Meetings', excerpt: 'Noisy, cramped, and embarrassing to clients. It\'s time to upgrade to a proper meeting space. Here\'s how to find one fast.', img: 'https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=600&q=80', badge: 'MEETING SPACE' },
+  { cat: 'guides', title: 'How to List Your Space on Venly in 10 Minutes', excerpt: 'A step-by-step walkthrough of getting your space live, looking great, and in front of the right people as fast as possible.', img: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=600&q=80', badge: 'GUIDE' },
+  { cat: 'news', title: 'Venly Launches in New Zealand', excerpt: 'We\'re live! Here\'s everything you need to know about what Venly is, who it\'s for, and where we\'re headed next.', img: 'https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=600&q=80', badge: 'VENLY NEWS' },
+  { cat: 'event', title: 'Planning a 21st? Here\'s What to Look For in a Venue', excerpt: 'It\'s one of the biggest nights of someone\'s life. Don\'t leave the venue to chance — here\'s your no-stress checklist.', img: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&q=80', badge: 'EVENT SPACE' },
+  { cat: 'tips', title: 'How Lighting Can Make or Break Your Event', excerpt: 'Harsh fluorescents or warm ambience? The difference is massive. A quick guide to getting the lighting right every time.', img: 'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=600&q=80', badge: 'HOSTING TIPS' },
+  { cat: 'shoot', title: 'Natural Light vs Studio: What\'s Right for Your Shoot?', excerpt: 'Both have their place. Knowing which suits your brief can save you hours of editing and thousands of dollars in post.', img: 'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=600&q=80', badge: 'SHOOT LOCATION' },
+];
+
+function renderPosts(filter) {
+  const grid = document.getElementById('blog-grid');
+  const filtered = filter === 'all' ? posts : posts.filter(p => p.cat === filter);
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div class="no-posts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>No posts in this category yet — check back soon!</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(p => `
+    <div class="blog-card" onclick="alert('Full blog post coming soon!')">
+      <div class="blog-card-img">
+        <img src="${p.img}" alt="${p.title}" loading="lazy" />
+        <span class="card-cat-badge">${p.badge}</span>
+      </div>
+      <div class="blog-card-body">
+        <div class="blog-card-title">${p.title}</div>
+        <div class="blog-card-excerpt">${p.excerpt}</div>
+        <span class="read-more">
+          Read more
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterCat(cat, btn) {
+  document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  renderPosts(cat);
+}
+
+renderPosts('all');
+</script>
+</body>
+</html>

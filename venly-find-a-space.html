@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<base target="_self" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Venly – Find a Space</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --red: #e03a2f;
+  --red-light: #fdf0ef;
+  --red-dark: #c2332a;
+  --text: #1a1a1a;
+  --text-muted: #6b6b6b;
+  --border: #e8e8e8;
+  --bg: #f7f7f5;
+  --white: #ffffff;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+
+body { font-family: 'Inter', sans-serif; color: var(--text); font-size: 15px; line-height: 1.6; background: var(--white); }
+a { text-decoration: none; color: inherit; }
+
+/* NAV */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 48px; height: 64px;
+}
+.logo { font-size: 22px; font-weight: 700; color: var(--red); letter-spacing: -0.5px; }
+.nav-links { display: flex; gap: 36px; list-style: none; }
+.nav-links a { color: var(--text); font-size: 14px; transition: color 0.15s; }
+.nav-links a:hover { color: var(--red); }
+.nav-right { display: flex; align-items: center; gap: 12px; }
+.nav-profile { display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 13px; cursor: pointer; }
+.avatar { width: 34px; height: 34px; border-radius: 50%; background: #e8e8e8; display: flex; align-items: center; justify-content: center; }
+.avatar svg { width: 18px; height: 18px; color: var(--text-muted); }
+.btn { border-radius: var(--radius-sm); padding: 9px 22px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; font-family: 'Inter', sans-serif; border: 2px solid var(--red); }
+.btn-primary { background: var(--red); color: #fff; }
+.btn-primary:hover { background: var(--red-dark); }
+
+/* PAGE HEADER */
+.page-header { text-align: center; padding: 56px 48px 40px; }
+.page-header h1 { font-size: 52px; font-weight: 800; color: var(--red); letter-spacing: -1.5px; margin-bottom: 16px; }
+.page-header p { font-size: 15px; color: var(--text-muted); max-width: 520px; margin: 0 auto; line-height: 1.6; }
+
+/* FILTERS */
+.filters-bar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 48px 40px;
+  max-width: 1200px; margin: 0 auto;
+  flex-wrap: wrap;
+}
+
+.search-input-wrap {
+  position: relative; flex: 1; min-width: 200px;
+}
+.search-input-wrap svg {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  width: 18px; height: 18px; color: var(--text-muted); pointer-events: none;
+}
+.search-input-wrap input {
+  width: 100%; padding: 11px 14px 11px 42px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 14px; font-family: 'Inter', sans-serif; color: var(--text);
+  background: var(--white); transition: border-color 0.15s, box-shadow 0.15s;
+}
+.search-input-wrap input:focus { outline: none; border-color: var(--red); box-shadow: 0 0 0 3px rgba(224,58,47,0.1); }
+
+.filter-select {
+  padding: 11px 36px 11px 14px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 14px; font-family: 'Inter', sans-serif; color: var(--text-muted);
+  background: var(--white); cursor: pointer; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b6b6b' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
+  min-width: 160px; transition: border-color 0.15s;
+}
+.filter-select:focus { outline: none; border-color: var(--red); }
+
+.clear-filters {
+  display: flex; align-items: center; gap: 6px;
+  background: transparent; border: none; cursor: pointer;
+  font-size: 13px; font-weight: 500; color: var(--text-muted);
+  white-space: nowrap; padding: 8px 4px; transition: color 0.15s;
+}
+.clear-filters:hover { color: var(--red); }
+.clear-filters svg { width: 16px; height: 16px; }
+
+/* RESULTS */
+.results-wrap { max-width: 1200px; margin: 0 auto; padding: 0 48px 80px; }
+
+.results-count { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+.results-count strong { color: var(--text); }
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.space-card {
+  border-radius: var(--radius); overflow: hidden;
+  border: 1px solid var(--border); background: var(--white);
+  cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+}
+.space-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
+
+.card-img { position: relative; height: 220px; overflow: hidden; background: #ddd; }
+.card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+.space-card:hover .card-img img { transform: scale(1.04); }
+
+.badge-type {
+  position: absolute; top: 12px; left: 12px;
+  background: rgba(0,0,0,0.72); color: #fff;
+  font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px;
+}
+.badge-premium {
+  position: absolute; top: 12px; right: 12px;
+  background: var(--red); color: #fff;
+  font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px;
+}
+
+.card-body { padding: 16px; }
+.card-body-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
+.card-name { font-size: 15px; font-weight: 600; color: var(--text); }
+
+.fav-btn { background: transparent; border: none; cursor: pointer; color: var(--text-muted); padding: 2px; transition: color 0.15s; flex-shrink: 0; }
+.fav-btn:hover { color: var(--red); }
+.fav-btn.active { color: var(--red); }
+.fav-btn svg { width: 20px; height: 20px; }
+
+.card-meta { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--text-muted); }
+
+/* NO RESULTS */
+.no-results { text-align: center; padding: 80px 20px; color: var(--text-muted); display: none; }
+.no-results svg { width: 48px; height: 48px; margin-bottom: 16px; color: #ccc; }
+.no-results h3 { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 8px; }
+
+/* FOOTER */
+footer { background: #111; color: #fff; padding: 48px 80px 28px; }
+.footer-top { display: grid; grid-template-columns: 0.6fr repeat(4, 1fr); gap: 40px; padding-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.footer-logo { font-size: 22px; font-weight: 700; color: var(--red); }
+.footer-col h4 { font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+.footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.footer-col ul li a { font-size: 13px; color: rgba(255,255,255,0.55); transition: color 0.15s; }
+.footer-col ul li a:hover { color: #fff; }
+.footer-bottom { text-align: center; padding-top: 20px; font-size: 12px; color: rgba(255,255,255,0.35); }
+.footer-bottom strong { color: rgba(255,255,255,0.6); }
+
+@media (max-width: 900px) {
+  .cards-grid { grid-template-columns: repeat(2, 1fr); }
+  .filters-bar { padding: 0 24px 32px; }
+  .results-wrap { padding: 0 24px 60px; }
+  nav { padding: 0 24px; }
+  .page-header { padding: 40px 24px 28px; }
+  .page-header h1 { font-size: 36px; }
+}
+@media (max-width: 600px) {
+  .cards-grid { grid-template-columns: 1fr; }
+  .nav-links { display: none; }
+  .filter-select { min-width: 120px; }
+}
+</style>
+  <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="venly-config.js"></script>
+  <script src="venly-shared.js"></script>
+</head>
+<body>
+
+<div id="venly-nav"></div>
+<script>renderNav({ activePage: "find", loggedIn: !!localStorage.getItem("venly_current_user") });</script>
+
+<div class="page-header">
+  <h1>Find a Space</h1>
+  <p>Can't find what you're looking for? Get in touch with the team at Venly using the form below — we're here to help and would love to hear from you.</p>
+</div>
+
+<div class="filters-bar">
+  <div class="search-input-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    <input type="text" id="search-input" placeholder="Search" oninput="filterCards()" />
+  </div>
+  <select class="filter-select" id="filter-type" onchange="filterCards()">
+    <option value="">Select a space</option>
+    <option>Event space</option>
+    <option>Meeting space</option>
+    <option>Shoot Location</option>
+  </select>
+  <select class="filter-select" id="filter-region" onchange="filterCards()">
+    <option value="">Select a region</option>
+    <option>Auckland</option>
+    <option>Wellington</option>
+    <option>Christchurch</option>
+  </select>
+  <select class="filter-select" id="filter-district" onchange="filterCards()">
+    <option value="">Select a district</option>
+    <option>Auckland City</option>
+    <option>North Shore</option>
+    <option>Waitakere</option>
+    <option>Manukau</option>
+  </select>
+  <select class="filter-select" id="filter-event" onchange="filterCards()">
+    <option value="">Type of event</option>
+    <optgroup label="Event Spaces">
+      <option>Wedding</option>
+      <option>18th Party</option>
+      <option>21st Party</option>
+      <option>Corporate Event</option>
+      <option>Private Party</option>
+      <option>Product Launch</option>
+      <option>Gala / Awards</option>
+      <option>Market / Expo</option>
+      <option>Live Performance</option>
+    </optgroup>
+    <optgroup label="Meeting Spaces">
+      <option>Boardroom</option>
+      <option>Workshop</option>
+      <option>Training</option>
+      <option>Conference</option>
+      <option>Interview Room</option>
+      <option>Coworking</option>
+    </optgroup>
+    <optgroup label="Shoot Locations">
+      <option>Film & TV</option>
+      <option>Photography</option>
+      <option>Commercial</option>
+      <option>Content Creation</option>
+      <option>Podcast / Recording</option>
+    </optgroup>
+  </select>
+  <button class="clear-filters" onclick="clearFilters()">
+    Clear Filters
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+  </button>
+</div>
+
+<div class="results-wrap">
+  <p class="results-count" id="results-count"><strong>8</strong> spaces found</p>
+  <div class="cards-grid" id="cards-grid"></div>
+  <div class="no-results" id="no-results">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    <h3>No spaces found</h3>
+    <p>Try adjusting your filters or search term</p>
+  </div>
+</div>
+
+<div id="venly-footer"></div>
+<script>renderFooter();</script>
+
+<script>
+const spaces = [
+  { name: "Brads – Shoot Location", type: "Shoot Location", region: "Auckland", district: "Auckland City", capacity: "1 – 100", premium: true, img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80", events: ["Photography","Commercial","Content Creation"] },
+  { name: "Brads – Meeting Space", type: "Meeting space", region: "Auckland", district: "Auckland City", capacity: "20 – 380", premium: true, img: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&q=80", events: ["Boardroom","Conference","Training","Workshop"] },
+  { name: "Brads Warehouse", type: "Event space", region: "Auckland", district: "Auckland City", capacity: "20 – 506", premium: true, img: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&q=80", events: ["Wedding","21st Party","Corporate Event","Product Launch","Gala / Awards","Live Performance"] },
+  { name: "Okahu – Meeting Space", type: "Meeting space", region: "Auckland", district: "Auckland City", capacity: "1 – 100", premium: true, img: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80", events: ["Boardroom","Conference","Interview Room","Coworking"] },
+  { name: "Okahu – Shoot Location", type: "Shoot Location", region: "Auckland", district: "Auckland City", capacity: "1 – 100", premium: true, img: "https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=600&q=80", events: ["Film & TV","Photography","Commercial","Podcast / Recording"] },
+  { name: "Okahu", type: "Event space", region: "Auckland", district: "Auckland City", capacity: "1 – 350", premium: false, img: "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=600&q=80", events: ["Wedding","21st Party","Private Party","Corporate Event","Market / Expo"] },
+  { name: "North Shore Event Space", type: "Event space", region: "Auckland", district: "North Shore", capacity: "40 – 500", premium: true, img: "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80", events: ["Corporate Event","Gala / Awards","Product Launch","18th Party","21st Party"] },
+  { name: "City Meeting Room", type: "Meeting space", region: "Auckland", district: "Auckland City", capacity: "2 – 20", premium: false, img: "https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=600&q=80", events: ["Boardroom","Interview Room","Training","Workshop"] },
+];
+
+function renderCards(list) {
+  const grid = document.getElementById('cards-grid');
+  const count = document.getElementById('results-count');
+  const noResults = document.getElementById('no-results');
+
+  if (list.length === 0) {
+    grid.innerHTML = '';
+    noResults.style.display = 'block';
+    count.innerHTML = '<strong>0</strong> spaces found';
+    return;
+  }
+
+  noResults.style.display = 'none';
+  count.innerHTML = `<strong>${list.length}</strong> space${list.length !== 1 ? 's' : ''} found`;
+
+  grid.innerHTML = list.map((s, i) => `
+    <div class="space-card">
+      <div class="card-img">
+        <img src="${s.img}" alt="${s.name}" loading="lazy" />
+        <span class="badge-type">${s.type}</span>
+        ${s.premium ? '<span class="badge-premium">Premium</span>' : ''}
+      </div>
+      <div class="card-body">
+        <div class="card-body-top">
+          <span class="card-name">${s.name}</span>
+          <button class="fav-btn" onclick="toggleFav(this)" aria-label="Save to favourites">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>
+          </button>
+        </div>
+        <div class="card-meta">
+          <span>${s.district}, ${s.region}</span>
+          <span>Capacity ${s.capacity}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterCards() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const type = document.getElementById('filter-type').value;
+  const region = document.getElementById('filter-region').value;
+  const district = document.getElementById('filter-district').value;
+
+  const event = document.getElementById('filter-event').value;
+  const filtered = spaces.filter(s => {
+    const matchSearch = !search || s.name.toLowerCase().includes(search) || s.type.toLowerCase().includes(search);
+    const matchType = !type || s.type === type;
+    const matchRegion = !region || s.region === region;
+    const matchDistrict = !district || s.district === district;
+    const matchEvent = !event || (s.events && s.events.includes(event));
+    return matchSearch && matchType && matchRegion && matchDistrict && matchEvent;
+  });
+
+  renderCards(filtered);
+}
+
+function clearFilters() {
+  document.getElementById('search-input').value = '';
+  document.getElementById('filter-type').value = '';
+  document.getElementById('filter-region').value = '';
+  document.getElementById('filter-district').value = '';
+  // Read URL params from homepage search and pre-apply filters
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var type = params.get('type');
+  var region = params.get('region');
+  if (type) {
+    var sel = document.getElementById('filter-type');
+    for (var i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value === type) { sel.selectedIndex = i; break; }
+    }
+  }
+  var eventParam = params.get('event');
+  if (eventParam) {
+    var esel = document.getElementById('filter-event');
+    for (var i = 0; i < esel.options.length; i++) {
+      if (esel.options[i].value === eventParam) { esel.selectedIndex = i; break; }
+    }
+  }
+  if (region) {
+    var sel2 = document.getElementById('filter-region');
+    for (var i = 0; i < sel2.options.length; i++) {
+      if (sel2.options[i].value === region) { sel2.selectedIndex = i; break; }
+    }
+  }
+})();
+
+renderCards(spaces);
+if (window.location.search) filterCards();
+}
+
+function toggleFav(btn) {
+  btn.classList.toggle('active');
+  const svg = btn.querySelector('svg');
+  if (btn.classList.contains('active')) {
+    svg.setAttribute('fill', '#e03a2f');
+    svg.setAttribute('stroke', '#e03a2f');
+  } else {
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+  }
+}
+
+// Read URL params from homepage search and pre-apply filters
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var type = params.get('type');
+  var region = params.get('region');
+  if (type) {
+    var sel = document.getElementById('filter-type');
+    for (var i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value === type) { sel.selectedIndex = i; break; }
+    }
+  }
+  var eventParam = params.get('event');
+  if (eventParam) {
+    var esel = document.getElementById('filter-event');
+    for (var i = 0; i < esel.options.length; i++) {
+      if (esel.options[i].value === eventParam) { esel.selectedIndex = i; break; }
+    }
+  }
+  if (region) {
+    var sel2 = document.getElementById('filter-region');
+    for (var i = 0; i < sel2.options.length; i++) {
+      if (sel2.options[i].value === region) { sel2.selectedIndex = i; break; }
+    }
+  }
+})();
+
+renderCards(spaces);
+if (window.location.search) filterCards();
+</script>
+</body>
+</html>

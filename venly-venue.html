@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Venly – Brads Warehouse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --red: #e03a2f; --red-light: #fdf0ef; --red-dark: #c2332a;
+  --text: #1a1a1a; --text-muted: #6b6b6b; --border: #e8e8e8;
+  --bg: #f7f7f5; --white: #fff; --radius: 14px; --radius-sm: 8px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+body { font-family: 'Inter', sans-serif; color: var(--text); font-size: 15px; line-height: 1.6; background: var(--white); }
+a { text-decoration: none; color: inherit; }
+
+/* NAV */
+nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 48px; height: 64px; }
+.logo { font-size: 22px; font-weight: 700; color: var(--red); letter-spacing: -0.5px; }
+.nav-links { display: flex; gap: 36px; list-style: none; }
+.nav-links a { color: var(--text); font-size: 14px; transition: color 0.15s; }
+.nav-links a:hover { color: var(--red); }
+.nav-right { display: flex; gap: 12px; align-items: center; }
+.btn { border-radius: var(--radius-sm); padding: 9px 22px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; border: 2px solid var(--red); transition: all 0.15s; }
+.btn-outline { background: transparent; color: var(--red); }
+.btn-outline:hover { background: var(--red-light); }
+.btn-primary { background: var(--red); color: #fff; border-color: var(--red); }
+.btn-primary:hover { background: var(--red-dark); }
+
+/* BREADCRUMB */
+.breadcrumb { padding: 14px 64px; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+.breadcrumb a { color: var(--text-muted); transition: color 0.15s; }
+.breadcrumb a:hover { color: var(--red); }
+.breadcrumb-sep { font-size: 11px; }
+.breadcrumb-current { color: var(--text); font-weight: 500; }
+
+/* PHOTO GALLERY */
+.gallery { display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; gap: 6px; height: 480px; padding: 0 64px; margin-bottom: 0; position: relative; }
+.gallery-main { grid-row: 1 / 3; border-radius: var(--radius) 0 0 var(--radius); overflow: hidden; cursor: pointer; position: relative; }
+.gallery-thumb { border-radius: 0; overflow: hidden; cursor: pointer; position: relative; }
+.gallery-thumb:first-of-type { border-radius: 0 var(--radius) 0 0; }
+.gallery-thumb:last-of-type { border-radius: 0 0 var(--radius) 0; }
+.gallery img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; display: block; }
+.gallery-main:hover img, .gallery-thumb:hover img { transform: scale(1.04); }
+.gallery-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0); transition: background 0.2s; }
+.gallery-main:hover .gallery-overlay, .gallery-thumb:hover .gallery-overlay { background: rgba(0,0,0,0.08); }
+.gallery-count { position: absolute; bottom: 14px; right: 14px; background: rgba(0,0,0,0.65); color: #fff; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 20px; backdrop-filter: blur(4px); }
+
+/* MAIN LAYOUT */
+.venue-wrap { max-width: 1200px; margin: 0 auto; padding: 32px 64px 80px; display: grid; grid-template-columns: 1fr 360px; gap: 40px; align-items: start; }
+
+/* LEFT COLUMN */
+/* Title row */
+.venue-title-row { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+.venue-title { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; }
+.fav-btn { background: transparent; border: 1.5px solid var(--border); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
+.fav-btn:hover { border-color: var(--red); background: var(--red-light); }
+.fav-btn.active { border-color: var(--red); background: var(--red-light); }
+.fav-btn svg { width: 20px; height: 20px; color: var(--text-muted); transition: color 0.2s; }
+.fav-btn.active svg { color: var(--red); fill: var(--red); }
+
+/* Meta pills */
+.meta-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.meta-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; background: var(--bg); border: 1px solid var(--border); color: var(--text-muted); }
+.meta-pill svg { width: 13px; height: 13px; color: var(--red); flex-shrink: 0; }
+.meta-pill.highlight { background: var(--red-light); border-color: #f5c4bf; color: var(--red); font-weight: 600; }
+
+/* Section */
+.venue-section { margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+.venue-section:last-child { border-bottom: none; margin-bottom: 0; }
+.venue-section-title { font-size: 17px; font-weight: 700; margin-bottom: 14px; }
+
+/* Description */
+.venue-desc { font-size: 15px; color: var(--text-muted); line-height: 1.8; }
+.read-more-btn { background: none; border: none; color: var(--red); font-size: 14px; font-weight: 600; cursor: pointer; padding: 0; margin-top: 8px; font-family: 'Inter', sans-serif; }
+
+/* Amenities */
+.amenities-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.amenity { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text); padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); }
+.amenity svg { width: 15px; height: 15px; color: var(--red); flex-shrink: 0; }
+
+/* Event types */
+.event-types { display: flex; flex-wrap: wrap; gap: 8px; }
+.event-chip { padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; background: var(--bg); border: 1px solid var(--border); color: var(--text); transition: all 0.15s; }
+.event-chip:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
+
+/* Host card */
+.host-card { display: flex; align-items: center; gap: 16px; padding: 20px; background: var(--bg); border-radius: var(--radius); border: 1px solid var(--border); }
+.host-avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--red); color: #fff; font-size: 20px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.host-info { flex: 1; }
+.host-name { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+.host-meta { display: flex; flex-direction: column; gap: 3px; margin-top: 6px; }
+.host-meta-row { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); }
+.host-meta-row svg { width: 13px; height: 13px; color: var(--red); flex-shrink: 0; }
+.host-badge { display: inline-flex; align-items: center; gap: 4px; background: #e8f8ee; color: #1a8a4a; border: 1px solid #b8e8c8; border-radius: 20px; font-size: 11px; font-weight: 600; padding: 2px 10px; }
+
+/* RIGHT COLUMN - ENQUIRY CARD */
+.enquiry-sticky { position: sticky; top: 80px; }
+.enquiry-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; box-shadow: 0 4px 24px rgba(0,0,0,0.09); }
+.enquiry-price { margin-bottom: 20px; }
+.enquiry-price-label { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-bottom: 4px; }
+.enquiry-price-val { font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
+.enquiry-price-val span { font-size: 14px; font-weight: 400; color: var(--text-muted); margin-left: 4px; }
+.enquiry-divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+.form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+.form-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+input, textarea, select { padding: 10px 13px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: 'Inter', sans-serif; color: var(--text); background: var(--white); transition: border-color 0.15s, box-shadow 0.15s; width: 100%; }
+input:focus, textarea:focus, select:focus { outline: none; border-color: var(--red); box-shadow: 0 0 0 3px rgba(224,58,47,0.08); }
+textarea { resize: none; min-height: 90px; }
+
+.btn-enquire { width: 100%; padding: 14px; background: var(--red); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s; margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.btn-enquire:hover { background: var(--red-dark); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(224,58,47,0.3); }
+.btn-enquire svg { width: 16px; height: 16px; }
+.enquiry-note { text-align: center; font-size: 11px; color: var(--text-muted); margin-top: 10px; }
+
+.enquiry-share { display: flex; gap: 8px; margin-top: 16px; }
+.share-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 9px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; font-weight: 500; color: var(--text-muted); cursor: pointer; background: transparent; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+.share-btn:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
+.share-btn svg { width: 14px; height: 14px; }
+
+/* SUCCESS STATE */
+.enquiry-success { display: none; text-align: center; padding: 20px 0; }
+.success-icon { width: 52px; height: 52px; background: #e8f8ee; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+.success-icon svg { width: 24px; height: 24px; color: #1a8a4a; }
+.enquiry-success h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.enquiry-success p { font-size: 13px; color: var(--text-muted); }
+
+/* SIMILAR SPACES */
+.similar-section { background: var(--bg); padding: 60px 64px; }
+.similar-title { font-size: 24px; font-weight: 800; text-align: center; margin-bottom: 6px; letter-spacing: -0.3px; }
+.similar-subtitle { text-align: center; font-size: 14px; color: var(--text-muted); margin-bottom: 36px; }
+.similar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; }
+.space-card { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); background: var(--white); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+.space-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
+.card-img { position: relative; height: 200px; overflow: hidden; }
+.card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+.space-card:hover .card-img img { transform: scale(1.04); }
+.badge-type { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.72); color: #fff; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; }
+.badge-premium { position: absolute; top: 10px; right: 10px; background: var(--red); color: #fff; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; }
+.card-body { padding: 14px 16px 16px; }
+.card-name { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.card-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); }
+.card-fav { background: none; border: none; cursor: pointer; color: var(--text-muted); float: right; transition: color 0.15s; padding: 2px; }
+.card-fav:hover { color: var(--red); }
+.card-fav svg { width: 18px; height: 18px; }
+
+/* FOOTER */
+footer { background: #111; color: #fff; padding: 56px 80px 28px; }
+.footer-top { display: grid; grid-template-columns: 0.6fr repeat(4, 1fr); gap: 40px; padding-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.footer-logo { font-size: 22px; font-weight: 700; color: var(--red); }
+.footer-col h4 { font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+.footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.footer-col ul li a { font-size: 13px; color: rgba(255,255,255,0.55); transition: color 0.15s; }
+.footer-col ul li a:hover { color: #fff; }
+.footer-contact { margin-top: 32px; }
+.footer-contact h4 { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+.footer-contact p { font-size: 13px; color: rgba(255,255,255,0.55); margin-bottom: 16px; line-height: 1.6; }
+.footer-contact a { color: var(--red); }
+.footer-social { display: flex; gap: 12px; }
+.footer-social a { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.55); transition: all 0.15s; }
+.footer-social a:hover { border-color: var(--red); color: var(--red); }
+.footer-social svg { width: 15px; height: 15px; }
+.footer-bottom { text-align: center; padding-top: 20px; font-size: 12px; color: rgba(255,255,255,0.35); }
+.footer-bottom strong { color: rgba(255,255,255,0.6); }
+
+/* LIGHTBOX */
+.lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 300; display: flex; align-items: center; justify-content: center; }
+.lightbox.hidden { display: none; }
+.lightbox-img { max-width: 90vw; max-height: 85vh; border-radius: var(--radius); object-fit: contain; }
+.lightbox-close { position: absolute; top: 20px; right: 24px; background: rgba(255,255,255,0.15); border: none; color: #fff; font-size: 28px; cursor: pointer; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+.lightbox-close:hover { background: rgba(255,255,255,0.25); }
+.lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.15); border: none; color: #fff; width: 48px; height: 48px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: background 0.15s; }
+.lightbox-nav:hover { background: rgba(255,255,255,0.25); }
+.lightbox-prev { left: 20px; }
+.lightbox-next { right: 20px; }
+.lightbox-counter { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.7); font-size: 13px; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 24px; right: 24px; background: #1a1a1a; color: #fff; padding: 12px 20px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; opacity: 0; transform: translateY(8px); transition: all 0.25s; pointer-events: none; z-index: 999; }
+.toast.show { opacity: 1; transform: translateY(0); }
+
+@media (max-width: 1000px) {
+  .gallery { grid-template-columns: 1fr 1fr; height: 360px; padding: 0 24px; }
+  .gallery-main { grid-row: 1; border-radius: var(--radius) var(--radius) 0 0; }
+  .gallery-thumb:first-of-type { border-radius: 0 0 0 var(--radius); }
+  .gallery-thumb:last-of-type { border-radius: 0 0 var(--radius) 0; }
+  .venue-wrap { grid-template-columns: 1fr; padding: 24px; }
+  .enquiry-sticky { position: static; }
+  .similar-section { padding: 40px 24px; }
+  .similar-grid { grid-template-columns: 1fr 1fr; }
+  nav { padding: 0 24px; }
+  .breadcrumb { padding: 12px 24px; }
+}
+@media (max-width: 600px) {
+  .nav-links { display: none; }
+  .gallery { grid-template-columns: 1fr; grid-template-rows: auto; height: auto; }
+  .gallery-main { height: 260px; border-radius: var(--radius); }
+  .gallery-thumb { display: none; }
+  .amenities-grid { grid-template-columns: 1fr 1fr; }
+  .similar-grid { grid-template-columns: 1fr; }
+  footer { padding: 40px 24px 20px; }
+  .footer-top { grid-template-columns: 1fr 1fr; }
+}
+</style>
+  <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="venly-config.js"></script>
+  <script src="venly-shared.js"></script>
+</head>
+<body>
+
+<div id="venly-nav"></div>
+<script>renderNav({ activePage: "venue", loggedIn: !!localStorage.getItem("venly_current_user") });</script>
+
+<div class="breadcrumb">
+  <a href="venly-home.html">Home</a>
+  <span class="breadcrumb-sep">›</span>
+  <a href="venly-find-a-space.html">Find a Space</a>
+  <span class="breadcrumb-sep">›</span>
+  <span class="breadcrumb-current">Brads Warehouse</span>
+</div>
+
+<!-- PHOTO GALLERY -->
+<div class="gallery">
+  <div class="gallery-main" onclick="openLightbox(0)">
+    <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&q=80" alt="Brads Warehouse main" />
+    <div class="gallery-overlay"></div>
+  </div>
+  <div class="gallery-thumb" onclick="openLightbox(1)">
+    <img src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80" alt="Brads Warehouse interior" />
+    <div class="gallery-overlay"></div>
+  </div>
+  <div class="gallery-thumb" onclick="openLightbox(2)">
+    <img src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&q=80" alt="Brads Warehouse setup" />
+    <div class="gallery-overlay"></div>
+    <div class="gallery-count">+4 photos</div>
+  </div>
+</div>
+
+<!-- VENUE DETAIL -->
+<div class="venue-wrap">
+
+  <!-- LEFT -->
+  <div>
+    <div class="venue-section">
+      <div class="venue-title-row">
+        <h1 class="venue-title">Brads Warehouse</h1>
+        <button class="fav-btn" id="fav-btn" onclick="toggleFav()" aria-label="Save to favourites">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>
+        </button>
+      </div>
+
+      <div class="meta-pills">
+        <span class="meta-pill highlight">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Premium listing
+        </span>
+        <span class="meta-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+          Event space
+        </span>
+        <span class="meta-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Auckland City, Auckland
+        </span>
+        <span class="meta-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          Capacity 20 – 506
+        </span>
+        <span class="meta-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+          From $350/hr
+        </span>
+      </div>
+    </div>
+
+    <div class="venue-section">
+      <div class="venue-section-title">About this space</div>
+      <div class="venue-desc" id="venue-desc">
+        Brads Warehouse is a stunning industrial-chic event space nestled in the heart of Auckland City. With its exposed brick walls, soaring ceilings, and warm Edison lighting, this versatile venue transforms effortlessly from an intimate gathering to a full-scale production.
+        <span id="desc-more" style="display:none"> Whether you're hosting a product launch, corporate gala, wedding reception, or immersive art event — Brads Warehouse delivers an atmosphere that's impossible to replicate. The space features a full commercial kitchen, a dedicated bar area, stage facilities, and loading dock access for larger productions. Our team works closely with every host to ensure your event runs flawlessly from start to finish.</span>
+      </div>
+      <button class="read-more-btn" id="read-more-btn" onclick="toggleDesc()">Read more ↓</button>
+    </div>
+
+    <div class="venue-section">
+      <div class="venue-section-title">Venue amenities</div>
+      <div class="amenities-grid">
+        <div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0114.08 0"/><path d="M1.42 9a16 16 0 0121.16 0"/><path d="M8.53 16.11a6 6 0 016.95 0"/><line x1="12" y1="20" x2="12" y2="20"/></svg>WiFi</div>
+        <div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>AV Equipment</div>
+        <div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>Projector & Screen</div>
+        <div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>Bar / Drinks</div>
+        <div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 8h1a4 4 0 010 8h-1"/><path d="M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>Kitchen / Catering</div>
+        <div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Air Conditioning</div>
+        <div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Private Entrance</div>
+        <div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>Loading Dock</div>
+        <div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>Parking Available</div>
+        <div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Stage / Performance</div>
+        <div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Security</div>
+        <div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/></svg>Natural Light</div>
+      </div>
+    </div>
+
+    <div class="venue-section">
+      <div class="venue-section-title">Suitable for</div>
+      <div class="event-types">
+        <span class="event-chip">Wedding</span>
+        <span class="event-chip">21st Party</span>
+        <span class="event-chip">Corporate Event</span>
+        <span class="event-chip">Product Launch</span>
+        <span class="event-chip">Gala / Awards</span>
+        <span class="event-chip">Market / Expo</span>
+        <span class="event-chip">Live Performance</span>
+        <span class="event-chip">Private Party</span>
+      </div>
+    </div>
+
+    <div class="venue-section">
+      <div class="venue-section-title">Host</div>
+      <div class="host-card">
+        <div class="host-avatar">BV</div>
+        <div class="host-info">
+          <div class="host-name">Braedyn Veysi <span class="host-badge">✓ Verified</span></div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Member since January 2025 · 5 listings</div>
+          <div class="host-meta">
+            <div class="host-meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.12 1.18 2 2 0 012.1 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>027 425 4550</div>
+            <div class="host-meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>braedyn@venly.co.nz</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT — ENQUIRY CARD -->
+  <div class="enquiry-sticky">
+    <div class="enquiry-card">
+      <div id="enquiry-form">
+        <div class="enquiry-price">
+          <div class="enquiry-price-label">Starting from</div>
+          <div class="enquiry-price-val">$350 <span>/ hr</span></div>
+        </div>
+        <div class="enquiry-divider"></div>
+
+        <div class="form-group">
+          <label class="form-label">Your name</label>
+          <input type="text" id="eq-name" placeholder="Jane Smith" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input type="tel" id="eq-phone" placeholder="021 000 0000" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" id="eq-email" placeholder="jane@example.com" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Message</label>
+          <textarea id="eq-message" placeholder="Tell the host about your event — date, number of guests, type of event..."></textarea>
+        </div>
+
+        <button class="btn-enquire" onclick="submitEnquiry()">
+          Enquire Now
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+        <div class="enquiry-note">No commitment — the host will get back to you within 24hrs</div>
+
+        <div class="enquiry-divider"></div>
+        <div class="enquiry-share">
+          <button class="share-btn" onclick="copyLink()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+            Copy link
+          </button>
+          <button class="share-btn" onclick="showToast('Shared to Facebook')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+            Share
+          </button>
+          <button class="share-btn" onclick="showToast('Opened in maps')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Directions
+          </button>
+        </div>
+      </div>
+
+      <div class="enquiry-success" id="enquiry-success">
+        <div class="success-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h3>Enquiry sent!</h3>
+        <p>Braedyn will be in touch within 24 hours. Check your email for a confirmation.</p>
+        <button class="read-more-btn" style="margin-top:16px" onclick="resetEnquiry()">Send another</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SIMILAR SPACES -->
+<div class="similar-section">
+  <div class="similar-title">View other spaces</div>
+  <div class="similar-subtitle">You might also like these spaces on Venly</div>
+  <div class="similar-grid">
+    <div class="space-card" onclick="window.location.href='venly-venue.html'">
+      <div class="card-img">
+        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80" alt="Okahu Meeting Space" loading="lazy" />
+        <span class="badge-type">Meeting space</span>
+        <span class="badge-premium">Premium</span>
+      </div>
+      <div class="card-body">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div class="card-name">Okahu – Meeting Space</div>
+          <button class="card-fav" onclick="event.stopPropagation();toggleCardFav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg></button>
+        </div>
+        <div class="card-meta"><span>Auckland City, Auckland</span><span>Capacity 1 – 100</span></div>
+      </div>
+    </div>
+    <div class="space-card" onclick="window.location.href='venly-venue.html'">
+      <div class="card-img">
+        <img src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&q=80" alt="Brads Meeting Space" loading="lazy" />
+        <span class="badge-type">Meeting space</span>
+        <span class="badge-premium">Premium</span>
+      </div>
+      <div class="card-body">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div class="card-name">Brads – Meeting Space</div>
+          <button class="card-fav" onclick="event.stopPropagation();toggleCardFav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg></button>
+        </div>
+        <div class="card-meta"><span>Auckland City, Auckland</span><span>Capacity 20 – 380</span></div>
+      </div>
+    </div>
+    <div class="space-card" onclick="window.location.href='venly-venue.html'">
+      <div class="card-img">
+        <img src="https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=600&q=80" alt="Okahu" loading="lazy" />
+        <span class="badge-type">Event space</span>
+      </div>
+      <div class="card-body">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div class="card-name">Okahu</div>
+          <button class="card-fav" onclick="event.stopPropagation();toggleCardFav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg></button>
+        </div>
+        <div class="card-meta"><span>Auckland City, Auckland</span><span>Capacity 1 – 350</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="venly-footer"></div>
+<script>renderFooter();</script>
+
+<!-- LIGHTBOX -->
+<div class="lightbox hidden" id="lightbox">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <button class="lightbox-nav lightbox-prev" onclick="prevPhoto()">‹</button>
+  <img class="lightbox-img" id="lightbox-img" src="" alt="" />
+  <button class="lightbox-nav lightbox-next" onclick="nextPhoto()">›</button>
+  <div class="lightbox-counter" id="lightbox-counter">1 / 3</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const photos = [
+  'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1400&q=85',
+  'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=1400&q=85',
+  'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=1400&q=85',
+  'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=85',
+  'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=1400&q=85',
+];
+let currentPhoto = 0;
+
+function openLightbox(idx) {
+  currentPhoto = idx;
+  document.getElementById('lightbox-img').src = photos[idx];
+  document.getElementById('lightbox-counter').textContent = (idx+1) + ' / ' + photos.length;
+  document.getElementById('lightbox').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+function nextPhoto() {
+  currentPhoto = (currentPhoto + 1) % photos.length;
+  document.getElementById('lightbox-img').src = photos[currentPhoto];
+  document.getElementById('lightbox-counter').textContent = (currentPhoto+1) + ' / ' + photos.length;
+}
+function prevPhoto() {
+  currentPhoto = (currentPhoto - 1 + photos.length) % photos.length;
+  document.getElementById('lightbox-img').src = photos[currentPhoto];
+  document.getElementById('lightbox-counter').textContent = (currentPhoto+1) + ' / ' + photos.length;
+}
+document.addEventListener('keydown', function(e) {
+  if (!document.getElementById('lightbox').classList.contains('hidden')) {
+    if (e.key === 'ArrowRight') nextPhoto();
+    if (e.key === 'ArrowLeft') prevPhoto();
+    if (e.key === 'Escape') closeLightbox();
+  }
+});
+
+function toggleFav() {
+  var btn = document.getElementById('fav-btn');
+  btn.classList.toggle('active');
+  showToast(btn.classList.contains('active') ? '♥ Saved to favourites' : 'Removed from favourites');
+}
+
+function toggleCardFav(btn) {
+  btn.classList.toggle('active');
+  var svg = btn.querySelector('svg');
+  if (btn.classList.contains('active')) {
+    svg.setAttribute('fill', '#e03a2f');
+    svg.setAttribute('stroke', '#e03a2f');
+    btn.style.color = '#e03a2f';
+  } else {
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    btn.style.color = '';
+  }
+}
+
+function toggleDesc() {
+  var more = document.getElementById('desc-more');
+  var btn = document.getElementById('read-more-btn');
+  if (more.style.display === 'none') {
+    more.style.display = 'inline';
+    btn.textContent = 'Read less ↑';
+  } else {
+    more.style.display = 'none';
+    btn.textContent = 'Read more ↓';
+  }
+}
+
+async function submitEnquiry() {
+  var name = document.getElementById('eq-name').value.trim();
+  var email = document.getElementById('eq-email').value.trim();
+  var phone = document.getElementById('eq-phone').value.trim();
+  var msg = document.getElementById('eq-message').value.trim();
+  if (!name) { showToast('Please enter your name'); return; }
+  if (!email || !email.includes('@')) { showToast('Please enter a valid email'); return; }
+  if (!msg) { showToast('Please add a message for the host'); return; }
+
+  if (SUPABASE_READY) {
+    // Get venue ID from URL param or page data
+    var params = new URLSearchParams(window.location.search);
+    var venueId = params.get('id');
+    if (venueId) {
+      await sb.from('enquiries').insert({
+        venue_id: venueId,
+        name: name,
+        email: email,
+        phone: phone,
+        message: msg,
+        status: 'open'
+      });
+    }
+  }
+
+  // Show success regardless (demo or live)
+  document.getElementById('enquiry-form').style.display = 'none';
+  document.getElementById('enquiry-success').style.display = 'block';
+}
+
+function resetEnquiry() {
+  document.getElementById('eq-name').value = '';
+  document.getElementById('eq-phone').value = '';
+  document.getElementById('eq-email').value = '';
+  document.getElementById('eq-message').value = '';
+  document.getElementById('enquiry-form').style.display = 'block';
+  document.getElementById('enquiry-success').style.display = 'none';
+}
+
+function copyLink() {
+  navigator.clipboard.writeText(window.location.href).then(function() {
+    showToast('Link copied to clipboard!');
+  }).catch(function() {
+    showToast('Link copied!');
+  });
+}
+
+var toastTimer;
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() { t.classList.remove('show'); }, 3000);
+}
+</script>
+</body>
+</html>
