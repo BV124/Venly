@@ -121,12 +121,51 @@ nav { background: var(--white); border-bottom: 1px solid var(--border); display:
 .toast { position: fixed; bottom: 24px; right: 24px; background: #1a1a1a; color: #fff; padding: 12px 20px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; opacity: 0; transform: translateY(8px); transition: all 0.25s; pointer-events: none; z-index: 999; }
 .toast.show { opacity: 1; transform: translateY(0); }
 
-@media (max-width: 500px) {
-  nav { padding: 0 20px; }
+@media (max-width: 600px) {
+  .auth-wrap { padding: 16px; align-items: flex-start; padding-top: 24px; }
+  .auth-card { border-radius: 16px; }
   .auth-panel { padding: 24px 20px; }
+  .auth-heading { font-size: 20px; }
   .form-row-2 { grid-template-columns: 1fr; }
-  .role-grid { grid-template-columns: 1fr; }
+  .auth-tab { font-size: 13px; padding: 14px; }
+  .social-btn { font-size: 13px; padding: 11px; }
+  .btn-submit { font-size: 14px; padding: 13px; }
+  nav { padding: 0 16px; }
+  .nav-back span { display: none; }
 }
+@media (max-width: 380px) {
+  .auth-panel { padding: 20px 16px; }
+  .auth-heading { font-size: 18px; }
+}
+
+/* ============================================================
+   MOBILE RESPONSIVE — covers all screen sizes
+   ============================================================ */
+
+/* Shared mobile nav */
+@media (max-width: 768px) {
+  nav {
+    padding: 0 20px;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-links { display: none !important; }
+  .logo { font-size: 20px; }
+  .nav-right { gap: 8px; }
+  .nav-right .btn, .nav-right button {
+    padding: 7px 12px !important;
+    font-size: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Hide secondary nav buttons, keep only essential */
+  .nav-right .btn-outline { display: none; }
+  .nav-right .btn-primary { padding: 7px 14px !important; font-size: 12px !important; }
+}
+
 </style>
   <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

@@ -20,7 +20,7 @@ function renderNav(options) {
     : 'BV';
 
   var links = [
-    { href: 'venly-home.html',        label: 'Home',         key: 'home' },
+    { href: 'index.html',        label: 'Home',         key: 'home' },
     { href: 'venly-find-a-space.html',label: 'Find a Space', key: 'find' },
     { href: 'venly-contact.html',     label: 'Contact',      key: 'contact' },
     { href: 'venly-blog.html',        label: 'Blog',         key: 'blog' },
@@ -44,7 +44,7 @@ function renderNav(options) {
       '</div>';
 
   var navHTML = '<nav>' +
-    '<a class="logo" href="venly-home.html">Venly.</a>' +
+    '<a class="logo" href="index.html">Venly.</a>' +
     '<ul class="nav-links">' + navLinks + '</ul>' +
     navRight +
     '</nav>';
@@ -83,7 +83,7 @@ function renderFooter() {
       '<div class="footer-col">' +
         '<h4>Discover</h4>' +
         '<ul>' +
-          '<li><a href="venly-home.html">Home</a></li>' +
+          '<li><a href="index.html">Home</a></li>' +
           '<li><a href="venly-find-a-space.html">Find a Space</a></li>' +
           '<li><a href="venly-blog.html">Blog</a></li>' +
         '</ul>' +

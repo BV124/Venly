@@ -193,6 +193,85 @@ tbody tr:last-child td { border-bottom: none; }
 .modal-form-group input, .modal-form-group select, .modal-form-group textarea { padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-family: 'Inter', sans-serif; color: var(--text); }
 .modal-form-group input:focus, .modal-form-group select:focus, .modal-form-group textarea:focus { outline: none; border-color: var(--red); }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+/* ============================================================
+   MOBILE RESPONSIVE — covers all screen sizes
+   ============================================================ */
+
+/* Shared mobile nav */
+@media (max-width: 768px) {
+  nav {
+    padding: 0 20px;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-links { display: none !important; }
+  .logo { font-size: 20px; }
+  .nav-right { gap: 8px; }
+  .nav-right .btn, .nav-right button {
+    padding: 7px 12px !important;
+    font-size: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Hide secondary nav buttons, keep only essential */
+  .nav-right .btn-outline { display: none; }
+  .nav-right .btn-primary { padding: 7px 14px !important; font-size: 12px !important; }
+}
+
+
+@media (max-width: 900px) {
+  .sidebar { width: 180px; }
+  .main { margin-left: 180px; padding: 20px 20px 60px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .two-col, .analytics-grid { grid-template-columns: 1fr; }
+  .crm-pipeline { grid-template-columns: repeat(2, 1fr); }
+  .filter-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 700px) {
+  /* Collapse sidebar to icon-only bottom bar on mobile */
+  .sidebar {
+    position: fixed; top: auto; bottom: 0; left: 0; right: 0;
+    width: 100%; height: 56px; flex-direction: row;
+    overflow-x: auto; overflow-y: hidden;
+    padding: 6px 8px; border-right: none;
+    border-top: 1px solid var(--border); z-index: 90;
+    scrollbar-width: none;
+  }
+  .sidebar::-webkit-scrollbar { display: none; }
+  .sidebar-section { display: none; }
+  .nav-item { flex-direction: column; gap: 2px; padding: 6px 10px; flex-shrink: 0; font-size: 10px; min-width: 56px; justify-content: center; align-items: center; }
+  .nav-item svg { width: 18px; height: 18px; }
+  .nav-item::before { display: none; }
+  .nav-badge-count { position: absolute; top: 4px; right: 6px; font-size: 9px; padding: 1px 5px; }
+  .main { margin-left: 0; margin-top: 56px; padding: 16px 16px 80px; }
+  /* Nav */
+  nav { padding: 0 16px; }
+  nav .logo { font-size: 18px; }
+  .nav-badge { display: none; }
+  /* Stats */
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat-value { font-size: 22px; }
+  .stat-card { padding: 14px 16px; }
+  /* Tables */
+  .table-card-header { flex-direction: column; gap: 10px; align-items: flex-start; }
+  .search-input { width: 100%; }
+  /* CRM */
+  .crm-pipeline { grid-template-columns: 1fr; }
+  /* Filters */
+  .filter-grid { grid-template-columns: 1fr; }
+  /* Charts */
+  .two-col, .analytics-grid, .three-col { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .section-title { font-size: 17px; }
+  table { font-size: 12px; }
+  thead th, tbody td { padding: 8px 10px; }
+}
 </style>
   <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -204,7 +283,7 @@ tbody tr:last-child td { border-bottom: none; }
 <!-- NAV -->
 <nav>
   <div style="display:flex;align-items:center;gap:12px">
-    <a class="logo" href="venly-home.html">Venly.</a>
+    <a class="logo" href="index.html">Venly.</a>
     <span class="nav-badge">Admin</span>
   </div>
   <div class="nav-right">

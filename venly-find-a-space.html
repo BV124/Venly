@@ -159,17 +159,54 @@ footer { background: #111; color: #fff; padding: 48px 80px 28px; }
 
 @media (max-width: 900px) {
   .cards-grid { grid-template-columns: repeat(2, 1fr); }
-  .filters-bar { padding: 0 24px 32px; }
-  .results-wrap { padding: 0 24px 60px; }
-  nav { padding: 0 24px; }
-  .page-header { padding: 40px 24px 28px; }
+  .filters-bar { padding: 0 20px 24px; flex-wrap: wrap; gap: 8px; }
+  .results-wrap { padding: 0 20px 60px; }
+  nav { padding: 0 20px; }
+  .page-header { padding: 32px 20px 20px; }
   .page-header h1 { font-size: 36px; }
 }
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .cards-grid { grid-template-columns: 1fr; }
-  .nav-links { display: none; }
-  .filter-select { min-width: 120px; }
+  .page-header h1 { font-size: 28px; }
+  .page-header p { font-size: 14px; }
+  /* Stack filters vertically */
+  .filters-bar { flex-direction: column; align-items: stretch; }
+  .search-input-wrap { width: 100%; }
+  .filter-select { width: 100%; min-width: unset; }
+  .clear-filters { align-self: flex-end; }
+  /* Cards */
+  .card-img { height: 180px; }
+  .card-name { font-size: 14px; }
 }
+
+/* ============================================================
+   MOBILE RESPONSIVE — covers all screen sizes
+   ============================================================ */
+
+/* Shared mobile nav */
+@media (max-width: 768px) {
+  nav {
+    padding: 0 20px;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-links { display: none !important; }
+  .logo { font-size: 20px; }
+  .nav-right { gap: 8px; }
+  .nav-right .btn, .nav-right button {
+    padding: 7px 12px !important;
+    font-size: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Hide secondary nav buttons, keep only essential */
+  .nav-right .btn-outline { display: none; }
+  .nav-right .btn-primary { padding: 7px 14px !important; font-size: 12px !important; }
+}
+
 </style>
   <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

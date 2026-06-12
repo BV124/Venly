@@ -185,27 +185,71 @@ footer { background: #111; color: #fff; padding: 56px 80px 28px; }
 .toast.show { opacity: 1; transform: translateY(0); }
 
 @media (max-width: 1000px) {
-  .gallery { grid-template-columns: 1fr 1fr; height: 360px; padding: 0 24px; }
-  .gallery-main { grid-row: 1; border-radius: var(--radius) var(--radius) 0 0; }
-  .gallery-thumb:first-of-type { border-radius: 0 0 0 var(--radius); }
-  .gallery-thumb:last-of-type { border-radius: 0 0 var(--radius) 0; }
-  .venue-wrap { grid-template-columns: 1fr; padding: 24px; }
+  .gallery { grid-template-columns: 2fr 1fr; height: 340px; padding: 0 20px; }
+  .venue-wrap { grid-template-columns: 1fr; padding: 20px 20px 60px; gap: 24px; }
   .enquiry-sticky { position: static; }
-  .similar-section { padding: 40px 24px; }
-  .similar-grid { grid-template-columns: 1fr 1fr; }
-  nav { padding: 0 24px; }
-  .breadcrumb { padding: 12px 24px; }
+  .similar-section { padding: 40px 20px; }
+  .similar-grid { grid-template-columns: repeat(2, 1fr); }
+  nav { padding: 0 20px; }
+  .breadcrumb { padding: 10px 20px; font-size: 12px; }
 }
-@media (max-width: 600px) {
-  .nav-links { display: none; }
-  .gallery { grid-template-columns: 1fr; grid-template-rows: auto; height: auto; }
-  .gallery-main { height: 260px; border-radius: var(--radius); }
+@media (max-width: 680px) {
+  .gallery { grid-template-columns: 1fr; grid-template-rows: auto; height: auto; padding: 0; }
+  .gallery-main { height: 240px; border-radius: 0; }
   .gallery-thumb { display: none; }
-  .amenities-grid { grid-template-columns: 1fr 1fr; }
+  .venue-title { font-size: 22px; }
+  .meta-pills { gap: 6px; }
+  .meta-pill { font-size: 12px; padding: 4px 10px; }
+  .venue-section-title { font-size: 15px; }
+  .amenities-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .amenity { font-size: 12px; padding: 7px 10px; }
+  .host-card { flex-direction: column; text-align: center; align-items: center; }
+  .host-meta { align-items: center; }
+  /* Enquiry card */
+  .enquiry-card { border-radius: 12px; padding: 20px; }
+  .enquiry-price-val { font-size: 22px; }
+  .enquiry-share { gap: 6px; }
+  .share-btn { font-size: 11px; padding: 8px 6px; }
   .similar-grid { grid-template-columns: 1fr; }
-  footer { padding: 40px 24px 20px; }
+  .similar-section { padding: 32px 16px; }
+  .similar-title { font-size: 20px; }
+  footer { padding: 40px 20px 20px; }
   .footer-top { grid-template-columns: 1fr 1fr; }
 }
+@media (max-width: 400px) {
+  .amenities-grid { grid-template-columns: 1fr; }
+  .footer-top { grid-template-columns: 1fr; }
+  .event-chip { font-size: 12px; padding: 5px 12px; }
+}
+
+/* ============================================================
+   MOBILE RESPONSIVE — covers all screen sizes
+   ============================================================ */
+
+/* Shared mobile nav */
+@media (max-width: 768px) {
+  nav {
+    padding: 0 20px;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-links { display: none !important; }
+  .logo { font-size: 20px; }
+  .nav-right { gap: 8px; }
+  .nav-right .btn, .nav-right button {
+    padding: 7px 12px !important;
+    font-size: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Hide secondary nav buttons, keep only essential */
+  .nav-right .btn-outline { display: none; }
+  .nav-right .btn-primary { padding: 7px 14px !important; font-size: 12px !important; }
+}
+
 </style>
   <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -218,7 +262,7 @@ footer { background: #111; color: #fff; padding: 56px 80px 28px; }
 <script>renderNav({ activePage: "venue", loggedIn: !!localStorage.getItem("venly_current_user") });</script>
 
 <div class="breadcrumb">
-  <a href="venly-home.html">Home</a>
+  <a href="index.html">Home</a>
   <span class="breadcrumb-sep">›</span>
   <a href="venly-find-a-space.html">Find a Space</a>
   <span class="breadcrumb-sep">›</span>

@@ -150,6 +150,35 @@ footer { background: #111; color: #fff; padding: 56px 80px 28px; }
   .form-row { grid-template-columns: 1fr; }
   .card { padding: 28px 24px; }
 }
+
+/* ============================================================
+   MOBILE RESPONSIVE — covers all screen sizes
+   ============================================================ */
+
+/* Shared mobile nav */
+@media (max-width: 768px) {
+  nav {
+    padding: 0 20px;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-links { display: none !important; }
+  .logo { font-size: 20px; }
+  .nav-right { gap: 8px; }
+  .nav-right .btn, .nav-right button {
+    padding: 7px 12px !important;
+    font-size: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Hide secondary nav buttons, keep only essential */
+  .nav-right .btn-outline { display: none; }
+  .nav-right .btn-primary { padding: 7px 14px !important; font-size: 12px !important; }
+}
+
 </style>
   <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
