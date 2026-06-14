@@ -84,7 +84,48 @@ nav {
   box-shadow: 0 20px 56px rgba(224,58,47,0.18);
   background: var(--red);
   border-color: var(--red);
-  color: #fff;
+}
+.plan-card:hover .plan-name,
+.plan-card:hover .plan-price-main,
+.plan-card:hover .plan-price-free {
+  color: #fff !important;
+}
+.plan-card:hover .plan-price-strikethrough {
+  color: rgba(255,255,255,0.6) !important;
+  text-decoration: line-through;
+}
+.plan-card:hover .plan-subtitle,
+.plan-card:hover .plan-subtitle span {
+  color: rgba(255,255,255,0.7) !important;
+}
+.plan-card:hover .plan-divider {
+  background: rgba(255,255,255,0.2) !important;
+}
+.plan-card:hover .feature-row {
+  border-bottom-color: rgba(255,255,255,0.15) !important;
+}
+.plan-card:hover .feature-name {
+  color: #fff !important;
+}
+.plan-card:hover .feature-name.disabled {
+  color: rgba(255,255,255,0.45) !important;
+}
+.plan-card:hover .check-icon {
+  color: #fff !important;
+  stroke: #fff !important;
+}
+.plan-card:hover .cross-icon {
+  color: rgba(255,255,255,0.4) !important;
+  stroke: rgba(255,255,255,0.4) !important;
+}
+.plan-card:hover .btn-plan-solid {
+  background: #fff !important;
+  color: var(--red) !important;
+}
+.plan-card:hover .btn-plan-outline {
+  background: transparent !important;
+  color: #fff !important;
+  border-color: rgba(255,255,255,0.5) !important;
 }
 
 .plan-header { padding: 28px 28px 20px; }
