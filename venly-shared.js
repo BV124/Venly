@@ -190,31 +190,30 @@ function renderFooter() {
       <a href="index.html" class="vf-link">Home</a>
       <a href="venly-find-a-space.html" class="vf-link">Find a Space</a>
       <a href="venly-blog.html" class="vf-link">Blog</a>
-      <a href="venly-contact.html" class="vf-link">Contact</a>
     </div>
 
     <!-- LIST A SPACE -->
     <div>
       <span class="vf-col-heading">List a Space</span>
-      <a href="venly-listing-fees.html" class="vf-link">How It Works</a>
       <a href="venly-listing-fees.html" class="vf-link">Pricing &amp; Plans</a>
+      <a href="venly-listing-fees.html" class="vf-link">How It Works</a>
       <a href="venly-listing-fees.html" class="vf-link">List Your Space</a>
     </div>
 
-    <!-- ACCOUNT -->
+    <!-- SUPPORT -->
     <div>
-      <span class="vf-col-heading">Account</span>
-      <button class="vf-link" onclick="handleFooterAccount()">${loggedIn ? 'My Dashboard' : 'Sign Up Free'}</button>
-      <button class="vf-link" onclick="handleFooterLogin()">${loggedIn ? 'Log Out' : 'Log In'}</button>
-      <a href="venly-contact.html" class="vf-link">Support</a>
+      <span class="vf-col-heading">Support</span>
+      <button class="vf-link" onclick="handleFooterAccount()">Account</button>
+      <a href="venly-contact.html" class="vf-link">Contact Us</a>
+      <a href="#" class="vf-link">Terms &amp; Conditions</a>
     </div>
 
-    <!-- LEGAL -->
+    <!-- QUICK SEARCH -->
     <div>
-      <span class="vf-col-heading">Legal</span>
-      <a href="#" class="vf-link">Terms &amp; Conditions</a>
-      <a href="#" class="vf-link">Privacy Policy</a>
-      <a href="#" class="vf-link">Cookie Policy</a>
+      <span class="vf-col-heading">Quick Search</span>
+      <a href="venly-find-a-space.html?region=Auckland" class="vf-link">Auckland Spaces</a>
+      <a href="venly-find-a-space.html?region=Wellington" class="vf-link">Wellington Spaces</a>
+      <a href="venly-find-a-space.html?region=Hamilton" class="vf-link">Hamilton Spaces</a>
     </div>
 
   </div>
@@ -239,7 +238,7 @@ function handleFooterAccount() {
   if (user) {
     window.location.href = 'venly-dashboard.html';
   } else {
-    window.location.href = 'venly-auth.html?tab=signup';
+    window.location.href = 'venly-auth.html';
   }
 }
 
