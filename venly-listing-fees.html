@@ -285,6 +285,83 @@ nav {
 .btn-popup-outline:hover { background: var(--red-light); }
 .auth-popup-note { font-size: 12px; color: #aaa; margin-top: 12px; }
 
+
+/* ── LISTING FEES MOBILE ─────────────────────── */
+@media (max-width: 860px) {
+  .pricing-section { padding: 24px 20px 48px; }
+  .plans-grid {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+    margin: 0 auto;
+    gap: 20px;
+  }
+  .page-header { padding: 32px 20px 24px; }
+  .page-header h1 { font-size: 34px; }
+  .faq-section { padding: 40px 20px; }
+  .faq-inner { max-width: 100%; }
+}
+
+@media (max-width: 540px) {
+  .page-header { padding: 24px 16px 20px; }
+  .page-header h1 { font-size: 26px; letter-spacing: -0.5px; }
+  .page-header p { font-size: 14px; }
+
+  /* Tabs scroll horizontally */
+  .type-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    justify-content: flex-start;
+    gap: 8px;
+    padding-bottom: 2px;
+  }
+  .type-tabs::-webkit-scrollbar { display: none; }
+  .type-tab {
+    flex-shrink: 0;
+    font-size: 13px;
+    padding: 9px 18px;
+    white-space: nowrap;
+  }
+
+  /* Cards full width, comfortable */
+  .pricing-section { padding: 20px 16px 40px; }
+  .plans-grid { max-width: 100%; gap: 16px; }
+  .plan-card { border-radius: 16px; }
+
+  /* Card header */
+  .plan-header { padding: 22px 20px 16px; }
+  .plan-name { font-size: 22px; }
+  .plan-price-main { font-size: 26px; }
+  .plan-price-gst { font-size: 10px; }
+  .plan-subtitle { font-size: 12px; }
+
+  /* Divider */
+  .plan-divider { margin: 0 20px; }
+
+  /* Features */
+  .plan-features { padding: 8px 20px 4px; }
+  .feature-row { padding: 13px 0; font-size: 14px; }
+
+  /* Button */
+  .plan-footer { padding: 16px 20px 22px; }
+  .btn-plan { padding: 14px; font-size: 15px; border-radius: 10px; }
+
+  /* FAQ */
+  .faq-section { padding: 32px 16px; }
+  .faq-title { font-size: 22px; margin-bottom: 20px; }
+  .faq-question { padding: 15px 16px; font-size: 14px; }
+  .faq-answer { font-size: 13px; }
+}
+
+@media (max-width: 360px) {
+  .page-header h1 { font-size: 22px; }
+  .plan-name { font-size: 20px; }
+  .plan-price-main { font-size: 22px; }
+  .feature-row { font-size: 13px; }
+}
+
 </style>
   <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
