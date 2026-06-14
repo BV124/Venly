@@ -127,6 +127,11 @@ nav {
   color: #fff !important;
   border-color: rgba(255,255,255,0.5) !important;
 }
+.plan-card:hover .plan-price-gst {
+  color: rgba(255,255,255,0.8) !important;
+  background: rgba(255,255,255,0.15) !important;
+  border-color: rgba(255,255,255,0.2) !important;
+}
 
 .plan-header { padding: 28px 28px 20px; }
 .plan-header-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 4px; }
@@ -137,9 +142,20 @@ nav {
 .plan-price { text-align: right; }
 .plan-price-main { font-size: 26px; font-weight: 700; color: var(--navy); }
 .plan-card.featured .plan-price-main { color: #fff; }
-.plan-price-strikethrough { font-size: 16px; font-weight: 500; text-decoration: line-through; opacity: 0.6; margin-right: 4px; }
-.plan-price-free { font-size: 22px; font-weight: 700; color: var(--navy); }
-.plan-card.featured .plan-price-free { color: #fff; }
+.plan-price-gst {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2px 7px;
+  margin-left: 6px;
+  vertical-align: middle;
+  letter-spacing: 0.03em;
+  position: relative;
+  top: -2px;
+}
 
 .plan-subtitle { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); margin-top: 4px; }
 .plan-card.featured .plan-subtitle { color: rgba(255,255,255,0.75); }
@@ -360,7 +376,7 @@ nav {
 const plans = {
   event: [
     {
-      name: 'Basic', price: null, strikethrough: '$39', freeLabel: 'Free*',
+      name: 'Basic', price: '$39', strikethrough: null, freeLabel: null,
       subtitle: 'Event Space', perMonth: 'Per month',
       featured: false,
       features: [
@@ -404,7 +420,7 @@ const plans = {
   ],
   meeting: [
     {
-      name: 'Basic', price: null, strikethrough: '$29', freeLabel: 'Free*',
+      name: 'Basic', price: '$29', strikethrough: null, freeLabel: null,
       subtitle: 'Meeting Space', perMonth: 'Per month',
       featured: false,
       features: [
@@ -448,7 +464,7 @@ const plans = {
   ],
   shoot: [
     {
-      name: 'Basic', price: null, strikethrough: '$29', freeLabel: 'Free*',
+      name: 'Basic', price: '$19', strikethrough: null, freeLabel: null,
       subtitle: 'Shoot Location', perMonth: 'Per month',
       featured: false,
       features: [
@@ -503,10 +519,7 @@ function renderPlans(type) {
         <div class="plan-header-top">
           <span class="plan-name">${p.name}</span>
           <div class="plan-price">
-            ${p.freeLabel
-              ? `<span class="plan-price-strikethrough">${p.strikethrough}</span><span class="plan-price-free">${p.freeLabel}</span>`
-              : `<span class="plan-price-main">${p.price}</span>`
-            }
+            <span class="plan-price-main">${p.price}</span><span class="plan-price-gst">+GST</span>
           </div>
         </div>
         <div class="plan-subtitle">
