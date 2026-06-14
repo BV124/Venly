@@ -183,7 +183,7 @@ footer { background: #111; color: #fff; padding: 56px 80px 28px; }
 
 <!-- FEATURED POST -->
 <div class="featured-wrap">
-  <div class="featured-card" onclick="alert('Full blog post coming soon!')">
+  <div class="featured-card" onclick="window.location.href='venly-blog-post.html?id=0'">
     <div class="featured-img">
       <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=900&q=80" alt="Featured post" />
       <span class="featured-cat-badge">EVENT SPACE</span>
@@ -245,7 +245,7 @@ function renderPosts(filter) {
   }
 
   grid.innerHTML = filtered.map(p => `
-    <div class="blog-card" onclick="alert('Full blog post coming soon!')">
+    <div class="blog-card" onclick="window.location.href='venly-blog-post.html?id=' + filtered.indexOf(p)">
       <div class="blog-card-img">
         <img src="${p.img}" alt="${p.title}" loading="lazy" />
         <span class="card-cat-badge">${p.badge}</span>

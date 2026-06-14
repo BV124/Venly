@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Venly – Blog</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="venly-config.js"></script>
+<script src="venly-shared.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --red: #e03a2f; --red-light: #fdf0ef; --red-dark: #c2332a;
+  --text: #1a1a1a; --text-muted: #6b6b6b; --border: #e8e8e8;
+  --bg: #f7f7f5; --white: #fff; --radius: 12px; --radius-sm: 8px;
+}
+body { font-family: 'Inter', sans-serif; color: var(--text); background: var(--white); font-size: 15px; line-height: 1.6; }
+nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 48px; height: 64px; }
+.logo { font-size: 22px; font-weight: 700; color: var(--red); letter-spacing: -0.5px; text-decoration: none; }
+.nav-links { display: flex; gap: 36px; list-style: none; }
+.nav-links a { color: var(--text); font-size: 14px; text-decoration: none; transition: color 0.15s; }
+.nav-links a:hover { color: var(--red); }
+.nav-right { display: flex; gap: 12px; }
+.btn { border-radius: var(--radius-sm); padding: 9px 22px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; border: 2px solid var(--red); transition: all 0.15s; }
+.btn-outline { background: transparent; color: var(--red); }
+.btn-primary { background: var(--red); color: #fff; }
+.btn-primary:hover { background: var(--red-dark); }
+
+/* BREADCRUMB */
+.breadcrumb { padding: 14px 64px; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+.breadcrumb a { color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
+.breadcrumb a:hover { color: var(--red); }
+
+/* HERO IMAGE */
+.post-hero { width: 100%; max-height: 480px; overflow: hidden; }
+.post-hero img { width: 100%; height: 480px; object-fit: cover; display: block; }
+
+/* LAYOUT */
+.post-wrap { max-width: 1100px; margin: 0 auto; padding: 48px 64px 80px; display: grid; grid-template-columns: 1fr 300px; gap: 60px; align-items: start; }
+
+/* ARTICLE */
+.post-cat { display: inline-block; background: var(--red-light); color: var(--red); font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 16px; border: 1px solid #f5c4bf; }
+.post-title { font-size: 36px; font-weight: 800; letter-spacing: -1px; line-height: 1.15; margin-bottom: 16px; }
+.post-meta { display: flex; align-items: center; gap: 16px; font-size: 13px; color: var(--text-muted); margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+.post-meta-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--border); }
+.post-body { font-size: 16px; line-height: 1.85; color: #2a2a2a; }
+.post-body h2 { font-size: 22px; font-weight: 700; margin: 36px 0 14px; letter-spacing: -0.3px; }
+.post-body h3 { font-size: 18px; font-weight: 600; margin: 28px 0 12px; }
+.post-body p { margin-bottom: 20px; }
+.post-body ul, .post-body ol { margin: 0 0 20px 24px; }
+.post-body li { margin-bottom: 8px; }
+.post-body blockquote { border-left: 4px solid var(--red); padding: 16px 20px; background: var(--red-light); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin: 28px 0; font-style: italic; color: var(--text-muted); }
+.post-body strong { font-weight: 700; color: var(--text); }
+
+/* SHARE */
+.post-share { margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+.share-label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+.share-btn { display: flex; align-items: center; gap: 6px; padding: 8px 16px; border: 1.5px solid var(--border); border-radius: 20px; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; background: transparent; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+.share-btn:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
+.share-btn svg { width: 14px; height: 14px; }
+
+/* SIDEBAR */
+.sidebar-sticky { position: sticky; top: 80px; }
+.sidebar-card { background: var(--bg); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; border: 1px solid var(--border); }
+.sidebar-card h3 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 16px; }
+.related-post { display: flex; gap: 12px; margin-bottom: 16px; cursor: pointer; padding-bottom: 16px; border-bottom: 1px solid var(--border); text-decoration: none; color: inherit; }
+.related-post:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+.related-img { width: 64px; height: 64px; border-radius: var(--radius-sm); overflow: hidden; flex-shrink: 0; }
+.related-img img { width: 100%; height: 100%; object-fit: cover; }
+.related-title { font-size: 13px; font-weight: 600; line-height: 1.4; margin-bottom: 4px; }
+.related-cat { font-size: 11px; color: var(--text-muted); }
+.cta-card { background: var(--red); color: #fff; border-radius: var(--radius); padding: 24px; text-align: center; }
+.cta-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+.cta-card p { font-size: 13px; opacity: 0.85; margin-bottom: 16px; line-height: 1.5; }
+.btn-white { background: #fff; color: var(--red); border: none; border-radius: var(--radius-sm); padding: 10px 20px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; width: 100%; transition: all 0.15s; }
+.btn-white:hover { background: var(--red-light); }
+
+/* MORE POSTS */
+.more-posts { background: var(--bg); padding: 60px 64px; }
+.more-title { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+.more-subtitle { font-size: 14px; color: var(--text-muted); margin-bottom: 32px; }
+.more-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; }
+.blog-card { border-radius: var(--radius); border: 1px solid var(--border); background: var(--white); overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+.blog-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,0.09); }
+.blog-card-img { height: 180px; overflow: hidden; position: relative; }
+.blog-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+.blog-card:hover .blog-card-img img { transform: scale(1.04); }
+.card-cat-badge { position: absolute; bottom: 10px; left: 10px; background: rgba(255,255,255,0.92); font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em; }
+.blog-card-body { padding: 16px; }
+.blog-card-title { font-size: 14px; font-weight: 700; line-height: 1.35; margin-bottom: 8px; }
+.blog-card-excerpt { font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px; }
+.read-more { font-size: 12px; font-weight: 600; color: var(--red); display: flex; align-items: center; gap: 4px; }
+
+/* FOOTER */
+footer { background: #111; color: #fff; }
+
+/* MOBILE */
+@media (max-width: 900px) {
+  .post-wrap { grid-template-columns: 1fr; padding: 32px 24px 60px; gap: 32px; }
+  .breadcrumb { padding: 12px 24px; }
+  .post-title { font-size: 26px; }
+  .post-body { font-size: 15px; }
+  .more-posts { padding: 40px 24px; }
+  .more-grid { grid-template-columns: 1fr 1fr; }
+  nav { padding: 0 20px; }
+}
+@media (max-width: 600px) {
+  .post-hero img { height: 240px; }
+  .post-title { font-size: 22px; }
+  .more-grid { grid-template-columns: 1fr; }
+  .nav-links { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div id="venly-nav"></div>
+<script>renderNav({ activePage: 'blog', loggedIn: !!localStorage.getItem('venly_current_user') });</script>
+
+<div class="breadcrumb">
+  <a href="index.html">Home</a>
+  <span>›</span>
+  <a href="venly-blog.html">Blog</a>
+  <span>›</span>
+  <span id="breadcrumb-title" style="color:var(--text);font-weight:500">Loading...</span>
+</div>
+
+<div class="post-hero">
+  <img id="post-hero-img" src="" alt="" />
+</div>
+
+<div class="post-wrap">
+  <article>
+    <span class="post-cat" id="post-cat">Category</span>
+    <h1 class="post-title" id="post-title">Loading...</h1>
+    <div class="post-meta">
+      <span id="post-date">Jun 2025</span>
+      <span class="post-meta-dot"></span>
+      <span id="post-read">5 min read</span>
+      <span class="post-meta-dot"></span>
+      <span>By Venly Team</span>
+    </div>
+    <div class="post-body" id="post-body"></div>
+    <div class="post-share">
+      <span class="share-label">Share</span>
+      <button class="share-btn" onclick="copyLink()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        Copy link
+      </button>
+      <button class="share-btn" onclick="showToast('Shared!')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+        Facebook
+      </button>
+    </div>
+  </article>
+
+  <div class="sidebar-sticky">
+    <div class="sidebar-card">
+      <h3>More posts</h3>
+      <a href="venly-blog-post.html?id=1" class="related-post">
+        <div class="related-img"><img src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=200&q=70" alt="" /></div>
+        <div><div class="related-title">5 Things to Check Before Booking a Venue</div><div class="related-cat">Hosting Tips</div></div>
+      </a>
+      <a href="venly-blog-post.html?id=2" class="related-post">
+        <div class="related-img"><img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=200&q=70" alt="" /></div>
+        <div><div class="related-title">The Best Event Spaces in Auckland Right Now</div><div class="related-cat">Event Space</div></div>
+      </a>
+      <a href="venly-blog-post.html?id=3" class="related-post">
+        <div class="related-img"><img src="https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=200&q=70" alt="" /></div>
+        <div><div class="related-title">Stop Booking Coffee Shops for Meetings</div><div class="related-cat">Meeting Space</div></div>
+      </a>
+    </div>
+    <div class="cta-card">
+      <h3>Have a space?</h3>
+      <p>List it on Venly and reach thousands of people looking for venues just like yours.</p>
+      <button class="btn-white" onclick="window.location.href='venly-listing-fees.html'">List your space</button>
+    </div>
+  </div>
+</div>
+
+<div class="more-posts">
+  <div style="max-width:1100px;margin:0 auto">
+    <div class="more-title">Keep reading</div>
+    <div class="more-subtitle">More from the Venly blog</div>
+    <div class="more-grid" id="more-grid"></div>
+  </div>
+</div>
+
+<div id="venly-footer"></div>
+<script>renderFooter();</script>
+
+<script>
+const posts = [
+  {
+    id: 0,
+    title: 'How to Choose the Perfect Space for Your Next Event',
+    cat: 'HOSTING TIPS',
+    date: '12 Jun 2025',
+    read: '4 min read',
+    img: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=80',
+    body: `
+      <p>Finding the right venue can make or break an event. Whether you're planning a corporate function, a birthday celebration, or a product launch, the space you choose sets the tone for everything that follows.</p>
+      <h2>Start with your guest count</h2>
+      <p>Before you look at a single venue, know your numbers. A space that's too large will feel empty and awkward. Too small and you'll have guests spilling out the door. Aim for a venue that fits your expected headcount comfortably — not a stretch.</p>
+      <blockquote>"The right venue should feel like it was built for your event — not the other way around."</blockquote>
+      <h2>Location matters more than you think</h2>
+      <p>Think about where your guests are coming from. Is parking available? Is it near public transport? A stunning venue that's impossible to get to will leave people frustrated before they even walk in.</p>
+      <h2>Checklist before you book</h2>
+      <ul>
+        <li>What's included in the hire fee? (AV, furniture, kitchen access)</li>
+        <li>Are there noise restrictions or curfews?</li>
+        <li>What's the cancellation policy?</li>
+        <li>Is there a dedicated coordinator on the day?</li>
+        <li>Can you bring your own catering or bar?</li>
+        <li>What does setup and pack-down time look like?</li>
+      </ul>
+      <h2>Visit in person before committing</h2>
+      <p>Photos are great but they can be deceiving. Natural light, ceiling height, acoustics — these things only reveal themselves in person. Always do a walkthrough before signing anything.</p>
+      <h2>Use Venly to compare quickly</h2>
+      <p>Rather than trawling through dozens of websites, Venly brings all Auckland venues into one place. Filter by capacity, space type, location and event type — and enquire directly from the listing.</p>
+    `
+  },
+  {
+    id: 1,
+    title: '5 Things to Check Before Booking a Venue',
+    cat: 'HOSTING TIPS',
+    date: '8 Jun 2025',
+    read: '3 min read',
+    img: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=1400&q=80',
+    body: `
+      <p>Booking the wrong venue is one of the most expensive mistakes an event planner can make. Here are five things to verify before you sign on the dotted line.</p>
+      <h2>1. Capacity and layout flexibility</h2>
+      <p>A venue might technically hold 200 people but if it's long and narrow, cocktail-style won't work. Ask for a floor plan and think through your specific setup requirements.</p>
+      <h2>2. What's actually included</h2>
+      <p>Some venues include tables, chairs, AV equipment and staff. Others are a bare shell. Know exactly what you're getting before you compare prices.</p>
+      <h2>3. Noise and neighbour restrictions</h2>
+      <p>Many venues — especially in residential or inner-city areas — have strict noise curfews. If you're planning live music or a DJ, this is non-negotiable to check upfront.</p>
+      <h2>4. Parking and accessibility</h2>
+      <p>If your guests are driving, is parking available nearby? If you have guests with mobility requirements, is the venue wheelchair accessible? These details matter.</p>
+      <h2>5. The cancellation policy</h2>
+      <p>Life happens. Make sure you understand the full financial exposure if you need to postpone or cancel. Some venues are flexible, others are not.</p>
+    `
+  },
+  {
+    id: 2,
+    title: 'The Best Event Spaces in Auckland Right Now',
+    cat: 'EVENT SPACE',
+    date: '5 Jun 2025',
+    read: '5 min read',
+    img: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1400&q=80',
+    body: `
+      <p>Auckland's event space scene has exploded over the last few years. From waterfront warehouses to rooftop terraces, there's something for every occasion. Here's our pick of the best spaces on Venly right now.</p>
+      <h2>Brads Warehouse — Auckland City</h2>
+      <p>An industrial-chic event space with exposed brick, soaring ceilings and warm Edison lighting. Handles everything from intimate dinners to full-scale productions. Capacity 20–506.</p>
+      <h2>Okahu — Auckland City</h2>
+      <p>A versatile waterfront venue with stunning harbour views. Perfect for weddings, corporate events and product launches. Capacity 1–350.</p>
+      <h2>North Shore Event Space — North Shore</h2>
+      <p>A bright, modern venue with easy motorway access and ample parking. Great for larger corporate events and galas. Capacity 40–500.</p>
+      <blockquote>All of these spaces are listed on Venly with real pricing, photos and direct enquiry forms.</blockquote>
+      <h2>How to find the right one for you</h2>
+      <p>Use the Venly search to filter by event type, capacity and location. Once you find a space you like, enquire directly through the listing — hosts typically respond within 24 hours.</p>
+    `
+  },
+  {
+    id: 3,
+    title: 'Stop Booking Coffee Shops for Meetings',
+    cat: 'MEETING SPACE',
+    date: '1 Jun 2025',
+    read: '3 min read',
+    img: 'https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=1400&q=80',
+    body: `
+      <p>You've been there. Crammed into a corner table at a busy café, trying to conduct a serious business conversation over the noise of a milk frother. It's time to upgrade.</p>
+      <h2>Why coffee shops don't work</h2>
+      <p>They're noisy, you can't guarantee privacy, you can't use a projector, and frankly — it doesn't look great to clients. The unspoken message is that you don't have a proper setup.</p>
+      <h2>What a proper meeting space gives you</h2>
+      <ul>
+        <li>Privacy for sensitive conversations</li>
+        <li>AV equipment and screen sharing capability</li>
+        <li>A professional environment that impresses clients</li>
+        <li>The ability to run a proper agenda without distractions</li>
+        <li>Catering options if needed</li>
+      </ul>
+      <h2>It's more affordable than you think</h2>
+      <p>Meeting spaces on Venly start from as little as $30/hr. Compare that to the awkwardness of a coffee shop and it's a no-brainer — especially for client-facing meetings.</p>
+      <h2>Find a meeting room on Venly</h2>
+      <p>Search by capacity, location and available amenities. Whether it's a 2-person interview room or a full boardroom for 20, Venly has options across Auckland.</p>
+    `
+  },
+];
+
+function loadPost() {
+  var params = new URLSearchParams(window.location.search);
+  var id = parseInt(params.get('id') || '0');
+  var post = posts.find(function(p) { return p.id === id; }) || posts[0];
+
+  document.title = 'Venly — ' + post.title;
+  document.getElementById('breadcrumb-title').textContent = post.title;
+  document.getElementById('post-hero-img').src = post.img;
+  document.getElementById('post-hero-img').alt = post.title;
+  document.getElementById('post-cat').textContent = post.cat;
+  document.getElementById('post-title').textContent = post.title;
+  document.getElementById('post-date').textContent = post.date;
+  document.getElementById('post-read').textContent = post.read;
+  document.getElementById('post-body').innerHTML = post.body;
+
+  // Load more posts (exclude current)
+  var others = posts.filter(function(p) { return p.id !== id; }).slice(0, 3);
+  document.getElementById('more-grid').innerHTML = others.map(function(p) {
+    return '<div class="blog-card" onclick="window.location.href=\'venly-blog-post.html?id=' + p.id + '\'">' +
+      '<div class="blog-card-img"><img src="' + p.img + '" alt="' + p.title + '" loading="lazy" />' +
+      '<span class="card-cat-badge">' + p.cat + '</span></div>' +
+      '<div class="blog-card-body">' +
+      '<div class="blog-card-title">' + p.title + '</div>' +
+      '<div class="read-more">Read more →</div>' +
+      '</div></div>';
+  }).join('');
+}
+
+function copyLink() {
+  navigator.clipboard.writeText(window.location.href).catch(function(){});
+  showToast('Link copied!');
+}
+
+loadPost();
+</script>
+</body>
+</html>

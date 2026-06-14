@@ -258,6 +258,24 @@ footer { background: #111; color: #fff; padding: 56px 80px 28px; }
   .nav-right .btn-primary { padding: 7px 14px !important; font-size: 12px !important; }
 }
 
+
+/* AUTH POPUP */
+.auth-popup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.auth-popup-overlay.hidden { display: none; }
+.auth-popup { background: #fff; border-radius: 20px; padding: 36px; max-width: 400px; width: 100%; box-shadow: 0 24px 80px rgba(0,0,0,0.2); text-align: center; position: relative; }
+.auth-popup-close { position: absolute; top: 16px; right: 16px; background: none; border: none; cursor: pointer; color: #aaa; font-size: 20px; line-height: 1; }
+.auth-popup-close:hover { color: #333; }
+.auth-popup-icon { width: 56px; height: 56px; background: var(--red-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+.auth-popup-icon svg { width: 24px; height: 24px; color: var(--red); }
+.auth-popup h2 { font-size: 20px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.3px; }
+.auth-popup p { font-size: 14px; color: #6b6b6b; margin-bottom: 24px; line-height: 1.6; }
+.auth-popup-btns { display: flex; flex-direction: column; gap: 10px; }
+.btn-popup-primary { background: var(--red); color: #fff; border: none; border-radius: 8px; padding: 13px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: Inter,sans-serif; transition: background 0.15s; }
+.btn-popup-primary:hover { background: var(--red-dark); }
+.btn-popup-outline { background: transparent; color: var(--red); border: 2px solid var(--red); border-radius: 8px; padding: 11px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: Inter,sans-serif; transition: all 0.15s; }
+.btn-popup-outline:hover { background: var(--red-light); }
+.auth-popup-note { font-size: 12px; color: #aaa; margin-top: 12px; }
+
 </style>
   <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -540,7 +558,29 @@ function toggleFaq(btn) {
 
 renderPlans('event');
 
+function showAuthPopup(title, msg) {
+  if (title) document.getElementById('auth-popup-title').textContent = title;
+  if (msg) document.getElementById('auth-popup-msg').textContent = msg;
+  document.getElementById('auth-popup').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+function closeAuthPopup() {
+  document.getElementById('auth-popup').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+// Close on overlay click
+document.getElementById('auth-popup').addEventListener('click', function(e) {
+  if (e.target === this) closeAuthPopup();
+});
+
+
 function selectPlan(btn) {
+  // Check if user is logged in
+  var user = localStorage.getItem('venly_current_user');
+  if (!user) {
+    showAuthPopup('Sign in to get started', 'Create a free account to list your space and choose a plan.');
+    return;
+  }
   const card = btn.closest('.plan-card');
   const planName = card.querySelector('.plan-name').textContent.trim();
   const activeTab = document.querySelector('.type-tab.active').textContent.trim();
@@ -575,5 +615,23 @@ function selectPlan(btn) {
   }
 })();
 </script>
+
+<!-- AUTH POPUP -->
+<div class="auth-popup-overlay hidden" id="auth-popup">
+  <div class="auth-popup">
+    <button class="auth-popup-close" onclick="closeAuthPopup()">✕</button>
+    <div class="auth-popup-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </div>
+    <h2 id="auth-popup-title">Sign in to continue</h2>
+    <p id="auth-popup-msg">Create a free account or log in to access this feature.</p>
+    <div class="auth-popup-btns">
+      <button class="btn-popup-primary" onclick="window.location.href='venly-auth.html?tab=signup'">Sign up free</button>
+      <button class="btn-popup-outline" onclick="window.location.href='venly-auth.html'">Log in</button>
+    </div>
+    <div class="auth-popup-note">It only takes 30 seconds to create an account</div>
+  </div>
+</div>
+
 </body>
 </html>
