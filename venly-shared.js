@@ -44,9 +44,10 @@ function renderNav(options) {
       '</div>';
 
   var navHTML = '<nav>' +
-    '<div style="display:flex;align-items:center;gap:32px">' +
-      '<a class="logo" href="index.html">Venly.</a>' +
-      '<ul class="nav-links" style="display:flex;gap:28px;list-style:none;margin:0;padding:0">' + navLinks + '</ul>' +
+    '<div style="display:flex;align-items:center">' +
+      '<a class="logo" href="index.html" style="margin-right:48px">Venly.</a>' +
+      '<div style="width:1px;height:18px;background:rgba(0,0,0,0.12);margin-right:48px;flex-shrink:0"></div>' +
+      '<ul class="nav-links" style="display:flex;gap:32px;list-style:none;margin:0;padding:0">' + navLinks + '</ul>' +
     '</div>' +
     navRight +
     '</nav>';
