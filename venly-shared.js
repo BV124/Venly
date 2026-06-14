@@ -68,42 +68,25 @@ function renderFooter() {
 <footer style="background:#111;color:#fff;font-family:Inter,sans-serif">
 
   <style>
-    .venly-footer-grid {
+    .vf-grid {
       max-width: 1200px;
       margin: 0 auto;
       padding: 56px 48px 48px;
       display: grid;
       grid-template-columns: 1.6fr 1fr 1fr 1fr 1fr;
       gap: 40px;
-      width: 100%;
       box-sizing: border-box;
+      width: 100%;
     }
-    .venly-footer-link {
-      font-size: 14px;
-      color: rgba(255,255,255,0.6);
-      text-decoration: none;
-      display: block;
-      margin-bottom: 13px;
-      transition: color 0.15s;
-    }
-    .venly-footer-link:hover { color: #fff; }
-    .venly-footer-heading {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: rgba(255,255,255,0.3);
-      margin-bottom: 20px;
-    }
-    .venly-footer-brand-col p {
+    .vf-brand p {
       font-size: 13px;
       color: rgba(255,255,255,0.45);
       line-height: 1.7;
       max-width: 200px;
       margin-bottom: 20px;
     }
-    .venly-footer-socials { display: flex; gap: 10px; }
-    .venly-footer-social-icon {
+    .vf-socials { display: flex; gap: 10px; }
+    .vf-social {
       width: 36px; height: 36px;
       border-radius: 50%;
       background: rgba(255,255,255,0.08);
@@ -113,103 +96,86 @@ function renderFooter() {
       transition: background 0.15s;
       flex-shrink: 0;
     }
-    .venly-footer-social-icon:hover { background: #e03a2f; color: #fff; }
-    .venly-footer-bottom {
+    .vf-social:hover { background: #e03a2f; color: #fff; }
+    .vf-col-heading {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: 20px;
+      display: block;
+    }
+    .vf-link {
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      text-decoration: none;
+      display: block;
+      margin-bottom: 13px;
+      transition: color 0.15s;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      font-family: Inter, sans-serif;
+      text-align: left;
+    }
+    .vf-link:hover { color: #fff; }
+    .vf-bottom {
       border-top: 1px solid rgba(255,255,255,0.07);
     }
-    .venly-footer-bottom-inner {
+    .vf-bottom-inner {
       max-width: 1200px;
       margin: 0 auto;
       padding: 20px 48px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
+      justify-content: center;
       box-sizing: border-box;
       width: 100%;
     }
-    .venly-footer-bottom-left { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
-    .venly-footer-bottom-link {
-      font-size: 13px;
-      color: rgba(255,255,255,0.4);
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: color 0.15s;
-    }
-    .venly-footer-bottom-link:hover { color: rgba(255,255,255,0.8); }
-    .venly-footer-copy { font-size: 12px; color: rgba(255,255,255,0.25); }
-    .venly-footer-copy strong { color: rgba(255,255,255,0.4); }
+    .vf-copy { font-size: 12px; color: rgba(255,255,255,0.25); text-align: center; }
+    .vf-copy strong { color: rgba(255,255,255,0.4); }
 
-    /* MOBILE */
     @media (max-width: 768px) {
-      .venly-footer-grid {
+      .vf-grid {
         grid-template-columns: 1fr 1fr;
-        padding: 40px 20px 32px;
+        padding: 36px 20px 28px;
         gap: 28px 20px;
-        width: 100%;
-        box-sizing: border-box;
       }
-      .venly-footer-brand-col {
+      .vf-brand {
         grid-column: 1 / -1;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        padding-bottom: 8px;
+        padding-bottom: 20px;
         border-bottom: 1px solid rgba(255,255,255,0.07);
         margin-bottom: 4px;
       }
-      .venly-footer-brand-col p {
-        max-width: 100% !important;
-      }
-      .venly-footer-heading {
-        margin-bottom: 14px;
-      }
-      .venly-footer-link {
-        font-size: 15px !important;
-        margin-bottom: 14px !important;
-      }
-      .venly-footer-bottom-inner {
-        padding: 16px 20px;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 6px;
-      }
-      .venly-footer-bottom-left {
-        flex-direction: column;
-        gap: 6px;
-        align-items: flex-start;
-      }
-      .venly-footer-copy { margin-top: 4px; }
+      .vf-brand p { max-width: 100%; font-size: 14px; }
+      .vf-col-heading { font-size: 10px; margin-bottom: 14px; }
+      .vf-link { font-size: 15px; margin-bottom: 14px; }
+      .vf-bottom-inner { padding: 16px 20px; }
+      .vf-copy { font-size: 12px; }
     }
     @media (max-width: 480px) {
-      .venly-footer-grid {
-        grid-template-columns: 1fr 1fr;
-        padding: 32px 16px 28px;
-        gap: 24px 16px;
-      }
-      .venly-footer-link { font-size: 14px !important; margin-bottom: 12px !important; }
-      .venly-footer-heading { font-size: 10px; margin-bottom: 12px; }
-      .venly-footer-bottom-inner { padding: 14px 16px; }
+      .vf-grid { padding: 32px 16px 24px; gap: 24px 16px; }
+      .vf-link { font-size: 14px; margin-bottom: 12px; }
+      .vf-bottom-inner { padding: 14px 16px; }
     }
   </style>
 
-  <div class="venly-footer-grid">
+  <div class="vf-grid">
 
     <!-- BRAND -->
-    <div class="venly-footer-brand-col">
+    <div class="vf-brand">
       <a href="index.html" style="font-size:26px;font-weight:800;color:#e03a2f;letter-spacing:-0.5px;text-decoration:none;display:block;margin-bottom:14px">Venly.</a>
       <p>The easiest way to find and list spaces across New Zealand. No ads, no stress.</p>
-      <div class="venly-footer-socials">
-        <a href="https://instagram.com/venly.co.nz" aria-label="Instagram" class="venly-footer-social-icon">
+      <div class="vf-socials">
+        <a href="https://instagram.com/venly.co.nz" aria-label="Instagram" class="vf-social">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.4a4 4 0 11-8 0 4 4 0 018 0z"/><circle cx="16.5" cy="7.5" r="1.2" fill="currentColor" stroke="none"/></svg>
         </a>
-        <a href="https://facebook.com/venly.co.nz" aria-label="Facebook" class="venly-footer-social-icon">
+        <a href="https://facebook.com/venly.co.nz" aria-label="Facebook" class="vf-social">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
         </a>
-        <a href="https://linkedin.com/company/venly" aria-label="LinkedIn" class="venly-footer-social-icon">
+        <a href="https://linkedin.com/company/venly" aria-label="LinkedIn" class="vf-social">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
         </a>
       </div>
@@ -217,53 +183,43 @@ function renderFooter() {
 
     <!-- DISCOVER -->
     <div>
-      <div class="venly-footer-heading">Discover</div>
-      <a href="index.html" class="venly-footer-link">Home</a>
-      <a href="venly-find-a-space.html" class="venly-footer-link">Find a Space</a>
-      <a href="venly-blog.html" class="venly-footer-link">Blog</a>
-      <a href="venly-contact.html" class="venly-footer-link">Contact</a>
+      <span class="vf-col-heading">Discover</span>
+      <a href="index.html" class="vf-link">Home</a>
+      <a href="venly-find-a-space.html" class="vf-link">Find a Space</a>
+      <a href="venly-blog.html" class="vf-link">Blog</a>
+      <a href="venly-contact.html" class="vf-link">Contact</a>
     </div>
 
     <!-- LIST A SPACE -->
     <div>
-      <div class="venly-footer-heading">List a Space</div>
-      <a href="venly-listing-fees.html" class="venly-footer-link">How It Works</a>
-      <a href="venly-listing-fees.html" class="venly-footer-link">Pricing &amp; Plans</a>
-      <a href="venly-listing-fees.html" class="venly-footer-link">List Your Space</a>
+      <span class="vf-col-heading">List a Space</span>
+      <a href="venly-listing-fees.html" class="vf-link">How It Works</a>
+      <a href="venly-listing-fees.html" class="vf-link">Pricing &amp; Plans</a>
+      <a href="venly-listing-fees.html" class="vf-link">List Your Space</a>
     </div>
 
     <!-- ACCOUNT -->
     <div>
-      <div class="venly-footer-heading">Account</div>
-      <a href="javascript:void(0)" onclick="handleFooterAccount()" class="venly-footer-link">${loggedIn ? 'My Dashboard' : 'Sign Up Free'}</a>
-      <a href="javascript:void(0)" onclick="handleFooterLogin()" class="venly-footer-link">${loggedIn ? 'Log Out' : 'Log In'}</a>
-      <a href="venly-contact.html" class="venly-footer-link">Support</a>
+      <span class="vf-col-heading">Account</span>
+      <button class="vf-link" onclick="handleFooterAccount()">${loggedIn ? 'My Dashboard' : 'Sign Up Free'}</button>
+      <button class="vf-link" onclick="handleFooterLogin()">${loggedIn ? 'Log Out' : 'Log In'}</button>
+      <a href="venly-contact.html" class="vf-link">Support</a>
     </div>
 
     <!-- LEGAL -->
     <div>
-      <div class="venly-footer-heading">Legal</div>
-      <a href="#" class="venly-footer-link">Terms &amp; Conditions</a>
-      <a href="#" class="venly-footer-link">Privacy Policy</a>
-      <a href="#" class="venly-footer-link">Cookie Policy</a>
+      <span class="vf-col-heading">Legal</span>
+      <a href="#" class="vf-link">Terms &amp; Conditions</a>
+      <a href="#" class="vf-link">Privacy Policy</a>
+      <a href="#" class="vf-link">Cookie Policy</a>
     </div>
 
   </div>
 
-  <!-- BOTTOM STRIP -->
-  <div class="venly-footer-bottom">
-    <div class="venly-footer-bottom-inner">
-      <div class="venly-footer-bottom-left">
-        <a href="mailto:info@venly.co.nz" class="venly-footer-bottom-link">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-          info@venly.co.nz
-        </a>
-        <span class="venly-footer-bottom-link">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          Auckland, New Zealand
-        </span>
-      </div>
-      <div class="venly-footer-copy">© ${new Date().getFullYear()} <strong>Venly</strong> · A product of WisenUp Limited</div>
+  <!-- BOTTOM -->
+  <div class="vf-bottom">
+    <div class="vf-bottom-inner">
+      <div class="vf-copy">© ${new Date().getFullYear()} <strong>Venly</strong> · A product of WisenUp Limited</div>
     </div>
   </div>
 
