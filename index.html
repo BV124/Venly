@@ -803,15 +803,21 @@ function doSearch() {
     nav.style.background = 'transparent';
     nav.style.borderBottomColor = 'transparent';
     nav.style.boxShadow = 'none';
-    // Logo white
+    // Logo stays brand red always
     var logo = nav.querySelector('a.logo, .logo');
-    if (logo) logo.style.color = '#fff';
+    if (logo) logo.style.color = '#e03a2f';
     // Nav links white
     nav.querySelectorAll('ul a').forEach(function(a) { a.style.color = 'rgba(255,255,255,0.92)'; });
-    // Buttons
+    // Login button — white outline, white text, semi-transparent bg on hover
     var outline = nav.querySelector('.btn-outline');
-    if (outline) { outline.style.color = '#fff'; outline.style.borderColor = 'rgba(255,255,255,0.7)'; }
-    // Hamburger icon
+    if (outline) {
+      outline.style.color = '#fff';
+      outline.style.borderColor = 'rgba(255,255,255,0.7)';
+      outline.style.background = 'rgba(255,255,255,0.12)';
+      outline.onmouseover = function() { this.style.background = 'rgba(255,255,255,0.22)'; };
+      outline.onmouseout = function() { this.style.background = 'rgba(255,255,255,0.12)'; };
+    }
+    // Hamburger icon white
     var ham = nav.querySelector('#hamburger svg');
     if (ham) ham.style.stroke = '#fff';
   }
@@ -820,11 +826,21 @@ function doSearch() {
     nav.style.background = '#fff';
     nav.style.borderBottomColor = '#e8e8e8';
     nav.style.boxShadow = '0 1px 8px rgba(0,0,0,0.08)';
+    // Logo stays brand red
     var logo = nav.querySelector('a.logo, .logo');
     if (logo) logo.style.color = '#e03a2f';
+    // Links back to default
     nav.querySelectorAll('ul a').forEach(function(a) { a.style.color = ''; });
+    // Login button back to default
     var outline = nav.querySelector('.btn-outline');
-    if (outline) { outline.style.color = ''; outline.style.borderColor = ''; }
+    if (outline) {
+      outline.style.color = '';
+      outline.style.borderColor = '';
+      outline.style.background = '';
+      outline.onmouseover = null;
+      outline.onmouseout = null;
+    }
+    // Hamburger back to dark
     var ham = nav.querySelector('#hamburger svg');
     if (ham) ham.style.stroke = '';
   }
