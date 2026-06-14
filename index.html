@@ -711,69 +711,67 @@ section { padding: 80px 48px; }
 </section>
 
 <!-- SPACES FOR EVERY PURPOSE -->
-<section style="padding:80px 48px;background:var(--red)">
-  <div style="max-width:1200px;margin:0 auto">
+<section style="padding:80px 48px;background:#e03a2f;overflow:hidden;position:relative">
 
-    <!-- Header -->
-    <div style="text-align:center;margin-bottom:48px">
-      <h2 class="section-title" style="margin-bottom:10px;color:#fff">Spaces for every purpose</h2>
-      <p style="font-size:15px;color:rgba(255,255,255,0.8);max-width:520px;margin:0 auto;line-height:1.7">Whether you're hosting a corporate meeting, launching a product, or celebrating a milestone — we've got you covered.</p>
+  <!-- subtle background texture -->
+  <div style="position:absolute;inset:0;opacity:0.04;background:radial-gradient(circle at 20% 50%,#fff 0%,transparent 60%),radial-gradient(circle at 80% 50%,#fff 0%,transparent 60%)"></div>
+
+  <div class="purpose-split" style="max-width:1200px;margin:0 auto;position:relative;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center">
+
+    <!-- LEFT — Editorial text -->
+    <div>
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:rgba(255,255,255,0.55);margin-bottom:20px">What we offer</div>
+      <h2 style="font-size:clamp(36px,4.5vw,58px);font-weight:800;color:#fff;line-height:1.08;letter-spacing:-1.5px;margin-bottom:24px">Whatever<br>the occasion.</h2>
+      <p style="font-size:15px;color:rgba(255,255,255,0.75);line-height:1.75;max-width:380px;margin-bottom:32px">No two events are the same. Venly connects you with spaces designed for every moment — from boardroom to big night out.</p>
+      <a href="venly-find-a-space.html" style="display:inline-flex;align-items:center;gap:8px;background:#fff;color:#e03a2f;font-size:14px;font-weight:700;padding:12px 24px;border-radius:8px;text-decoration:none;transition:all 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.9)';this.style.transform='translateY(-1px)'" onmouseout="this.style.background='#fff';this.style.transform=''">
+        Browse all spaces
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
     </div>
 
-    <!-- 3 Category Cards -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px" id="purpose-grid">
+    <!-- RIGHT — Category rows -->
+    <div style="display:flex;flex-direction:column;gap:0">
 
-      <!-- Event Spaces -->
-      <div onclick="window.location.href='venly-find-a-space.html?type=Event+space'" style="border-radius:16px;overflow:hidden;cursor:pointer;position:relative;height:340px;background:#111;transition:transform 0.2s,box-shadow 0.2s" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 16px 48px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
-        <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80" alt="Event Spaces" style="width:100%;height:100%;object-fit:cover;opacity:0.75;transition:opacity 0.3s" onmouseover="this.style.opacity='0.6'" onmouseout="this.style.opacity='0.75'" />
-        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.75) 0%,rgba(0,0,0,0.1) 60%)"></div>
-        <div style="position:absolute;bottom:0;left:0;right:0;padding:24px">
-          <div style="display:inline-block;background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4);font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px;backdrop-filter:blur(4px)">Event Space</div>
-          <div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:6px;letter-spacing:-0.3px">Weddings &amp; Events</div>
-          <div style="font-size:13px;color:rgba(255,255,255,0.75);line-height:1.5;margin-bottom:14px">From intimate gatherings to large-scale productions</div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#fff">
-            Browse event spaces
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </div>
+      <a href="venly-find-a-space.html?type=Event+space" style="display:flex;align-items:center;justify-content:space-between;padding:28px 0;border-bottom:1px solid rgba(255,255,255,0.15);text-decoration:none;group:1;transition:all 0.2s" onmouseover="this.style.paddingLeft='12px'" onmouseout="this.style.paddingLeft='0'">
+        <div>
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.5);margin-bottom:6px">01</div>
+          <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.3px">Event Spaces</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.65);margin-top:4px">Weddings · Parties · Launches · Galas</div>
         </div>
-      </div>
+        <div style="width:40px;height:40px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.35);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </div>
+      </a>
 
-      <!-- Meeting Spaces -->
-      <div onclick="window.location.href='venly-find-a-space.html?type=Meeting+space'" style="border-radius:16px;overflow:hidden;cursor:pointer;position:relative;height:340px;background:#111;transition:transform 0.2s,box-shadow 0.2s" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 16px 48px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
-        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80" alt="Meeting Spaces" style="width:100%;height:100%;object-fit:cover;opacity:0.75;transition:opacity 0.3s" onmouseover="this.style.opacity='0.6'" onmouseout="this.style.opacity='0.75'" />
-        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.75) 0%,rgba(0,0,0,0.1) 60%)"></div>
-        <div style="position:absolute;bottom:0;left:0;right:0;padding:24px">
-          <div style="display:inline-block;background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4);font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px;backdrop-filter:blur(4px)">Meeting Space</div>
-          <div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:6px;letter-spacing:-0.3px">Boardrooms &amp; Meetings</div>
-          <div style="font-size:13px;color:rgba(255,255,255,0.75);line-height:1.5;margin-bottom:14px">Professional spaces for teams of all sizes</div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#fff">
-            Browse meeting spaces
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </div>
+      <a href="venly-find-a-space.html?type=Meeting+space" style="display:flex;align-items:center;justify-content:space-between;padding:28px 0;border-bottom:1px solid rgba(255,255,255,0.15);text-decoration:none;transition:all 0.2s" onmouseover="this.style.paddingLeft='12px'" onmouseout="this.style.paddingLeft='0'">
+        <div>
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.5);margin-bottom:6px">02</div>
+          <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.3px">Meeting Spaces</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.65);margin-top:4px">Boardrooms · Workshops · Conferences</div>
         </div>
-      </div>
+        <div style="width:40px;height:40px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.35);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </div>
+      </a>
 
-      <!-- Shoot Locations -->
-      <div onclick="window.location.href='venly-find-a-space.html?type=Shoot+Location'" style="border-radius:16px;overflow:hidden;cursor:pointer;position:relative;height:340px;background:#111;transition:transform 0.2s,box-shadow 0.2s" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 16px 48px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
-        <img src="https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=800&q=80" alt="Shoot Locations" style="width:100%;height:100%;object-fit:cover;opacity:0.75;transition:opacity 0.3s" onmouseover="this.style.opacity='0.6'" onmouseout="this.style.opacity='0.75'" />
-        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.75) 0%,rgba(0,0,0,0.1) 60%)"></div>
-        <div style="position:absolute;bottom:0;left:0;right:0;padding:24px">
-          <div style="display:inline-block;background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4);font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px;backdrop-filter:blur(4px)">Shoot Location</div>
-          <div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:6px;letter-spacing:-0.3px">Film &amp; Photography</div>
-          <div style="font-size:13px;color:rgba(255,255,255,0.75);line-height:1.5;margin-bottom:14px">Unique backdrops for shoots, films and content</div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#fff">
-            Browse shoot locations
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </div>
+      <a href="venly-find-a-space.html?type=Shoot+Location" style="display:flex;align-items:center;justify-content:space-between;padding:28px 0;text-decoration:none;transition:all 0.2s" onmouseover="this.style.paddingLeft='12px'" onmouseout="this.style.paddingLeft='0'">
+        <div>
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.5);margin-bottom:6px">03</div>
+          <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.3px">Shoot Locations</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.65);margin-top:4px">Photography · Film & TV · Content Creation</div>
         </div>
-      </div>
+        <div style="width:40px;height:40px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.35);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </div>
+      </a>
 
     </div>
   </div>
 
   <style>
-    @media (max-width: 860px) { #purpose-grid { grid-template-columns: 1fr !important; } #purpose-grid > div { height: 260px !important; } }
-    @media (max-width: 560px) { section[style*="purpose"] { padding: 48px 20px !important; } }
+    @media (max-width: 768px) {
+      .purpose-split { grid-template-columns: 1fr !important; gap: 40px !important; }
+    }
   </style>
 </section>
 
