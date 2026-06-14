@@ -86,53 +86,17 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
 .no-posts { text-align: center; padding: 60px 20px; color: var(--text-muted); grid-column: 1/-1; }
 .no-posts svg { width: 40px; height: 40px; margin-bottom: 12px; display: block; margin-left: auto; margin-right: auto; opacity: 0.3; }
 
-/* FOOTER */
-footer { background: #111; color: #fff; padding: 56px 80px 28px; }
-.footer-top { display: grid; grid-template-columns: 0.6fr repeat(4, 1fr); gap: 40px; padding-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-.footer-logo { font-size: 22px; font-weight: 700; color: var(--red); }
-.footer-col h4 { font-size: 13px; font-weight: 600; margin-bottom: 14px; }
-.footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 9px; }
-.footer-col ul li a { font-size: 13px; color: rgba(255,255,255,0.55); transition: color 0.15s; }
-.footer-col ul li a:hover { color: #fff; }
-.footer-contact { margin-top: 32px; }
-.footer-contact h4 { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
-.footer-contact p { font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.6; margin-bottom: 16px; }
-.footer-contact a { color: var(--red); }
-.social-links { display: flex; gap: 12px; }
-.social-links a { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.55); transition: all 0.15s; }
-.social-links a:hover { border-color: var(--red); color: var(--red); }
-.social-links svg { width: 15px; height: 15px; }
-.footer-bottom { text-align: center; padding-top: 20px; font-size: 12px; color: rgba(255,255,255,0.35); }
-.footer-bottom strong { color: rgba(255,255,255,0.6); }
-
-@media (max-width: 1000px) {
-  .featured-card { grid-template-columns: 1fr; }
-  .featured-img { height: 240px; }
-  .blog-grid { grid-template-columns: repeat(2, 1fr); }
-  .page-header, .featured-wrap, .filters-section, .blog-grid-wrap { padding-left: 24px; padding-right: 24px; }
-  nav { padding: 0 24px; }
-}
-@media (max-width: 640px) {
-  .blog-grid { grid-template-columns: 1fr; }
-  .page-header h1 { font-size: 32px; letter-spacing: -0.5px; }
-  .page-header p { font-size: 14px; }
-  .page-header, .featured-wrap, .filters-section, .blog-grid-wrap { padding-left: 16px; padding-right: 16px; }
-  .featured-img { height: 200px; }
-  .featured-body { padding: 24px 20px; }
-  .featured-title { font-size: 20px; }
-  .featured-label { font-size: 11px; }
-  .read-btn { width: 100%; justify-content: center; }
-  /* Category pills scroll */
+/* Category pills scroll */
   .category-pills { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
   .category-pills::-webkit-scrollbar { display: none; }
   .cat-pill { flex-shrink: 0; font-size: 12px; padding: 6px 14px; }
   .blog-card-title { font-size: 14px; }
   footer { padding: 40px 20px 20px; }
-  .footer-top { grid-template-columns: 1fr 1fr; }
+  
 }
 @media (max-width: 400px) {
   .page-header h1 { font-size: 26px; }
-  .footer-top { grid-template-columns: 1fr; }
+  
 }
 
 /* ============================================================

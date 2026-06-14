@@ -182,54 +182,6 @@ nav {
 }
 .faq-item.open .faq-answer { max-height: 300px; padding: 20px 24px; }
 
-/* FOOTER */
-footer { background: #111; color: #fff; padding: 56px 80px 28px; }
-.footer-top { display: grid; grid-template-columns: 0.6fr repeat(4, 1fr); gap: 40px; padding-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-.footer-logo { font-size: 22px; font-weight: 700; color: var(--red); }
-.footer-col h4 { font-size: 13px; font-weight: 600; margin-bottom: 14px; }
-.footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 9px; }
-.footer-col ul li a { font-size: 13px; color: rgba(255,255,255,0.55); transition: color 0.15s; }
-.footer-col ul li a:hover { color: #fff; }
-.footer-contact { margin-top: 32px; }
-.footer-contact h4 { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
-.footer-contact p { font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.6; margin-bottom: 16px; }
-.footer-contact a { color: var(--red); }
-.social-links { display: flex; gap: 12px; }
-.social-links a { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.55); transition: all 0.15s; }
-.social-links a:hover { border-color: var(--red); color: var(--red); }
-.social-links svg { width: 15px; height: 15px; }
-.footer-bottom { text-align: center; padding-top: 20px; font-size: 12px; color: rgba(255,255,255,0.35); }
-.footer-bottom strong { color: rgba(255,255,255,0.6); }
-
-@media (max-width: 900px) {
-  .plans-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
-  nav { padding: 0 24px; }
-  .page-header { padding: 40px 24px 32px; }
-  .page-header h1 { font-size: 40px; }
-  .pricing-section { padding: 32px 24px 60px; }
-  .faq-section { padding: 60px 24px; }
-  footer { padding: 48px 32px 24px; }
-  .footer-top { grid-template-columns: 1fr 1fr; }
-}
-@media (max-width: 600px) {
-  .nav-links { display: none; }
-  .type-tabs { flex-wrap: wrap; }
-}
-
-.plan-card:hover .plan-name { color: #fff; }
-.plan-card:hover .plan-price-main { color: #fff; }
-.plan-card:hover .plan-price-free { color: #fff; }
-.plan-card:hover .plan-price-strikethrough { color: rgba(255,255,255,0.7); }
-.plan-card:hover .plan-subtitle { color: rgba(255,255,255,0.75); }
-.plan-card:hover .plan-divider { background: rgba(255,255,255,0.25); }
-.plan-card:hover .feature-row { border-bottom-color: rgba(255,255,255,0.15); }
-.plan-card:hover .feature-name { color: rgba(255,255,255,0.9); }
-.plan-card:hover .feature-name.disabled { color: rgba(255,255,255,0.45); }
-.plan-card:hover .check-icon { color: #fff; }
-.plan-card:hover .cross-icon { color: rgba(255,255,255,0.35); }
-.plan-card:hover .btn-plan-solid { background: #fff; color: var(--red); }
-.plan-card:hover .btn-plan-outline { background: #fff; color: var(--red); border-color: #fff !important; }
-
 /* ============================================================
    MOBILE RESPONSIVE — covers all screen sizes
    ============================================================ */
@@ -257,7 +209,6 @@ footer { background: #111; color: #fff; padding: 56px 80px 28px; }
   .nav-right .btn-outline { display: none; }
   .nav-right .btn-primary { padding: 7px 14px !important; font-size: 12px !important; }
 }
-
 
 /* AUTH POPUP */
 .auth-popup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 20px; }

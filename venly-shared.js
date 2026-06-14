@@ -75,6 +75,8 @@ function renderFooter() {
       display: grid;
       grid-template-columns: 1.6fr 1fr 1fr 1fr 1fr;
       gap: 40px;
+      width: 100%;
+      box-sizing: border-box;
     }
     .venly-footer-link {
       font-size: 14px;
@@ -124,6 +126,8 @@ function renderFooter() {
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 12px;
+      box-sizing: border-box;
+      width: 100%;
     }
     .venly-footer-bottom-left { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
     .venly-footer-bottom-link {
@@ -143,26 +147,51 @@ function renderFooter() {
     @media (max-width: 768px) {
       .venly-footer-grid {
         grid-template-columns: 1fr 1fr;
-        padding: 40px 24px 32px;
-        gap: 32px;
+        padding: 40px 20px 32px;
+        gap: 28px 20px;
+        width: 100%;
+        box-sizing: border-box;
       }
       .venly-footer-brand-col {
         grid-column: 1 / -1;
         display: flex;
         flex-direction: column;
         align-items: flex-start;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(255,255,255,0.07);
+        margin-bottom: 4px;
+      }
+      .venly-footer-brand-col p {
+        max-width: 100% !important;
+      }
+      .venly-footer-heading {
+        margin-bottom: 14px;
+      }
+      .venly-footer-link {
+        font-size: 15px !important;
+        margin-bottom: 14px !important;
       }
       .venly-footer-bottom-inner {
-        padding: 16px 24px;
+        padding: 16px 20px;
         flex-direction: column;
         align-items: flex-start;
-        gap: 8px;
+        gap: 6px;
       }
-      .venly-footer-bottom-left { gap: 14px; }
+      .venly-footer-bottom-left {
+        flex-direction: column;
+        gap: 6px;
+        align-items: flex-start;
+      }
+      .venly-footer-copy { margin-top: 4px; }
     }
-    @media (max-width: 400px) {
-      .venly-footer-grid { grid-template-columns: 1fr 1fr; padding: 32px 16px 24px; gap: 24px; }
-      .venly-footer-link { font-size: 13px; }
+    @media (max-width: 480px) {
+      .venly-footer-grid {
+        grid-template-columns: 1fr 1fr;
+        padding: 32px 16px 28px;
+        gap: 24px 16px;
+      }
+      .venly-footer-link { font-size: 14px !important; margin-bottom: 12px !important; }
+      .venly-footer-heading { font-size: 10px; margin-bottom: 12px; }
       .venly-footer-bottom-inner { padding: 14px 16px; }
     }
   </style>

@@ -318,65 +318,12 @@ section { padding: 80px 48px; }
 .blog-section { text-align: center; padding: 80px 48px; }
 .blog-section .btn-primary { margin-top: 16px; }
 
-/* FOOTER */
-footer {
-  background: #111;
-  color: #fff;
-  padding: 60px 80px 32px;
-}
-
-.footer-top {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 40px;
-  padding-bottom: 48px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-
-.footer-logo { font-size: 22px; font-weight: 700; color: var(--red); margin-bottom: 0; }
-
-.footer-col h4 {
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 16px;
-  color: #fff;
-  letter-spacing: 0.01em;
-}
-
-.footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-.footer-col ul li a { font-size: 13px; color: rgba(255,255,255,0.65); transition: color 0.15s; }
-.footer-col ul li a:hover { color: #fff; }
-
-.footer-contact p { font-size: 13px; color: rgba(255,255,255,0.65); line-height: 1.6; margin-bottom: 16px; }
-.footer-contact a { color: var(--red); }
-
-.social-links { display: flex; gap: 16px; }
-.social-links a {
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  border: 1px solid rgba(255,255,255,0.2);
-  display: flex; align-items: center; justify-content: center;
-  color: rgba(255,255,255,0.65);
-  transition: all 0.15s;
-}
-.social-links a:hover { border-color: var(--red); color: var(--red); }
-.social-links svg { width: 16px; height: 16px; }
-
-.footer-bottom {
-  text-align: center;
-  padding-top: 24px;
-  font-size: 12px;
-  color: rgba(255,255,255,0.4);
-}
-
-.footer-bottom strong { color: rgba(255,255,255,0.7); }
-
 /* RESPONSIVE */
 @media (max-width: 900px) {
   .cards-grid { grid-template-columns: repeat(2, 1fr); }
   .about-section, .purpose-section { grid-template-columns: 1fr; padding: 48px 32px; }
   .about-card { display: none; }
-  .footer-top { grid-template-columns: repeat(2, 1fr); }
+  
   nav { padding: 0 20px; }
   section { padding: 60px 24px; }
 }
@@ -384,7 +331,7 @@ footer {
 @media (max-width: 600px) {
   .cards-grid { grid-template-columns: 1fr; }
   .nav-links { display: none; }
-  .footer-top { grid-template-columns: 1fr; }
+  
 }
 
 /* TAG STRIP */

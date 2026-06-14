@@ -149,25 +149,6 @@ textarea { resize: none; min-height: 90px; }
 .card-fav:hover { color: var(--red); }
 .card-fav svg { width: 18px; height: 18px; }
 
-/* FOOTER */
-footer { background: #111; color: #fff; padding: 56px 80px 28px; }
-.footer-top { display: grid; grid-template-columns: 0.6fr repeat(4, 1fr); gap: 40px; padding-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-.footer-logo { font-size: 22px; font-weight: 700; color: var(--red); }
-.footer-col h4 { font-size: 13px; font-weight: 600; margin-bottom: 14px; }
-.footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 9px; }
-.footer-col ul li a { font-size: 13px; color: rgba(255,255,255,0.55); transition: color 0.15s; }
-.footer-col ul li a:hover { color: #fff; }
-.footer-contact { margin-top: 32px; }
-.footer-contact h4 { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
-.footer-contact p { font-size: 13px; color: rgba(255,255,255,0.55); margin-bottom: 16px; line-height: 1.6; }
-.footer-contact a { color: var(--red); }
-.footer-social { display: flex; gap: 12px; }
-.footer-social a { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.55); transition: all 0.15s; }
-.footer-social a:hover { border-color: var(--red); color: var(--red); }
-.footer-social svg { width: 15px; height: 15px; }
-.footer-bottom { text-align: center; padding-top: 20px; font-size: 12px; color: rgba(255,255,255,0.35); }
-.footer-bottom strong { color: rgba(255,255,255,0.6); }
-
 /* LIGHTBOX */
 .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 300; display: flex; align-items: center; justify-content: center; }
 .lightbox.hidden { display: none; }
@@ -214,11 +195,11 @@ footer { background: #111; color: #fff; padding: 56px 80px 28px; }
   .similar-section { padding: 32px 16px; }
   .similar-title { font-size: 20px; }
   footer { padding: 40px 20px 20px; }
-  .footer-top { grid-template-columns: 1fr 1fr; }
+  
 }
 @media (max-width: 400px) {
   .amenities-grid { grid-template-columns: 1fr; }
-  .footer-top { grid-template-columns: 1fr; }
+  
   .event-chip { font-size: 12px; padding: 5px 12px; }
 }
 
