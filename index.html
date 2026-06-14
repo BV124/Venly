@@ -785,5 +785,58 @@ function doSearch() {
   window.location.href = 'venly-find-a-space.html' + (query ? '?' + query : '');
 }
 </script>
+
+<script>
+// Transparent nav scroll effect — homepage only
+(function() {
+  var nav = document.querySelector('nav');
+  if (!nav) return;
+
+  // Inject transition style
+  nav.style.transition = 'background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease';
+  nav.style.position = 'fixed';
+  nav.style.top = '0';
+  nav.style.left = '0';
+  nav.style.right = '0';
+
+  function transparent() {
+    nav.style.background = 'transparent';
+    nav.style.borderBottomColor = 'transparent';
+    nav.style.boxShadow = 'none';
+    // Logo white
+    var logo = nav.querySelector('a.logo, .logo');
+    if (logo) logo.style.color = '#fff';
+    // Nav links white
+    nav.querySelectorAll('ul a').forEach(function(a) { a.style.color = 'rgba(255,255,255,0.92)'; });
+    // Buttons
+    var outline = nav.querySelector('.btn-outline');
+    if (outline) { outline.style.color = '#fff'; outline.style.borderColor = 'rgba(255,255,255,0.7)'; }
+    // Hamburger icon
+    var ham = nav.querySelector('#hamburger svg');
+    if (ham) ham.style.stroke = '#fff';
+  }
+
+  function solid() {
+    nav.style.background = '#fff';
+    nav.style.borderBottomColor = '#e8e8e8';
+    nav.style.boxShadow = '0 1px 8px rgba(0,0,0,0.08)';
+    var logo = nav.querySelector('a.logo, .logo');
+    if (logo) logo.style.color = '#e03a2f';
+    nav.querySelectorAll('ul a').forEach(function(a) { a.style.color = ''; });
+    var outline = nav.querySelector('.btn-outline');
+    if (outline) { outline.style.color = ''; outline.style.borderColor = ''; }
+    var ham = nav.querySelector('#hamburger svg');
+    if (ham) ham.style.stroke = '';
+  }
+
+  // Set initial state
+  transparent();
+
+  // Listen to scroll
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 80) { solid(); } else { transparent(); }
+  }, { passive: true });
+})();
+</script>
 </body>
 </html>
