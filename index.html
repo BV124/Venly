@@ -649,92 +649,79 @@ section { padding: 80px 48px; }
 </section>
 
 <!-- PREMIUM SPACES -->
-<section style="padding:80px 48px;background:var(--bg);margin-top:-2px">
-  <div style="max-width:1200px;margin:0 auto">
-
-    <!-- Header -->
-    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:36px;flex-wrap:wrap;gap:16px">
-      <div>
-        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--red);margin-bottom:10px">Handpicked</div>
-        <h2 class="section-title" style="text-align:left;margin-bottom:6px">Premium Spaces</h2>
-        <p style="font-size:15px;color:var(--text-muted)">Beautifully designed and built to impress</p>
-      </div>
-      <a href="venly-find-a-space.html" style="display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--red);text-decoration:none">
-        View all spaces
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-      </a>
+<section style="padding:80px 0;background:var(--bg);margin-top:-2px;overflow:hidden">
+  <div style="padding:0 48px;margin-bottom:32px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px">
+    <div>
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--red);margin-bottom:10px">Handpicked</div>
+      <h2 class="section-title" style="text-align:left;margin-bottom:6px">Premium Spaces</h2>
+      <p style="font-size:15px;color:var(--text-muted)">Beautifully designed and built to impress</p>
     </div>
+    <a href="venly-find-a-space.html" style="display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--red);text-decoration:none">
+      View all spaces
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </a>
+  </div>
 
-    <!-- 3 equal cards -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px" id="premium-grid">
+  <div class="carousel-outer" style="position:relative">
+    <div style="position:absolute;left:0;top:0;bottom:0;width:80px;background:linear-gradient(to right,var(--bg),transparent);z-index:2;pointer-events:none"></div>
+    <div style="position:absolute;right:0;top:0;bottom:0;width:80px;background:linear-gradient(to left,var(--bg),transparent);z-index:2;pointer-events:none"></div>
 
-      <!-- Card 1 -->
-      <div onclick="window.location.href='venly-venue.html'" style="border-radius:16px;overflow:hidden;cursor:pointer;background:var(--white);border:1px solid var(--border);transition:transform 0.2s,box-shadow 0.2s" onmouseover="this.style.transform='translateY(-5px)';this.style.boxShadow='0 16px 48px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
-        <div style="position:relative;height:220px;overflow:hidden">
-          <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=700&q=80" alt="Brads Warehouse" style="width:100%;height:100%;object-fit:cover;transition:transform 0.4s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform=''" />
-          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.4) 0%,transparent 60%)"></div>
-          <span style="position:absolute;top:12px;left:12px;background:rgba(0,0,0,0.6);color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;backdrop-filter:blur(4px)">Event Space</span>
-          <span style="position:absolute;top:12px;right:12px;background:#e03a2f;color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px">Premium</span>
-        </div>
-        <div style="padding:18px 20px 20px">
-          <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px">Brads Warehouse</div>
-          <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Auckland City · 20–506 guests</div>
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <span style="font-size:13px;font-weight:600;color:var(--red)">From $500/hr</span>
-            <button onclick="event.stopPropagation();toggleFav(this)" style="width:32px;height:32px;border-radius:50%;background:var(--bg);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>
-            </button>
-          </div>
-        </div>
+    <div id="premium-track" style="display:flex;gap:20px;width:max-content;animation:scrollTrack 40s linear infinite;padding:8px 48px">
+
+      <!-- SET 1 -->
+      <div class="carousel-card" onclick="window.location.href='venly-venue.html'">
+        <div class="cc-img"><img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=500&q=80" alt="Brads Warehouse" /><span class="cc-type">Event Space</span><span class="cc-badge">Premium</span></div>
+        <div class="cc-body"><div class="cc-name">Brads Warehouse</div><div class="cc-loc">Auckland City · 20–506 guests</div><div class="cc-price">From $500/hr</div></div>
+      </div>
+      <div class="carousel-card" onclick="window.location.href='venly-venue.html'">
+        <div class="cc-img"><img src="https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=500&q=80" alt="Okahu" /><span class="cc-type">Event Space</span><span class="cc-badge">Premium</span></div>
+        <div class="cc-body"><div class="cc-name">Okahu</div><div class="cc-loc">Auckland City · 1–350 guests</div><div class="cc-price">From $300/hr</div></div>
+      </div>
+      <div class="carousel-card" onclick="window.location.href='venly-venue.html'">
+        <div class="cc-img"><img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=500&q=80" alt="Okahu Meeting Space" /><span class="cc-type">Meeting Space</span><span class="cc-badge">Premium</span></div>
+        <div class="cc-body"><div class="cc-name">Okahu – Meeting Space</div><div class="cc-loc">Auckland City · 1–100 guests</div><div class="cc-price">From $80/hr</div></div>
+      </div>
+      <div class="carousel-card" onclick="window.location.href='venly-venue.html'">
+        <div class="cc-img"><img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&q=80" alt="Brads Shoot Location" /><span class="cc-type">Shoot Location</span><span class="cc-badge">Premium</span></div>
+        <div class="cc-body"><div class="cc-name">Brads – Shoot Location</div><div class="cc-loc">Auckland City · 1–100 guests</div><div class="cc-price">From $150/hr</div></div>
+      </div>
+      <div class="carousel-card" onclick="window.location.href='venly-venue.html'">
+        <div class="cc-img"><img src="https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=500&q=80" alt="North Shore Event Space" /><span class="cc-type">Event Space</span><span class="cc-badge">Premium</span></div>
+        <div class="cc-body"><div class="cc-name">North Shore Event Space</div><div class="cc-loc">North Shore · 40–500 guests</div><div class="cc-price">From $200/hr</div></div>
+      </div>
+      <div class="carousel-card" onclick="window.location.href='venly-venue.html'">
+        <div class="cc-img"><img src="https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=500&q=80" alt="Studio One" /><span class="cc-type">Shoot Location</span><span class="cc-badge">Premium</span></div>
+        <div class="cc-body"><div class="cc-name">Studio One</div><div class="cc-loc">Ponsonby · 1–30 guests</div><div class="cc-price">From $120/hr</div></div>
       </div>
 
-      <!-- Card 2 -->
-      <div onclick="window.location.href='venly-venue.html'" style="border-radius:16px;overflow:hidden;cursor:pointer;background:var(--white);border:1px solid var(--border);transition:transform 0.2s,box-shadow 0.2s" onmouseover="this.style.transform='translateY(-5px)';this.style.boxShadow='0 16px 48px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
-        <div style="position:relative;height:220px;overflow:hidden">
-          <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=700&q=80" alt="Okahu Meeting Space" style="width:100%;height:100%;object-fit:cover;transition:transform 0.4s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform=''" />
-          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.4) 0%,transparent 60%)"></div>
-          <span style="position:absolute;top:12px;left:12px;background:rgba(0,0,0,0.6);color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;backdrop-filter:blur(4px)">Meeting Space</span>
-          <span style="position:absolute;top:12px;right:12px;background:#e03a2f;color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px">Premium</span>
-        </div>
-        <div style="padding:18px 20px 20px">
-          <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px">Okahu – Meeting Space</div>
-          <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Auckland City · 1–100 guests</div>
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <span style="font-size:13px;font-weight:600;color:var(--red)">From $80/hr</span>
-            <button onclick="event.stopPropagation();toggleFav(this)" style="width:32px;height:32px;border-radius:50%;background:var(--bg);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>
-            </button>
-          </div>
-        </div>
+      <!-- SET 2 — duplicate for seamless loop -->
+      <div class="carousel-card" onclick="window.location.href='venly-venue.html'">
+        <div class="cc-img"><img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=500&q=80" alt="Brads Warehouse" /><span class="cc-type">Event Space</span><span class="cc-badge">Premium</span></div>
+        <div class="cc-body"><div class="cc-name">Brads Warehouse</div><div class="cc-loc">Auckland City · 20–506 guests</div><div class="cc-price">From $500/hr</div></div>
       </div>
-
-      <!-- Card 3 -->
-      <div onclick="window.location.href='venly-venue.html'" style="border-radius:16px;overflow:hidden;cursor:pointer;background:var(--white);border:1px solid var(--border);transition:transform 0.2s,box-shadow 0.2s" onmouseover="this.style.transform='translateY(-5px)';this.style.boxShadow='0 16px 48px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
-        <div style="position:relative;height:220px;overflow:hidden">
-          <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=700&q=80" alt="Brads Shoot Location" style="width:100%;height:100%;object-fit:cover;transition:transform 0.4s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform=''" />
-          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.4) 0%,transparent 60%)"></div>
-          <span style="position:absolute;top:12px;left:12px;background:rgba(0,0,0,0.6);color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;backdrop-filter:blur(4px)">Shoot Location</span>
-          <span style="position:absolute;top:12px;right:12px;background:#e03a2f;color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px">Premium</span>
-        </div>
-        <div style="padding:18px 20px 20px">
-          <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px">Brads – Shoot Location</div>
-          <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Auckland City · 1–100 guests</div>
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <span style="font-size:13px;font-weight:600;color:var(--red)">From $150/hr</span>
-            <button onclick="event.stopPropagation();toggleFav(this)" style="width:32px;height:32px;border-radius:50%;background:var(--bg);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>
-            </button>
-          </div>
-        </div>
+      <div class="carousel-card" onclick="window.location.href='venly-venue.html'">
+        <div class="cc-img"><img src="https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=500&q=80" alt="Okahu" /><span class="cc-type">Event Space</span><span class="cc-badge">Premium</span></div>
+        <div class="cc-body"><div class="cc-name">Okahu</div><div class="cc-loc">Auckland City · 1–350 guests</div><div class="cc-price">From $300/hr</div></div>
+      </div>
+      <div class="carousel-card" onclick="window.location.href='venly-venue.html'">
+        <div class="cc-img"><img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=500&q=80" alt="Okahu Meeting Space" /><span class="cc-type">Meeting Space</span><span class="cc-badge">Premium</span></div>
+        <div class="cc-body"><div class="cc-name">Okahu – Meeting Space</div><div class="cc-loc">Auckland City · 1–100 guests</div><div class="cc-price">From $80/hr</div></div>
+      </div>
+      <div class="carousel-card" onclick="window.location.href='venly-venue.html'">
+        <div class="cc-img"><img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&q=80" alt="Brads Shoot Location" /><span class="cc-type">Shoot Location</span><span class="cc-badge">Premium</span></div>
+        <div class="cc-body"><div class="cc-name">Brads – Shoot Location</div><div class="cc-loc">Auckland City · 1–100 guests</div><div class="cc-price">From $150/hr</div></div>
+      </div>
+      <div class="carousel-card" onclick="window.location.href='venly-venue.html'">
+        <div class="cc-img"><img src="https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=500&q=80" alt="North Shore Event Space" /><span class="cc-type">Event Space</span><span class="cc-badge">Premium</span></div>
+        <div class="cc-body"><div class="cc-name">North Shore Event Space</div><div class="cc-loc">North Shore · 40–500 guests</div><div class="cc-price">From $200/hr</div></div>
+      </div>
+      <div class="carousel-card" onclick="window.location.href='venly-venue.html'">
+        <div class="cc-img"><img src="https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=500&q=80" alt="Studio One" /><span class="cc-type">Shoot Location</span><span class="cc-badge">Premium</span></div>
+        <div class="cc-body"><div class="cc-name">Studio One</div><div class="cc-loc">Ponsonby · 1–30 guests</div><div class="cc-price">From $120/hr</div></div>
       </div>
 
     </div>
   </div>
-
-  <style>
-    @media (max-width: 860px) { #premium-grid { grid-template-columns: 1fr 1fr !important; } }
-    @media (max-width: 540px) { #premium-grid { grid-template-columns: 1fr !important; } }
-  </style>
 </section>
 
 <!-- SPACES FOR EVERY PURPOSE -->
