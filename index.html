@@ -597,31 +597,91 @@ section { padding: 80px 48px; }
 </section>
 
 <!-- ABOUT US -->
-<div class="about-section">
-  <div>
-    <h2>About us</h2>
-    <p>While planning a business event and a 21st birthday, I realised something was missing from the experience: excitement. I wanted the search for a space to feel fun, easy, and full of possibility — not like ticking a chore off a list. That's what sparked the idea for Venly: a bright, user-friendly platform designed to make discovering amazing spaces feel effortless and enjoyable.</p>
-    <p>Venly is built for both those looking for spaces and those listing them. We believe in fairness, simplicity, and keeping things clutter-free. No ads, no stress — just a smooth, easy way to find the perfect space for any occasion.</p>
-    <button class="btn-white" onclick="window.location.href='venly-find-a-space.html'">Find a space</button>
-  </div>
-  <div class="about-card">
-    <div class="about-card-img">
-      <img src="https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=600&q=80" alt="Okahu" />
-    </div>
-    <div class="about-card-body">
-      <div class="about-card-top">
-        <span class="about-card-name">Okahu</span>
-        <button class="fav-btn" onclick="toggleFav(this)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>
-        </button>
+<section style="padding:80px 48px;background:#e03a2f;overflow:hidden;position:relative">
+
+  <!-- subtle bg texture -->
+  <div style="position:absolute;top:-80px;right:-80px;width:400px;height:400px;border-radius:50%;background:rgba(255,255,255,0.04);pointer-events:none"></div>
+  <div style="position:absolute;bottom:-60px;left:-60px;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,0.04);pointer-events:none"></div>
+
+  <div style="max-width:1200px;margin:0 auto;position:relative;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center" id="about-grid">
+
+    <!-- LEFT — Story -->
+    <div>
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:rgba(255,255,255,0.55);margin-bottom:16px">Our story</div>
+      <h2 style="font-size:clamp(32px,4vw,52px);font-weight:800;color:#fff;line-height:1.1;letter-spacing:-1px;margin-bottom:24px">Built for the<br>love of a<br>great space.</h2>
+      <p style="font-size:15px;color:rgba(255,255,255,0.8);line-height:1.8;margin-bottom:16px">While planning a business event and a 21st birthday, I realised something was missing — excitement. Finding a venue felt like ticking a chore off a list, not something to look forward to.</p>
+      <p style="font-size:15px;color:rgba(255,255,255,0.8);line-height:1.8;margin-bottom:32px">That's what sparked Venly. A platform built for both those looking for spaces and those listing them — fair, simple, and clutter-free.</p>
+
+      <!-- Stats row -->
+      <div style="display:flex;gap:40px;padding-top:28px;border-top:1px solid rgba(255,255,255,0.15)">
+        <div>
+          <div style="font-size:28px;font-weight:800;color:#fff;letter-spacing:-0.5px">24+</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:4px;font-weight:500">Listed spaces</div>
+        </div>
+        <div>
+          <div style="font-size:28px;font-weight:800;color:#fff;letter-spacing:-0.5px">4.2k+</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:4px;font-weight:500">Listing views</div>
+        </div>
+        <div>
+          <div style="font-size:28px;font-weight:800;color:#fff;letter-spacing:-0.5px">100%</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:4px;font-weight:500">No commission</div>
+        </div>
       </div>
-      <div class="about-card-meta">
-        <span>Auckland City, Auckland</span>
-        <span>Capacity 1 – 350</span>
-      </div>
     </div>
+
+    <!-- RIGHT — Photo card + values -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <!-- Photo card -->
+      <div style="border-radius:16px;overflow:hidden;position:relative;height:280px">
+        <img src="https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=800&q=80" alt="Okahu venue" style="width:100%;height:100%;object-fit:cover" />
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.55) 0%,rgba(0,0,0,0.0) 50%)"></div>
+        <div style="position:absolute;bottom:0;left:0;right:0;padding:20px;display:flex;align-items:flex-end;justify-content:space-between">
+          <div>
+            <div style="font-size:16px;font-weight:700;color:#fff">Okahu</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.75)">Auckland City · Capacity 1–350</div>
+          </div>
+          <span style="background:rgba(255,255,255,0.15);color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;backdrop-filter:blur(4px)">Event space</span>
+        </div>
+      </div>
+
+      <!-- 3 value pills -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+        <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:16px;text-align:center;backdrop-filter:blur(4px)">
+          <div style="font-size:20px;margin-bottom:6px">🎯</div>
+          <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:2px">Simple</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.6)">No faff</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:16px;text-align:center;backdrop-filter:blur(4px)">
+          <div style="font-size:20px;margin-bottom:6px">⚡</div>
+          <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:2px">Fast</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.6)">Find in minutes</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:16px;text-align:center;backdrop-filter:blur(4px)">
+          <div style="font-size:20px;margin-bottom:6px">🤝</div>
+          <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:2px">Fair</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.6)">No commission</div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <a href="venly-find-a-space.html" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#fff;color:#e03a2f;font-size:14px;font-weight:700;padding:14px;border-radius:10px;text-decoration:none;transition:all 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.92)'" onmouseout="this.style.background='#fff'">
+        Find a space
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+
   </div>
-</div>
+
+  <style>
+    @media (max-width: 860px) {
+      #about-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+    }
+    @media (max-width: 540px) {
+      #about-grid { padding: 0 !important; }
+    }
+  </style>
+</section>
 
 <!-- PREMIUM SPACES -->
 <section style="padding:80px 48px;background:var(--white)">
