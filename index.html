@@ -445,88 +445,6 @@ section { padding: 80px 48px; }
 }
 
 
-/* ── ANIMATIONS ─────────────────────────────────── */
-
-/* Fade up on scroll */
-.fade-up {
-  opacity: 0;
-  transform: translateY(28px);
-  transition: opacity 0.65s ease, transform 0.65s ease;
-}
-.fade-up.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* Stagger children */
-.fade-up:nth-child(2) { transition-delay: 0.1s; }
-.fade-up:nth-child(3) { transition-delay: 0.2s; }
-.fade-up:nth-child(4) { transition-delay: 0.3s; }
-
-/* Hero headline word reveal */
-@keyframes heroFadeUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.hero h1 {
-  animation: heroFadeUp 0.8s ease 0.2s both;
-}
-.hero-card {
-  animation: heroFadeUp 0.8s ease 0.5s both;
-}
-
-/* Search button pulse */
-@keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(224,58,47,0.4); }
-  50%       { box-shadow: 0 0 0 8px rgba(224,58,47,0); }
-}
-.btn-search-pulse {
-  animation: pulse 2.5s ease-in-out infinite;
-}
-
-/* Carousel card float on hover — already have transform, enhance */
-.carousel-card {
-  transition: transform 0.25s ease, box-shadow 0.25s ease !important;
-}
-
-/* Section eyebrow slide in */
-@keyframes eyebrowSlide {
-  from { opacity: 0; transform: translateX(-12px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-
-/* Number counter animation for stats */
-@keyframes countUp {
-  from { opacity: 0; transform: scale(0.8); }
-  to   { opacity: 1; transform: scale(1); }
-}
-.stat-number {
-  animation: countUp 0.5s ease both;
-}
-
-/* Footer wave */
-.footer-wave {
-  display: block;
-  width: 100%;
-  overflow: hidden;
-  line-height: 0;
-  margin-bottom: -2px;
-}
-.footer-wave svg {
-  display: block;
-  width: 100%;
-}
-
-/* Testimonial card hover lift */
-.space-card {
-  transition: transform 0.22s ease, box-shadow 0.22s ease !important;
-}
-
-/* Purpose row hover slide */
-.purpose-row {
-  transition: padding-left 0.2s ease !important;
-}
-
 </style>
   <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -543,7 +461,7 @@ section { padding: 80px 48px; }
 <section class="hero">
   <div class="hero-bg"></div>
   <div class="hero-content">
-    <h1>Every great event<br>starts with the <span>right space.</span></h1>
+    <h1>Find your space<br>with <span>Venly.</span></h1>
     <div class="hero-card">
 <div class="search-bar">
       <select id="hero-space">
@@ -594,7 +512,7 @@ section { padding: 80px 48px; }
 
 <!-- RECENTLY ADDED -->
 <section style="padding:60px 0 80px;background:var(--white);overflow:hidden">
-  <div class="fade-up" style="padding:0 48px;margin-bottom:32px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px">
+  <div style="padding:0 48px;margin-bottom:32px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px">
     <div>
       <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--red);margin-bottom:10px">New on Venly</div>
       <h2 class="section-title" style="text-align:left;margin-bottom:6px">Recently Added Spaces</h2>
@@ -837,7 +755,7 @@ section { padding: 80px 48px; }
     </div>
 
     <!-- Featured large card + 2 small -->
-    <div style="display:grid;grid-template-columns:1.4fr 1fr;grid-template-rows:auto auto;gap:16px" id="premium-grid" class="fade-up">
+    <div style="display:grid;grid-template-columns:1.4fr 1fr;grid-template-rows:auto auto;gap:16px" id="premium-grid">
 
       <!-- LARGE CARD — spans 2 rows -->
       <div onclick="window.location.href='venly-venue.html'" style="grid-row:1/3;border-radius:16px;overflow:hidden;cursor:pointer;position:relative;background:#111;transition:transform 0.2s,box-shadow 0.2s;min-height:460px" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 20px 48px rgba(0,0,0,0.15)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
@@ -980,7 +898,7 @@ section { padding: 80px 48px; }
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </a>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px" id="home-blog-grid" class="fade-up">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px" id="home-blog-grid">
 
       <!-- Post 1 -->
       <div class="space-card" onclick="window.location.href='venly-blog-post.html?id=0'" style="cursor:pointer;display:flex;flex-direction:column">
@@ -1044,12 +962,6 @@ section { padding: 80px 48px; }
 </style>
 
 <!-- FOOTER -->
-<!-- FOOTER WAVE -->
-<div style="background:var(--white);line-height:0;margin-bottom:-2px">
-  <svg viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style="display:block;width:100%;height:60px">
-    <path d="M0,30 C240,60 480,0 720,30 C960,60 1200,0 1440,30 L1440,60 L0,60 Z" fill="#111"/>
-  </svg>
-</div>
 <div id="venly-footer"></div>
 <script>renderFooter();</script>
 
@@ -1154,23 +1066,6 @@ function doSearch() {
   window.addEventListener('scroll', function() {
     if (window.scrollY > 80) { solid(); } else { transparent(); }
   }, { passive: true });
-})();
-</script>
-
-<script>
-// Scroll reveal observer
-(function() {
-  var els = document.querySelectorAll('.fade-up');
-  if (!els.length) return;
-  var observer = new IntersectionObserver(function(entries) {
-    entries.forEach(function(entry) {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.12 });
-  els.forEach(function(el) { observer.observe(el); });
 })();
 </script>
 
