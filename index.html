@@ -334,73 +334,6 @@ section { padding: 80px 48px; }
   
 }
 
-/* TAG STRIP */
-.tag-strip-outer {
-  overflow: hidden;
-  position: relative;
-  padding: 10px 0 12px;
-  width: 100%;
-  z-index: 3;
-}
-
-.tag-strip-outer::before,
-.tag-strip-outer::after {
-  content: '';
-  position: absolute;
-  top: 0; bottom: 0;
-  width: 48px;
-  z-index: 2;
-  pointer-events: none;
-}
-.tag-strip-outer::before {
-  left: 0;
-  background: linear-gradient(to right, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
-}
-.tag-strip-outer::after {
-  right: 0;
-  background: linear-gradient(to left, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
-}
-
-.tag-strip-track {
-  display: flex;
-  gap: 8px;
-  width: max-content;
-  padding: 2px 48px 2px 48px;
-  animation: tagScroll 45s linear infinite;
-}
-
-@keyframes tagScroll {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
-.tag-strip-track.paused {
-  animation-play-state: paused;
-}
-
-.tag-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-  padding: 6px 14px;
-  border-radius: 24px;
-  background: #f5f5f3;
-  border: 1px solid #e8e8e8;
-  font-size: 12.5px;
-  font-weight: 500;
-  color: #444;
-  cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.15s;
-}
-.tag-pill:hover {
-  background: var(--red-light);
-  border-color: var(--red);
-  color: var(--red);
-  transform: translateY(-1px);
-}
-
 /* HERO CARD — unified search + tags */
 .hero-card {
   background: rgba(255,255,255,0.97);
@@ -444,7 +377,6 @@ section { padding: 80px 48px; }
   .nav-right .btn-primary { padding: 7px 14px !important; font-size: 12px !important; }
 }
 
-
 </style>
   <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -481,30 +413,7 @@ section { padding: 80px 48px; }
       </select>
       <button class="btn btn-primary" onclick="doSearch()">Search</button>
     </div>
-    <div class="tag-strip-outer" onmouseenter="pauseScroll()" onmouseleave="resumeScroll()">
-      <div class="tag-strip-track" id="tagTrack">
-        <button class="tag-pill" onclick="searchTag('Event space')">🎉 Wedding Space</button>
-        <button class="tag-pill" onclick="searchTag('Event space')">🥂 21st Party</button>
-        <button class="tag-pill" onclick="searchTag('Event space')">💼 Corporate Function</button>
-        <button class="tag-pill" onclick="searchTag('Meeting space')">🤝 Meeting Rooms</button>
-        <button class="tag-pill" onclick="searchTag('Shoot Location')">📸 Shoot Location</button>
-        <button class="tag-pill" onclick="searchTag('Event space')">🎂 Birthday Party</button>
-        <button class="tag-pill" onclick="searchTag('Event space')">🎤 Product Launch</button>
-        <button class="tag-pill" onclick="searchTag('Meeting space')">🏢 Conference Room</button>
-        <button class="tag-pill" onclick="searchTag('Event space')">🍽️ Dinner Event</button>
-        <button class="tag-pill" onclick="searchTag('Shoot Location')">🎬 Film Location</button>
-        <button class="tag-pill" onclick="searchTag('Event space')">🎉 Wedding Space</button>
-        <button class="tag-pill" onclick="searchTag('Event space')">🥂 21st Party</button>
-        <button class="tag-pill" onclick="searchTag('Event space')">💼 Corporate Function</button>
-        <button class="tag-pill" onclick="searchTag('Meeting space')">🤝 Meeting Rooms</button>
-        <button class="tag-pill" onclick="searchTag('Shoot Location')">📸 Shoot Location</button>
-        <button class="tag-pill" onclick="searchTag('Event space')">🎂 Birthday Party</button>
-        <button class="tag-pill" onclick="searchTag('Event space')">🎤 Product Launch</button>
-        <button class="tag-pill" onclick="searchTag('Meeting space')">🏢 Conference Room</button>
-        <button class="tag-pill" onclick="searchTag('Event space')">🍽️ Dinner Event</button>
-        <button class="tag-pill" onclick="searchTag('Shoot Location')">🎬 Film Location</button>
-      </div>
-    </div>
+    
     </div>
       </div>
   </div>
@@ -976,13 +885,6 @@ function toggleFav(btn) {
     svg.setAttribute('fill', 'none');
     svg.setAttribute('stroke', 'currentColor');
   }
-}
-
-function pauseScroll() {
-  document.getElementById('tagTrack').classList.add('paused');
-}
-function resumeScroll() {
-  document.getElementById('tagTrack').classList.remove('paused');
 }
 
 function searchTag(type) {
