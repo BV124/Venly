@@ -575,15 +575,15 @@ section { padding: 80px 48px; }
       <!-- Stats row -->
       <div style="display:flex;gap:40px;padding-top:28px;border-top:1px solid rgba(255,255,255,0.15)">
         <div>
-          <div style="font-size:28px;font-weight:800;color:#fff;letter-spacing:-0.5px">24+</div>
+          <div style="font-size:28px;font-weight:800;color:#fff;letter-spacing:-0.5px" class="stat-count" data-target="24" data-suffix="+">0+</div>
           <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:4px;font-weight:500">Listed spaces</div>
         </div>
         <div>
-          <div style="font-size:28px;font-weight:800;color:#fff;letter-spacing:-0.5px">4.2k+</div>
+          <div style="font-size:28px;font-weight:800;color:#fff;letter-spacing:-0.5px" class="stat-count" data-target="4200" data-suffix="+" data-format="k">0+</div>
           <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:4px;font-weight:500">Listing views</div>
         </div>
         <div>
-          <div style="font-size:28px;font-weight:800;color:#fff;letter-spacing:-0.5px">100%</div>
+          <div style="font-size:28px;font-weight:800;color:#fff;letter-spacing:-0.5px" class="stat-count" data-target="100" data-suffix="%">0%</div>
           <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:4px;font-weight:500">No commission</div>
         </div>
       </div>
@@ -966,5 +966,53 @@ function doSearch() {
 })();
 </script>
 
+
+<script>
+// Count-up animation for stats — triggers when scrolled into view
+(function() {
+  function animateCount(el) {
+    var target = parseInt(el.dataset.target);
+    var suffix = el.dataset.suffix || '';
+    var format = el.dataset.format || '';
+    var duration = 1800;
+    var start = null;
+
+    function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+    function step(timestamp) {
+      if (!start) start = timestamp;
+      var progress = Math.min((timestamp - start) / duration, 1);
+      var value = Math.floor(easeOut(progress) * target);
+
+      if (format === 'k') {
+        el.textContent = value >= 1000
+          ? (value / 1000).toFixed(1).replace('.0','') + 'k' + suffix
+          : value + suffix;
+      } else {
+        el.textContent = value + suffix;
+      }
+
+      if (progress < 1) requestAnimationFrame(step);
+    }
+
+    requestAnimationFrame(step);
+  }
+
+  var stats = document.querySelectorAll('.stat-count');
+  var triggered = false;
+
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting && !triggered) {
+        triggered = true;
+        stats.forEach(function(el) { animateCount(el); });
+        observer.disconnect();
+      }
+    });
+  }, { threshold: 0.5 });
+
+  if (stats.length) observer.observe(stats[0]);
+})();
+</script>
 </body>
 </html>
