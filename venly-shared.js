@@ -20,10 +20,10 @@ function renderNav(options) {
     : 'BV';
 
   var links = [
-    { href: 'index.html',        label: 'Home',         key: 'home' },
-    { href: 'venly-find-a-space.html',label: 'Find a Space', key: 'find' },
-    { href: 'venly-contact.html',     label: 'Contact',      key: 'contact' },
-    { href: 'venly-blog.html',        label: 'Blog',         key: 'blog' },
+    { href: 'index.html',              label: 'Home',         key: 'home' },
+    { href: 'venly-find-a-space.html', label: 'Find a Space', key: 'find' },
+    { href: 'venly-how-it-works.html', label: 'How It Works', key: 'how'  },
+    { href: 'venly-blog.html',         label: 'Blog',         key: 'blog' },
   ];
 
   var navLinks = links.map(function(l) {

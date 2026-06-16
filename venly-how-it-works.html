@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Venly – How It Works</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="venly-config.js"></script>
+<script src="venly-shared.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --red: #e03a2f; --red-light: #fdf0ef; --red-dark: #c2332a;
+  --text: #1a1a1a; --text-muted: #6b6b6b; --border: #e8e8e8;
+  --bg: #f7f7f5; --white: #fff; --radius: 14px; --radius-sm: 8px;
+  --navy: #1e2d4a;
+}
+body { font-family: 'Inter', sans-serif; color: var(--text); background: var(--white); font-size: 15px; line-height: 1.6; }
+nav { position: sticky; top: 0; z-index: 100; }
+.btn { border-radius: var(--radius-sm); padding: 10px 24px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; border: 2px solid var(--red); transition: all 0.15s; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+.btn-primary { background: var(--red); color: #fff; }
+.btn-primary:hover { background: var(--red-dark); transform: translateY(-1px); }
+.btn-outline { background: transparent; color: var(--red); }
+.btn-outline:hover { background: var(--red-light); }
+
+/* ── HERO ─────────────────────── */
+.hero {
+  background: var(--red);
+  padding: 80px 48px 0;
+  overflow: hidden;
+  position: relative;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -120px; right: -120px;
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  pointer-events: none;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: 40px; left: -80px;
+  width: 300px; height: 300px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+  pointer-events: none;
+}
+.hero-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: flex-end;
+  position: relative;
+}
+.hero-left { padding-bottom: 64px; }
+.hero-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 20px;
+}
+.hero-title {
+  font-size: clamp(36px, 5vw, 64px);
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.05;
+  letter-spacing: -2px;
+  margin-bottom: 20px;
+}
+.hero-title span { color: rgba(255,255,255,0.4); }
+.hero-subtitle {
+  font-size: 16px;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.75;
+  max-width: 440px;
+  margin-bottom: 36px;
+}
+.hero-right {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-bottom: 0;
+  align-self: flex-end;
+}
+
+/* Quick stats bar */
+.stats-bar {
+  display: flex;
+  gap: 0;
+  background: rgba(255,255,255,0.1);
+  border-radius: 14px 14px 0 0;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-bottom: none;
+}
+.stat-item {
+  flex: 1;
+  padding: 20px 24px;
+  border-right: 1px solid rgba(255,255,255,0.12);
+  text-align: center;
+}
+.stat-item:last-child { border-right: none; }
+.stat-val { font-size: 24px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+.stat-label { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 2px; font-weight: 500; }
+
+/* ── FOR WHO TABS ─────────────── */
+.who-section {
+  background: var(--white);
+  padding: 80px 48px;
+  border-bottom: 1px solid var(--border);
+}
+.who-inner { max-width: 1200px; margin: 0 auto; }
+.who-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 48px;
+  background: var(--bg);
+  padding: 6px;
+  border-radius: 12px;
+  width: fit-content;
+}
+.who-tab {
+  padding: 10px 28px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.2s;
+  color: var(--text-muted);
+  background: transparent;
+}
+.who-tab.active {
+  background: var(--white);
+  color: var(--red);
+  box-shadow: 0 1px 8px rgba(0,0,0,0.08);
+}
+
+/* ── STEPS ────────────────────── */
+.steps-panel { display: none; }
+.steps-panel.active { display: block; }
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  position: relative;
+}
+.steps-grid::before {
+  content: '';
+  position: absolute;
+  top: 40px;
+  left: calc(12.5% + 20px);
+  right: calc(12.5% + 20px);
+  height: 1px;
+  background: var(--border);
+  z-index: 0;
+}
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 24px;
+  position: relative;
+  z-index: 1;
+}
+.step-num {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--red);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(224,58,47,0.3);
+}
+.step-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--red-light);
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+.step-icon svg { width: 22px; height: 22px; color: var(--red); }
+.step-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+.step-desc { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+/* ── FAQ ──────────────────────── */
+.faq-section { padding: 80px 48px; background: var(--bg); }
+.faq-inner { max-width: 720px; margin: 0 auto; }
+.faq-heading { text-align: center; margin-bottom: 48px; }
+.faq-heading h2 { font-size: 32px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+.faq-heading p { font-size: 15px; color: var(--text-muted); }
+.faq-item { border-radius: 10px; background: var(--white); border: 1px solid var(--border); margin-bottom: 8px; overflow: hidden; }
+.faq-q {
+  width: 100%; text-align: left; padding: 18px 20px;
+  font-size: 15px; font-weight: 600; cursor: pointer;
+  background: none; border: none; font-family: 'Inter', sans-serif;
+  color: var(--text); display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.faq-q svg { width: 18px; height: 18px; color: var(--text-muted); flex-shrink: 0; transition: transform 0.2s; }
+.faq-item.open .faq-q svg { transform: rotate(45deg); color: var(--red); }
+.faq-a { display: none; padding: 0 20px 18px; font-size: 14px; color: var(--text-muted); line-height: 1.75; }
+.faq-item.open .faq-a { display: block; }
+
+/* ── BOTTOM CTA ───────────────── */
+.cta-section {
+  padding: 80px 48px;
+  background: var(--white);
+  text-align: center;
+}
+.cta-inner { max-width: 580px; margin: 0 auto; }
+.cta-inner h2 { font-size: 36px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 12px; }
+.cta-inner p { font-size: 15px; color: var(--text-muted); margin-bottom: 32px; line-height: 1.7; }
+.cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+/* MOBILE */
+@media (max-width: 860px) {
+  .hero-inner { grid-template-columns: 1fr; gap: 40px; }
+  .hero { padding: 60px 24px 0; }
+  .hero-left { padding-bottom: 0; }
+  .stats-bar { border-radius: 14px; }
+  .who-section { padding: 60px 24px; }
+  .faq-section { padding: 60px 24px; }
+  .cta-section { padding: 60px 24px; }
+  .steps-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+  .steps-grid::before { display: none; }
+}
+@media (max-width: 540px) {
+  .hero-title { font-size: 36px; letter-spacing: -1px; }
+  .stats-bar { flex-direction: column; }
+  .stat-item { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.12); }
+  .stat-item:last-child { border-bottom: none; }
+  .steps-grid { grid-template-columns: 1fr; }
+  .who-tabs { width: 100%; }
+  .who-tab { flex: 1; text-align: center; padding: 10px 12px; }
+  .cta-inner h2 { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+
+<div id="venly-nav"></div>
+<script>renderNav({ activePage: 'how', loggedIn: !!localStorage.getItem('venly_current_user') });</script>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="hero-eyebrow">Simple by design</div>
+      <h1 class="hero-title">Finding a space<br>should be<br><span>this easy.</span></h1>
+      <p class="hero-subtitle">Search, enquire, book — no middlemen, no commission, no stress. Venly connects you directly with space hosts across New Zealand.</p>
+      <a href="venly-find-a-space.html" class="btn btn-primary">
+        Find a space now
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+    <div class="hero-right">
+      <div class="stats-bar">
+        <div class="stat-item">
+          <div class="stat-val">24+</div>
+          <div class="stat-label">Listed spaces</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val">4.2k+</div>
+          <div class="stat-label">Listing views</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val">100%</div>
+          <div class="stat-label">No commission</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS — TABS -->
+<div class="who-section">
+  <div class="who-inner">
+    <div style="text-align:center;margin-bottom:32px">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--red);margin-bottom:10px">The process</div>
+      <h2 style="font-size:32px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px">How Venly works</h2>
+      <p style="font-size:15px;color:var(--text-muted)">Whether you're searching for a space or listing one</p>
+    </div>
+
+    <div style="display:flex;justify-content:center;margin-bottom:48px">
+      <div class="who-tabs">
+        <button class="who-tab active" onclick="switchTab('finder')">Finding a Space</button>
+        <button class="who-tab" onclick="switchTab('host')">Listing a Space</button>
+      </div>
+    </div>
+
+    <!-- FINDING A SPACE -->
+    <div class="steps-panel active" id="panel-finder">
+      <div class="steps-grid">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-title">Search & filter</div>
+          <div class="step-desc">Use our filters to narrow by space type, region, capacity and event type. Find exactly what you need in seconds.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-title">Browse listings</div>
+          <div class="step-desc">View photos, read about the space, check features and pricing — everything you need to make a decision in one place.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-title">Enquire directly</div>
+          <div class="step-desc">Send a message straight to the host with your details and event info. No third party involved — it's just you and them.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-title">Book your space</div>
+          <div class="step-desc">The host gets back to you, you confirm the details and sort payment directly. Simple, fast, stress-free.</div>
+        </div>
+      </div>
+
+      <!-- Feature tiles -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:56px">
+        <div style="background:var(--bg);border-radius:14px;padding:24px;border:1px solid var(--border)">
+          <div style="width:40px;height:40px;border-radius:10px;background:var(--red-light);display:flex;align-items:center;justify-content:center;margin-bottom:14px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          </div>
+          <div style="font-size:14px;font-weight:700;margin-bottom:6px">3 space types</div>
+          <div style="font-size:13px;color:var(--text-muted);line-height:1.6">Event spaces, meeting rooms and shoot locations — all in one place.</div>
+        </div>
+        <div style="background:var(--bg);border-radius:14px;padding:24px;border:1px solid var(--border)">
+          <div style="width:40px;height:40px;border-radius:10px;background:var(--red-light);display:flex;align-items:center;justify-content:center;margin-bottom:14px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+          <div style="font-size:14px;font-weight:700;margin-bottom:6px">Across New Zealand</div>
+          <div style="font-size:13px;color:var(--text-muted);line-height:1.6">Auckland, Wellington, Hamilton and more — growing every week.</div>
+        </div>
+        <div style="background:var(--bg);border-radius:14px;padding:24px;border:1px solid var(--border)">
+          <div style="width:40px;height:40px;border-radius:10px;background:var(--red-light);display:flex;align-items:center;justify-content:center;margin-bottom:14px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div style="font-size:14px;font-weight:700;margin-bottom:6px">Free to browse</div>
+          <div style="font-size:13px;color:var(--text-muted);line-height:1.6">No account needed to search. Create one free to save favourites and enquire.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LISTING A SPACE -->
+    <div class="steps-panel" id="panel-host">
+      <div class="steps-grid">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-title">Create an account</div>
+          <div class="step-desc">Sign up free in 30 seconds. No credit card needed to get started — just your name and email.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-title">Choose a plan</div>
+          <div class="step-desc">Pick from Basic, Standard or Premium depending on how many photos and features you want to showcase.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-title">Build your listing</div>
+          <div class="step-desc">Add photos, describe your space, set your pricing and highlight what makes it special. Takes about 10 minutes.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-title">Start receiving enquiries</div>
+          <div class="step-desc">Your listing goes live and enquiries land directly in your inbox. You deal with guests directly — we stay out of the way.</div>
+        </div>
+      </div>
+
+      <!-- Plan comparison strip -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:56px">
+        <div style="background:var(--bg);border-radius:14px;padding:24px;border:1px solid var(--border);text-align:center">
+          <div style="font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Basic</div>
+          <div style="font-size:28px;font-weight:800;color:var(--text);margin-bottom:4px">From $19<span style="font-size:12px;color:var(--text-muted);font-weight:500">/mo</span></div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px">+GST</div>
+          <div style="font-size:13px;color:var(--text-muted);line-height:1.8">Up to 4 photos<br>6 features<br>Contact form</div>
+          <a href="venly-listing-fees.html" style="display:block;margin-top:16px;padding:10px;background:transparent;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;color:var(--text-muted);text-decoration:none;transition:all 0.15s" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">See full details</a>
+        </div>
+        <div style="background:var(--red);border-radius:14px;padding:24px;border:1px solid var(--red);text-align:center;position:relative">
+          <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#fff;color:var(--red);font-size:10px;font-weight:700;padding:3px 12px;border-radius:20px;white-space:nowrap;border:1px solid var(--red)">Most popular</div>
+          <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Standard</div>
+          <div style="font-size:28px;font-weight:800;color:#fff;margin-bottom:4px">From $39<span style="font-size:12px;color:rgba(255,255,255,0.7);font-weight:500">/mo</span></div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:16px">+GST</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.8);line-height:1.8">Up to 8 photos<br>10 features<br>Priority listing</div>
+          <a href="venly-listing-fees.html" style="display:block;margin-top:16px;padding:10px;background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.3);border-radius:8px;font-size:13px;font-weight:600;color:#fff;text-decoration:none;transition:all 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">See full details</a>
+        </div>
+        <div style="background:var(--bg);border-radius:14px;padding:24px;border:1px solid var(--border);text-align:center">
+          <div style="font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Premium</div>
+          <div style="font-size:28px;font-weight:800;color:var(--text);margin-bottom:4px">From $59<span style="font-size:12px;color:var(--text-muted);font-weight:500">/mo</span></div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px">+GST</div>
+          <div style="font-size:13px;color:var(--text-muted);line-height:1.8">Up to 12 photos<br>12 features<br>Homepage feature</div>
+          <a href="venly-listing-fees.html" style="display:block;margin-top:16px;padding:10px;background:transparent;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;color:var(--text-muted);text-decoration:none;transition:all 0.15s" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">See full details</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FAQ -->
+<div class="faq-section">
+  <div class="faq-inner">
+    <div class="faq-heading">
+      <h2>Common questions</h2>
+      <p>Everything you need to know about using Venly</p>
+    </div>
+
+    <div class="faq-item open">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        Is it free to search for a space?
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <div class="faq-a">Yes, completely free. You can browse all listings, view photos and read about each space without creating an account. You'll only need to sign up when you want to enquire or save favourites.</div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        Does Venly charge a commission on bookings?
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <div class="faq-a">No. Venly charges hosts a flat monthly listing fee only. We never take a percentage of your booking or charge guests anything. What you see is what you pay.</div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        How do I contact a venue host?
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <div class="faq-a">Each listing has a contact form where you can send your details and event information directly to the host. They'll typically get back to you within 24 hours. All communication is between you and the host — Venly isn't in the middle.</div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        What types of spaces are listed on Venly?
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <div class="faq-a">Venly lists three types of spaces: Event Spaces (for weddings, parties, launches, galas and more), Meeting Spaces (boardrooms, workshops, conference rooms), and Shoot Locations (for film, photography and content creation).</div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        How do I list my space on Venly?
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <div class="faq-a">Create a free account, choose a listing plan that suits you, and fill in your space details — photos, description, features and pricing. Your listing goes live as soon as it's complete. The whole process takes about 10 minutes.</div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        Which cities does Venly cover?
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <div class="faq-a">Venly currently covers Auckland, Wellington and Hamilton, with more regions being added regularly. If your city isn't listed yet, create an account and we'll let you know when it becomes available.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BOTTOM CTA -->
+<div class="cta-section">
+  <div class="cta-inner">
+    <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--red);margin-bottom:14px">Ready to go?</div>
+    <h2>Find your perfect space today</h2>
+    <p>Browse spaces across New Zealand for free. No account needed to search — just great venues waiting to be discovered.</p>
+    <div class="cta-btns">
+      <a href="venly-find-a-space.html" class="btn btn-primary">Find a space</a>
+      <a href="venly-listing-fees.html" class="btn btn-outline">View pricing</a>
+    </div>
+  </div>
+</div>
+
+<div id="venly-footer"></div>
+<script>renderFooter();</script>
+
+<script>
+function switchTab(tab) {
+  document.querySelectorAll('.who-tab').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.steps-panel').forEach(function(p) { p.classList.remove('active'); });
+  event.target.classList.add('active');
+  document.getElementById('panel-' + tab).classList.add('active');
+}
+
+function toggleFaq(btn) {
+  var item = btn.closest('.faq-item');
+  var isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(function(i) { i.classList.remove('open'); });
+  if (!isOpen) item.classList.add('open');
+}
+</script>
+</body>
+</html>
