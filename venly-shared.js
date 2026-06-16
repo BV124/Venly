@@ -196,7 +196,7 @@ function renderFooter() {
     <div>
       <span class="vf-col-heading">List a Space</span>
       <a href="venly-listing-fees.html" class="vf-link">Pricing &amp; Plans</a>
-      <a href="venly-listing-fees.html" class="vf-link">How It Works</a>
+      <a href="venly-how-it-works.html" class="vf-link">How It Works</a>
       <a href="venly-listing-fees.html" class="vf-link">List Your Space</a>
     </div>
 
