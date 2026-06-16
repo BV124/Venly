@@ -187,17 +187,16 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
 /* The spark dot */
 .steps-grid .spark {
   position: absolute;
-  top: 29px;
-  width: 22px;
-  height: 22px;
+  top: 28px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  background: radial-gradient(circle, #fff 20%, #ff6a00 55%, rgba(255,106,0,0) 100%);
-  box-shadow: 0 0 12px 6px rgba(255,106,0,0.7), 0 0 24px 10px rgba(255,106,0,0.3);
+  background: radial-gradient(circle, #fff 15%, #ff6a00 50%, rgba(255,106,0,0) 100%);
+  box-shadow: 0 0 10px 5px rgba(255,106,0,0.65), 0 0 22px 9px rgba(255,106,0,0.25);
   z-index: 3;
   pointer-events: none;
   opacity: 0;
   transform: translateX(-50%);
-  transition: left 0.6s ease, opacity 0.2s ease;
 }
 .step {
   display: flex;
@@ -222,7 +221,7 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
   margin-bottom: 20px;
   flex-shrink: 0;
   box-shadow: none;
-  transition: background 0.4s ease, box-shadow 0.4s ease, color 0.4s ease;
+  transition: background 0.5s ease, box-shadow 0.5s ease, color 0.5s ease;
   position: relative;
   z-index: 2;
 }
@@ -236,7 +235,7 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
 }
 @keyframes stepPulse {
   0%   { transform: scale(1); }
-  40%  { transform: scale(1.22); }
+  35%  { transform: scale(1.15); }
   100% { transform: scale(1); }
 }
 .step-icon {
@@ -677,51 +676,79 @@ function switchPriceTab(type, btn) {
 
 // ── Spark step animation ────────────────────────────────────────
 function runSparkAnimation(grid) {
-  var nums = grid.querySelectorAll('.step-num');
+  var nums  = grid.querySelectorAll('.step-num');
   var spark = grid.querySelector('.spark');
   var fill  = grid.querySelector('.track-fill');
   if (!nums.length || !spark || !fill) return;
 
-  // Positions: spark travels between circle centres along the track
-  // The track goes from left edge of circle 1 to right edge of circle 4
-  // We'll calculate as % of grid width using offsetLeft of each circle
-  var gridRect = grid.getBoundingClientRect();
-
-  // Step delay between each spark hop
-  var delay = 700; // ms between hops
-
-  // Start with step 1 already lit, spark hidden
+  // Reset state
   nums.forEach(function(n, i) {
-    if (i === 0) { n.classList.add('lit'); } else { n.classList.remove('lit'); }
+    n.classList.remove('lit', 'pulse');
+    if (i === 0) n.classList.add('lit');
   });
+  spark.style.transition = 'none';
   spark.style.opacity = '0';
+  spark.style.left = '0%';
+  fill.style.transition = 'none';
   fill.style.width = '0%';
 
-  nums.forEach(function(num, i) {
-    if (i === 0) return; // already lit
+  // Travel duration between each circle (ms)
+  var travelMs = 900;
+  // Pause on each circle before moving to next (ms)
+  var pauseMs  = 500;
 
-    setTimeout(function() {
-      // Position spark at the centre of target circle
-      var rect = num.getBoundingClientRect();
-      var gRect = grid.getBoundingClientRect();
-      var centerX = rect.left - gRect.left + rect.width / 2;
-      var pct = (centerX / gRect.width) * 100;
+  function getCirclePct(num) {
+    var gRect = grid.getBoundingClientRect();
+    var nRect = num.getBoundingClientRect();
+    return ((nRect.left - gRect.left + nRect.width / 2) / gRect.width) * 100;
+  }
 
-      spark.style.opacity = '1';
-      spark.style.left = pct + '%';
-      fill.style.width = pct + '%';
+  // Set spark to circle 1 without transition
+  var pct0 = getCirclePct(nums[0]);
+  spark.style.left = pct0 + '%';
+  fill.style.width = '0%';
 
-      // Light up circle after spark arrives
-      setTimeout(function() {
+  // Small delay so browser registers the initial position before we animate
+  setTimeout(function() {
+    // Enable transitions now
+    spark.style.transition = 'left ' + travelMs + 'ms cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease';
+    fill.style.transition  = 'width ' + travelMs + 'ms cubic-bezier(0.4, 0, 0.2, 1)';
+
+    function hopTo(index) {
+      if (index >= nums.length) {
+        // All done — fade spark out
         spark.style.opacity = '0';
+        return;
+      }
+
+      var num = nums[index];
+      var pct = getCirclePct(num);
+
+      // Show spark and move it
+      spark.style.opacity = '1';
+      spark.style.left    = pct + '%';
+      fill.style.width    = pct + '%';
+
+      // After it arrives, light up the circle then pause before next hop
+      setTimeout(function() {
         num.classList.add('lit');
         num.classList.add('pulse');
-        setTimeout(function() { num.classList.remove('pulse'); }, 500);
-        // If last step, hide fill line stays, spark gone
-      }, 550);
+        setTimeout(function() { num.classList.remove('pulse'); }, 600);
 
-    }, i * delay);
-  });
+        // Brief pause, then move to next
+        setTimeout(function() {
+          hopTo(index + 1);
+        }, pauseMs);
+
+      }, travelMs);
+    }
+
+    // Start from circle 2 (circle 1 is already lit)
+    setTimeout(function() {
+      hopTo(1);
+    }, 300);
+
+  }, 80);
 }
 
 // Observe each steps-grid and fire when visible
@@ -734,17 +761,15 @@ function runSparkAnimation(grid) {
         runSparkAnimation(entry.target);
       }
     });
-  }, { threshold: 0.4 });
+  }, { threshold: 0.35 });
 
-  function observeGrids() {
+  document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.steps-grid[data-steps]').forEach(function(g) {
       obs.observe(g);
     });
-  }
+  });
 
-  document.addEventListener('DOMContentLoaded', observeGrids);
-
-  // Also re-observe when tab switches reveal a hidden grid
+  // Re-check hidden grids when tabs switch
   var origSwitchTab = window.switchTab;
   window.switchTab = function(tab) {
     origSwitchTab && origSwitchTab(tab);
