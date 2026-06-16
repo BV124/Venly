@@ -168,9 +168,36 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
   top: 40px;
   left: calc(12.5% + 20px);
   right: calc(12.5% + 20px);
-  height: 1px;
-  background: var(--border);
+  height: 2px;
+  background: #eee;
   z-index: 0;
+}
+/* Filled track that grows behind the spark */
+.steps-grid .track-fill {
+  position: absolute;
+  top: 39px;
+  left: calc(12.5% + 20px);
+  height: 2px;
+  width: 0%;
+  background: var(--red);
+  z-index: 1;
+  transition: width 0.6s ease;
+  pointer-events: none;
+}
+/* The spark dot */
+.steps-grid .spark {
+  position: absolute;
+  top: 29px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 20%, #ff6a00 55%, rgba(255,106,0,0) 100%);
+  box-shadow: 0 0 12px 6px rgba(255,106,0,0.7), 0 0 24px 10px rgba(255,106,0,0.3);
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-50%);
+  transition: left 0.6s ease, opacity 0.2s ease;
 }
 .step {
   display: flex;
@@ -185,8 +212,8 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: var(--red);
-  color: #fff;
+  background: #e8c5c3;
+  color: rgba(255,255,255,0.7);
   font-size: 18px;
   font-weight: 800;
   display: flex;
@@ -194,7 +221,23 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
   justify-content: center;
   margin-bottom: 20px;
   flex-shrink: 0;
-  box-shadow: 0 4px 16px rgba(224,58,47,0.3);
+  box-shadow: none;
+  transition: background 0.4s ease, box-shadow 0.4s ease, color 0.4s ease;
+  position: relative;
+  z-index: 2;
+}
+.step-num.lit {
+  background: var(--red);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(224,58,47,0.45);
+}
+.step-num.pulse {
+  animation: stepPulse 0.5s ease-out;
+}
+@keyframes stepPulse {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.22); }
+  100% { transform: scale(1); }
 }
 .step-icon {
   width: 56px;
@@ -319,9 +362,11 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
 
     <!-- FINDING A SPACE -->
     <div class="steps-panel active" id="panel-finder">
-      <div class="steps-grid">
+      <div class="steps-grid" data-steps="4">
+        <div class="track-fill"></div>
+        <div class="spark"></div>
         <div class="step">
-          <div class="step-num">1</div>
+          <div class="step-num lit">1</div>
           <div class="step-title">Search & filter</div>
           <div class="step-desc">Use our filters to narrow by space type, region, capacity and event type. Find exactly what you need in seconds.</div>
         </div>
@@ -370,9 +415,11 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
 
     <!-- LISTING A SPACE -->
     <div class="steps-panel" id="panel-host">
-      <div class="steps-grid">
+      <div class="steps-grid" data-steps="4">
+        <div class="track-fill"></div>
+        <div class="spark"></div>
         <div class="step">
-          <div class="step-num">1</div>
+          <div class="step-num lit">1</div>
           <div class="step-title">Create an account</div>
           <div class="step-desc">Sign up free in 30 seconds. No credit card needed to get started — just your name and email.</div>
         </div>
@@ -627,6 +674,87 @@ function switchPriceTab(type, btn) {
   btn.style.color = 'var(--red)';
   btn.style.boxShadow = '0 1px 6px rgba(0,0,0,0.08)';
 }
+
+// ── Spark step animation ────────────────────────────────────────
+function runSparkAnimation(grid) {
+  var nums = grid.querySelectorAll('.step-num');
+  var spark = grid.querySelector('.spark');
+  var fill  = grid.querySelector('.track-fill');
+  if (!nums.length || !spark || !fill) return;
+
+  // Positions: spark travels between circle centres along the track
+  // The track goes from left edge of circle 1 to right edge of circle 4
+  // We'll calculate as % of grid width using offsetLeft of each circle
+  var gridRect = grid.getBoundingClientRect();
+
+  // Step delay between each spark hop
+  var delay = 700; // ms between hops
+
+  // Start with step 1 already lit, spark hidden
+  nums.forEach(function(n, i) {
+    if (i === 0) { n.classList.add('lit'); } else { n.classList.remove('lit'); }
+  });
+  spark.style.opacity = '0';
+  fill.style.width = '0%';
+
+  nums.forEach(function(num, i) {
+    if (i === 0) return; // already lit
+
+    setTimeout(function() {
+      // Position spark at the centre of target circle
+      var rect = num.getBoundingClientRect();
+      var gRect = grid.getBoundingClientRect();
+      var centerX = rect.left - gRect.left + rect.width / 2;
+      var pct = (centerX / gRect.width) * 100;
+
+      spark.style.opacity = '1';
+      spark.style.left = pct + '%';
+      fill.style.width = pct + '%';
+
+      // Light up circle after spark arrives
+      setTimeout(function() {
+        spark.style.opacity = '0';
+        num.classList.add('lit');
+        num.classList.add('pulse');
+        setTimeout(function() { num.classList.remove('pulse'); }, 500);
+        // If last step, hide fill line stays, spark gone
+      }, 550);
+
+    }, i * delay);
+  });
+}
+
+// Observe each steps-grid and fire when visible
+(function() {
+  var firedGrids = new WeakSet();
+  var obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting && !firedGrids.has(entry.target)) {
+        firedGrids.add(entry.target);
+        runSparkAnimation(entry.target);
+      }
+    });
+  }, { threshold: 0.4 });
+
+  function observeGrids() {
+    document.querySelectorAll('.steps-grid[data-steps]').forEach(function(g) {
+      obs.observe(g);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', observeGrids);
+
+  // Also re-observe when tab switches reveal a hidden grid
+  var origSwitchTab = window.switchTab;
+  window.switchTab = function(tab) {
+    origSwitchTab && origSwitchTab(tab);
+    setTimeout(function() {
+      document.querySelectorAll('.steps-grid[data-steps]').forEach(function(g) {
+        if (!firedGrids.has(g)) obs.observe(g);
+      });
+    }, 50);
+  };
+})();
 
 function switchTab(tab) {
   document.querySelectorAll('.who-tab').forEach(function(t) { t.classList.remove('active'); });
