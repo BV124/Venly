@@ -54,47 +54,97 @@ nav {
 .page-header p { font-size: 15px; color: var(--text-muted); max-width: 520px; margin: 0 auto; line-height: 1.6; }
 
 /* FILTERS */
-.filters-bar {
-  display: flex; align-items: center; gap: 12px;
-  padding: 0 48px 40px;
-  max-width: 1200px; margin: 0 auto;
-  flex-wrap: wrap;
+.filters-wrap {
+  max-width: 1200px; margin: 0 auto; padding: 0 48px 36px;
 }
 
-.search-input-wrap {
-  position: relative; flex: 1; min-width: 200px;
+/* Search bar */
+.search-row {
+  position: relative; margin-bottom: 16px;
 }
-.search-input-wrap svg {
-  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+.search-row svg {
+  position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
   width: 18px; height: 18px; color: var(--text-muted); pointer-events: none;
 }
-.search-input-wrap input {
-  width: 100%; padding: 11px 14px 11px 42px;
-  border: 1px solid var(--border); border-radius: var(--radius-sm);
-  font-size: 14px; font-family: 'Inter', sans-serif; color: var(--text);
+.search-row input {
+  width: 100%; padding: 13px 16px 13px 46px;
+  border: 1px solid var(--border); border-radius: 10px;
+  font-size: 15px; font-family: 'Inter', sans-serif; color: var(--text);
   background: var(--white); transition: border-color 0.15s, box-shadow 0.15s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
-.search-input-wrap input:focus { outline: none; border-color: var(--red); box-shadow: 0 0 0 3px rgba(224,58,47,0.1); }
+.search-row input:focus { outline: none; border-color: var(--red); box-shadow: 0 0 0 3px rgba(224,58,47,0.08); }
+.search-row input::placeholder { color: var(--text-muted); }
 
-.filter-select {
-  padding: 11px 36px 11px 14px;
-  border: 1px solid var(--border); border-radius: var(--radius-sm);
-  font-size: 14px; font-family: 'Inter', sans-serif; color: var(--text-muted);
-  background: var(--white); cursor: pointer; appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b6b6b' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 12px center;
-  min-width: 160px; transition: border-color 0.15s;
+/* Filter chips row */
+.filter-row {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
 }
-.filter-select:focus { outline: none; border-color: var(--red); }
 
+/* Each filter is a custom dropdown chip */
+.filter-chip {
+  position: relative;
+}
+.chip-btn {
+  display: flex; align-items: center; gap: 7px;
+  padding: 9px 14px; border-radius: 8px;
+  border: 1.5px solid var(--border); background: var(--white);
+  font-size: 13px; font-weight: 500; font-family: 'Inter', sans-serif;
+  color: var(--text-muted); cursor: pointer;
+  white-space: nowrap; transition: all 0.15s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.chip-btn:hover { border-color: #ccc; color: var(--text); }
+.chip-btn.active {
+  border-color: var(--red); background: var(--red-light);
+  color: var(--red); font-weight: 600;
+}
+.chip-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+.chip-arrow { width: 12px !important; height: 12px !important; transition: transform 0.2s; margin-left: 2px; }
+.filter-chip.open .chip-arrow { transform: rotate(180deg); }
+
+/* Dropdown panel */
+.chip-dropdown {
+  display: none; position: absolute; top: calc(100% + 6px); left: 0;
+  min-width: 200px; background: var(--white);
+  border: 1px solid var(--border); border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1); z-index: 50;
+  overflow: hidden; padding: 6px;
+}
+.filter-chip.open .chip-dropdown { display: block; }
+.chip-option {
+  display: block; width: 100%; text-align: left;
+  padding: 9px 12px; border: none; background: none;
+  font-size: 13px; font-family: 'Inter', sans-serif; color: var(--text);
+  cursor: pointer; border-radius: 6px; transition: background 0.1s;
+}
+.chip-option:hover { background: var(--bg); }
+.chip-option.selected { color: var(--red); font-weight: 600; background: var(--red-light); }
+.chip-optgroup-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-muted);
+  padding: 8px 12px 4px; display: block;
+}
+
+/* Divider between chips and clear btn */
+.filter-divider { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
+
+/* Clear btn */
 .clear-filters {
-  display: flex; align-items: center; gap: 6px;
+  display: flex; align-items: center; gap: 5px;
   background: transparent; border: none; cursor: pointer;
   font-size: 13px; font-weight: 500; color: var(--text-muted);
-  white-space: nowrap; padding: 8px 4px; transition: color 0.15s;
+  white-space: nowrap; padding: 6px 4px; transition: color 0.15s;
+  font-family: 'Inter', sans-serif;
 }
 .clear-filters:hover { color: var(--red); }
-.clear-filters svg { width: 16px; height: 16px; }
+.clear-filters svg { width: 13px; height: 13px; }
+
+@media (max-width: 768px) {
+  .filters-wrap { padding: 0 20px 28px; }
+  .filter-row { gap: 6px; }
+  .chip-btn { font-size: 12px; padding: 8px 11px; }
+}
 
 /* RESULTS */
 .results-wrap { max-width: 1200px; margin: 0 auto; padding: 0 48px 80px; }
@@ -200,63 +250,109 @@ nav {
   <p>Can't find what you're looking for? Get in touch with the team at Venly using the form below — we're here to help and would love to hear from you.</p>
 </div>
 
-<div class="filters-bar">
-  <div class="search-input-wrap">
+<div class="filters-wrap">
+  <!-- Search -->
+  <div class="search-row">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-    <input type="text" id="search-input" placeholder="Search" oninput="filterCards()" />
+    <input type="text" id="search-input" placeholder="Search spaces by name or keyword…" oninput="filterCards()" />
   </div>
-  <select class="filter-select" id="filter-type" onchange="filterCards()">
-    <option value="">Select a space</option>
-    <option>Event space</option>
-    <option>Meeting space</option>
-    <option>Shoot Location</option>
-  </select>
-  <select class="filter-select" id="filter-region" onchange="filterCards()">
-    <option value="">Select a region</option>
-    <option>Auckland</option>
-    <option>Wellington</option>
-    <option>Christchurch</option>
-  </select>
-  <select class="filter-select" id="filter-district" onchange="filterCards()">
-    <option value="">Select a district</option>
-    <option>Auckland City</option>
-    <option>North Shore</option>
-    <option>Waitakere</option>
-    <option>Manukau</option>
-  </select>
-  <select class="filter-select" id="filter-event" onchange="filterCards()">
-    <option value="">Type of event</option>
-    <optgroup label="Event Spaces">
-      <option>Wedding</option>
-      <option>18th Party</option>
-      <option>21st Party</option>
-      <option>Corporate Event</option>
-      <option>Private Party</option>
-      <option>Product Launch</option>
-      <option>Gala / Awards</option>
-      <option>Market / Expo</option>
-      <option>Live Performance</option>
-    </optgroup>
-    <optgroup label="Meeting Spaces">
-      <option>Boardroom</option>
-      <option>Workshop</option>
-      <option>Training</option>
-      <option>Conference</option>
-      <option>Interview Room</option>
-      <option>Coworking</option>
-    </optgroup>
-    <optgroup label="Shoot Locations">
-      <option>Film & TV</option>
-      <option>Photography</option>
-      <option>Commercial</option>
-      <option>Content Creation</option>
-      <option>Podcast / Recording</option>
-    </optgroup>
-  </select>
-  <button class="clear-filters" onclick="clearFilters()">
-    Clear Filters
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-  </button>
+
+  <!-- Filter chips -->
+  <div class="filter-row">
+
+    <!-- Space type -->
+    <div class="filter-chip" id="chip-type">
+      <button class="chip-btn" onclick="toggleChip('chip-type')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span id="label-type">Space type</span>
+        <svg class="chip-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="chip-dropdown">
+        <button class="chip-option selected" onclick="selectChip('chip-type','filter-type','','Space type',this)">All types</button>
+        <button class="chip-option" onclick="selectChip('chip-type','filter-type','Event space','Event space',this)">Event space</button>
+        <button class="chip-option" onclick="selectChip('chip-type','filter-type','Meeting space','Meeting space',this)">Meeting space</button>
+        <button class="chip-option" onclick="selectChip('chip-type','filter-type','Shoot Location','Shoot location',this)">Shoot location</button>
+      </div>
+    </div>
+
+    <!-- Region -->
+    <div class="filter-chip" id="chip-region">
+      <button class="chip-btn" onclick="toggleChip('chip-region')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span id="label-region">Region</span>
+        <svg class="chip-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="chip-dropdown">
+        <button class="chip-option selected" onclick="selectChip('chip-region','filter-region','','Region',this)">All regions</button>
+        <button class="chip-option" onclick="selectChip('chip-region','filter-region','Auckland','Auckland',this)">Auckland</button>
+        <button class="chip-option" onclick="selectChip('chip-region','filter-region','Wellington','Wellington',this)">Wellington</button>
+        <button class="chip-option" onclick="selectChip('chip-region','filter-region','Christchurch','Christchurch',this)">Christchurch</button>
+      </div>
+    </div>
+
+    <!-- District -->
+    <div class="filter-chip" id="chip-district">
+      <button class="chip-btn" onclick="toggleChip('chip-district')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
+        <span id="label-district">District</span>
+        <svg class="chip-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="chip-dropdown">
+        <button class="chip-option selected" onclick="selectChip('chip-district','filter-district','','District',this)">All districts</button>
+        <button class="chip-option" onclick="selectChip('chip-district','filter-district','Auckland City','Auckland City',this)">Auckland City</button>
+        <button class="chip-option" onclick="selectChip('chip-district','filter-district','North Shore','North Shore',this)">North Shore</button>
+        <button class="chip-option" onclick="selectChip('chip-district','filter-district','Waitakere','Waitakere',this)">Waitakere</button>
+        <button class="chip-option" onclick="selectChip('chip-district','filter-district','Manukau','Manukau',this)">Manukau</button>
+      </div>
+    </div>
+
+    <!-- Event type -->
+    <div class="filter-chip" id="chip-event">
+      <button class="chip-btn" onclick="toggleChip('chip-event')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span id="label-event">Event type</span>
+        <svg class="chip-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="chip-dropdown" style="min-width:220px">
+        <button class="chip-option selected" onclick="selectChip('chip-event','filter-event','','Event type',this)">All event types</button>
+        <span class="chip-optgroup-label">Event Spaces</span>
+        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Wedding','Wedding',this)">Wedding</button>
+        <button class="chip-option" onclick="selectChip('chip-event','filter-event','18th Party','18th Party',this)">18th Party</button>
+        <button class="chip-option" onclick="selectChip('chip-event','filter-event','21st Party','21st Party',this)">21st Party</button>
+        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Corporate Event','Corporate Event',this)">Corporate Event</button>
+        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Private Party','Private Party',this)">Private Party</button>
+        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Product Launch','Product Launch',this)">Product Launch</button>
+        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Gala / Awards','Gala / Awards',this)">Gala / Awards</button>
+        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Market / Expo','Market / Expo',this)">Market / Expo</button>
+        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Live Performance','Live Performance',this)">Live Performance</button>
+        <span class="chip-optgroup-label">Meeting Spaces</span>
+        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Boardroom','Boardroom',this)">Boardroom</button>
+        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Workshop','Workshop',this)">Workshop</button>
+        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Training','Training',this)">Training</button>
+        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Conference','Conference',this)">Conference</button>
+        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Interview Room','Interview Room',this)">Interview Room</button>
+        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Coworking','Coworking',this)">Coworking</button>
+        <span class="chip-optgroup-label">Shoot Locations</span>
+        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Film &amp; TV','Film &amp; TV',this)">Film &amp; TV</button>
+        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Photography','Photography',this)">Photography</button>
+        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Commercial','Commercial',this)">Commercial</button>
+        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Content Creation','Content Creation',this)">Content Creation</button>
+        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Podcast / Recording','Podcast / Recording',this)">Podcast / Recording</button>
+      </div>
+    </div>
+
+    <!-- Hidden real filter values for filterCards() to read -->
+    <input type="hidden" id="filter-type" value="" />
+    <input type="hidden" id="filter-region" value="" />
+    <input type="hidden" id="filter-district" value="" />
+    <input type="hidden" id="filter-event" value="" />
+
+    <div class="filter-divider"></div>
+    <button class="clear-filters" onclick="clearFilters()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      Clear all
+    </button>
+  </div>
 </div>
 
 <div class="results-wrap">
@@ -322,6 +418,38 @@ function renderCards(list) {
   `).join('');
 }
 
+// ── Chip filter helpers ──────────────────────────────────────────
+function toggleChip(id) {
+  var chip = document.getElementById(id);
+  var isOpen = chip.classList.contains('open');
+  // close all
+  document.querySelectorAll('.filter-chip').forEach(function(c) { c.classList.remove('open'); });
+  if (!isOpen) chip.classList.add('open');
+}
+
+function selectChip(chipId, inputId, value, label, optEl) {
+  // Update hidden input
+  document.getElementById(inputId).value = value;
+  // Update label
+  document.getElementById('label-' + inputId.replace('filter-','')).textContent = label;
+  // Active style on button
+  var btn = document.querySelector('#' + chipId + ' .chip-btn');
+  btn.classList.toggle('active', value !== '');
+  // Mark selected option
+  document.querySelectorAll('#' + chipId + ' .chip-option').forEach(function(o) { o.classList.remove('selected'); });
+  optEl.classList.add('selected');
+  // Close chip
+  document.getElementById(chipId).classList.remove('open');
+  filterCards();
+}
+
+// Close chips when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.filter-chip')) {
+    document.querySelectorAll('.filter-chip').forEach(function(c) { c.classList.remove('open'); });
+  }
+});
+
 function filterCards() {
   const search = document.getElementById('search-input').value.toLowerCase();
   const type = document.getElementById('filter-type').value;
@@ -346,6 +474,17 @@ function clearFilters() {
   document.getElementById('filter-type').value = '';
   document.getElementById('filter-region').value = '';
   document.getElementById('filter-district').value = '';
+  document.getElementById('filter-event').value = '';
+  // Reset chip labels and styles
+  ['type','region','district','event'].forEach(function(key) {
+    var labels = {'type':'Space type','region':'Region','district':'District','event':'Event type'};
+    var el = document.getElementById('label-' + key);
+    if (el) el.textContent = labels[key];
+    var btn = document.querySelector('#chip-' + key + ' .chip-btn');
+    if (btn) btn.classList.remove('active');
+    var opts = document.querySelectorAll('#chip-' + key + ' .chip-option');
+    opts.forEach(function(o,i){ o.classList.toggle('selected', i===0); });
+  });
   // Read URL params from homepage search and pre-apply filters
 (function() {
   var params = new URLSearchParams(window.location.search);
