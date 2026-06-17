@@ -524,6 +524,8 @@ function setView(view) {
 // ── Leaflet / OpenStreetMap (free, no API key, no billing) ─────────
 let lMap = null;
 let lMarkers = [];
+let userHasInteracted = false;   // true once the user manually zooms/pans
+let programmaticMove = false;    // true while WE are moving the map (fitBounds/setView)
 
 function initLeafletMap() {
   if (lMap) {
@@ -548,10 +550,36 @@ function initLeafletMap() {
 
   document.getElementById('map-legend').style.display = 'flex';
 
+  // Detect genuine user interaction (drag or zoom via scroll/buttons/pinch).
+  // We ignore moves that WE trigger programmatically (fitBounds/setView after a filter change).
+  lMap.on('dragstart zoomstart', function() {
+    if (!programmaticMove) {
+      userHasInteracted = true;
+    }
+  });
+
+  // Once the user has taken control, every map move should reveal ALL spaces
+  // in the currently visible area — not just the ones matching active filters.
+  lMap.on('moveend zoomend', function() {
+    if (userHasInteracted) {
+      showAllPinsInView();
+    }
+  });
+
   // Fix sizing after the container becomes visible
   setTimeout(() => lMap.invalidateSize(), 50);
 
   renderMapPins(window.__lastFilteredList || spaces);
+}
+
+// Show every space (ignoring active filters) that falls within the map's current visible bounds
+function showAllPinsInView() {
+  if (!lMap) return;
+  const bounds = lMap.getBounds();
+  const visible = spaces.filter(s =>
+    s.lat !== undefined && s.lng !== undefined && bounds.contains([s.lat, s.lng])
+  );
+  drawMarkers(visible, { refit: false });
 }
 
 function clearMarkers() {
@@ -572,16 +600,18 @@ function makePinIcon(color) {
   });
 }
 
-function renderMapPins(list) {
-  window.__lastFilteredList = list;
+// Draws the given list of spaces as markers. Set refit:false to leave the
+// current map view alone (used when the user is browsing by panning/zooming).
+function drawMarkers(list, opts) {
+  opts = opts || {};
+  const refit = opts.refit !== false;
   const emptyMsg = document.getElementById('map-empty');
-  if (!lMap) { return; } // map not loaded yet — will render once initLeafletMap fires
 
   clearMarkers();
   const withCoords = list.filter(s => s.lat !== undefined && s.lng !== undefined);
 
   if (withCoords.length === 0) {
-    if (emptyMsg) emptyMsg.style.display = 'block';
+    if (emptyMsg) emptyMsg.style.display = refit ? 'block' : 'none';
     return;
   }
   if (emptyMsg) emptyMsg.style.display = 'none';
@@ -605,11 +635,25 @@ function renderMapPins(list) {
     latlngs.push([s.lat, s.lng]);
   });
 
+  if (!refit) return;
+
+  programmaticMove = true;
   if (latlngs.length > 1) {
     lMap.fitBounds(latlngs, { padding: [50, 50] });
   } else if (latlngs.length === 1) {
     lMap.setView(latlngs[0], 14);
   }
+  // Clear the programmatic flag once Leaflet finishes the move/zoom it triggers
+  setTimeout(() => { programmaticMove = false; }, 350);
+}
+
+function renderMapPins(list) {
+  window.__lastFilteredList = list;
+  if (!lMap) { return; } // map not loaded yet — will render once initLeafletMap fires
+
+  // A fresh filter change always resets manual-browse mode and re-fits to the filtered results
+  userHasInteracted = false;
+  drawMarkers(list, { refit: true });
 }
 
 
