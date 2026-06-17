@@ -640,8 +640,8 @@ function clearMarkers() {
 
 function makePinIcon(color) {
   return L.divIcon({
-    className: '',
-    html: `<svg width="28" height="36" viewBox="0 0 24 30" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 3px 5px rgba(0,0,0,0.3))">
+    className: 'map-pin-icon',
+    html: `<svg width="28" height="36" viewBox="0 0 24 30" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 3px 5px rgba(0,0,0,0.3)); transition: transform 0.15s ease;">
       <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 18 12 18s12-9 12-18c0-6.6-5.4-12-12-12z" fill="${color}" stroke="#fff" stroke-width="1.5"/>
       <circle cx="12" cy="12" r="5" fill="#fff"/>
     </svg>`,
@@ -674,7 +674,10 @@ function drawMarkers(list, opts) {
   // Build the scrollable sidebar list, synced with the markers below
   if (sidebar) {
     sidebar.innerHTML = withCoords.map((s, i) => `
-      <div class="sidebar-card" data-idx="${i}" onclick="focusSpaceOnMap(${i})">
+      <div class="sidebar-card" data-idx="${i}"
+           onmouseenter="previewSpaceOnMap(${i})"
+           onmouseleave="clearMapPreview()"
+           onclick="goToVenue(${i})">
         <img src="${s.img}" alt="${s.name}" loading="lazy" />
         <div class="sidebar-card-body">
           <div class="sidebar-card-name">${s.name}</div>
@@ -734,19 +737,37 @@ function highlightSidebarCard(idx) {
   if (activeCard) activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-// Clicking a sidebar card pans to its pin, opens its popup, and highlights the card
-function focusSpaceOnMap(idx) {
+// Hovering a sidebar card scales up its pin on the map (no panning, just a visual cue)
+function previewSpaceOnMap(idx) {
+  const marker = lMarkers[idx];
+  if (!marker) return;
+  const el = marker.getElement();
+  if (el) {
+    el.style.transform += ' scale(1.25)';
+    el.style.zIndex = 1000;
+  }
+  highlightSidebarCard(idx);
+}
+
+// Removes the hover preview effect from all pins
+function clearMapPreview() {
+  lMarkers.forEach(function(marker) {
+    const el = marker.getElement();
+    if (el) {
+      el.style.transform = el.style.transform.replace(' scale(1.25)', '');
+      el.style.zIndex = '';
+    }
+  });
+  document.querySelectorAll('.sidebar-card.active').forEach(function(card) {
+    card.classList.remove('active');
+  });
+}
+
+// Clicking a sidebar card takes the user straight to that venue's page
+function goToVenue(idx) {
   const list = window.__currentMapList || [];
   const space = list[idx];
-  const marker = lMarkers[idx];
-  if (!space || !marker || !lMap) return;
-
-  programmaticMove = true;
-  lMap.panTo([space.lat, space.lng]);
-  setTimeout(() => { programmaticMove = false; }, 350);
-
-  marker.openPopup();
-  highlightSidebarCard(idx);
+  window.location.href = 'venly-venue.html' + (space ? '?name=' + encodeURIComponent(space.name) : '');
 }
 
 function renderMapPins(list) {
