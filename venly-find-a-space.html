@@ -217,7 +217,7 @@ nav {
 .sidebar-card-badges { display: flex; gap: 5px; flex-wrap: wrap; }
 .sidebar-badge { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; padding: 2px 6px; border-radius: 4px; }
 .sidebar-badge.type { background: var(--bg); color: var(--text-muted); }
-.sidebar-badge.premium { background: #fff1e6; color: #ff7a1a; }
+.sidebar-badge.premium { background: var(--red-light); color: var(--red); }
 
 .sidebar-empty {
   display: flex; align-items: center; justify-content: center;
@@ -489,8 +489,8 @@ nav {
       <div class="map-container" id="map-container">
         <div id="leaflet-map"></div>
         <div class="map-legend" id="map-legend" style="display:none">
-          <span><span class="dot" style="background:var(--red)"></span> Standard listing</span>
-          <span><span class="dot" style="background:#ff7a1a"></span> Premium listing</span>
+          <span><span class="dot" style="background:#ffffff;border:1.5px solid #d8d8d8"></span> Standard listing</span>
+          <span><span class="dot" style="background:var(--red)"></span> Premium listing</span>
         </div>
         <div class="map-empty" id="map-empty" style="display:none">No spaces match your filters in this area</div>
       </div>
@@ -649,16 +649,20 @@ function clearMarkers() {
   lMarkers = [];
 }
 
-function makePinIcon(color) {
+function makePinIcon(premium) {
+  const fill = premium ? '#e03a2f' : '#ffffff';
+  const stroke = premium ? '#ffffff' : '#d8d8d8';
+  const dot = premium ? '#ffffff' : '#e03a2f';
+
   return L.divIcon({
     className: 'map-pin-icon',
-    html: `<svg width="28" height="36" viewBox="0 0 24 30" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 3px 5px rgba(0,0,0,0.3)); transition: transform 0.15s ease;">
-      <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 18 12 18s12-9 12-18c0-6.6-5.4-12-12-12z" fill="${color}" stroke="#fff" stroke-width="1.5"/>
-      <circle cx="12" cy="12" r="5" fill="#fff"/>
+    html: `<svg width="26" height="34" viewBox="0 0 24 30" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.18)); transition: transform 0.15s ease;">
+      <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 18 12 18s12-9 12-18c0-6.6-5.4-12-12-12z" fill="${fill}" stroke="${stroke}" stroke-width="1"/>
+      <circle cx="12" cy="12" r="4.5" fill="${dot}"/>
     </svg>`,
-    iconSize: [28, 36],
-    iconAnchor: [14, 36],
-    popupAnchor: [0, -32],
+    iconSize: [26, 34],
+    iconAnchor: [13, 34],
+    popupAnchor: [0, -30],
   });
 }
 
@@ -703,8 +707,7 @@ function drawMarkers(list, opts) {
   }
 
   withCoords.forEach(function(s, i) {
-    const color = s.premium ? '#ff7a1a' : '#e03a2f';
-    const marker = L.marker([s.lat, s.lng], { icon: makePinIcon(color) }).addTo(lMap);
+    const marker = L.marker([s.lat, s.lng], { icon: makePinIcon(s.premium) }).addTo(lMap);
 
     marker.bindPopup(`
       <div class="gmap-tooltip">
