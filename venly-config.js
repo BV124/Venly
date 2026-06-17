@@ -9,14 +9,22 @@ const VENLY_CONFIG = {
   // SUPABASE — get these from supabase.com
   // Your project → Settings → API
   // ----------------------------------------------------------
-  supabaseUrl:  'https://fauptwawvjsnsswumiyk.supabase.co',
-  supabaseKey:  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhdXB0d2F3dmpzbnNzd3VtaXlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTE3NjAsImV4cCI6MjA5Njg2Nzc2MH0.wEuNw75JhWFHDdvYLCzhg2K466U45BsLPappxMgJdCw',
+  supabaseUrl:  'YOUR_SUPABASE_URL',
+  supabaseKey:  'YOUR_SUPABASE_ANON_KEY',
 
   // ----------------------------------------------------------
   // STRIPE — get these from dashboard.stripe.com
   // Developers → API keys → Publishable key
   // ----------------------------------------------------------
   stripeKey: 'YOUR_STRIPE_PUBLISHABLE_KEY',
+
+  // ----------------------------------------------------------
+  // GOOGLE MAPS — get this from console.cloud.google.com
+  // APIs & Services → Credentials → Create API key
+  // Enable the "Maps JavaScript API" for this key.
+  // Used on the Find a Space page to show listings on a real map.
+  // ----------------------------------------------------------
+  googleMapsKey: 'YOUR_GOOGLE_MAPS_API_KEY',
 
   // ----------------------------------------------------------
   // SITE SETTINGS
@@ -80,6 +88,12 @@ const sb = SUPABASE_READY
 // STRIPE CLIENT — auto-initialises when key is set
 // ============================================================
 const STRIPE_READY = VENLY_CONFIG.stripeKey !== 'YOUR_STRIPE_PUBLISHABLE_KEY';
+
+// ============================================================
+// GOOGLE MAPS — flag used by venly-find-a-space.html
+// ============================================================
+const GOOGLE_MAPS_READY = VENLY_CONFIG.googleMapsKey !== 'YOUR_GOOGLE_MAPS_API_KEY';
+
 
 // ============================================================
 // AUTH HELPERS — available on every page
