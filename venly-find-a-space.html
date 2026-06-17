@@ -180,7 +180,7 @@ nav {
   border-radius: 16px; border: 1px solid var(--border);
   overflow: hidden;
 }
-#google-map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+#leaflet-map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
 
 .map-legend {
   position: absolute; bottom: 14px; left: 14px;
@@ -193,13 +193,11 @@ nav {
 .map-legend span { display: flex; align-items: center; gap: 5px; }
 .map-legend .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 
-.map-empty, .map-setup-notice {
+.map-empty {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
   text-align: center; color: var(--text-muted); font-size: 13px;
   max-width: 280px; line-height: 1.6; z-index: 4;
 }
-.map-setup-notice strong { display: block; color: var(--text); font-size: 14px; margin-bottom: 6px; }
-.map-setup-notice code { background: var(--bg); padding: 2px 6px; border-radius: 4px; font-size: 12px; }
 
 /* Custom Google Maps InfoWindow content */
 .gmap-tooltip { width: 200px; }
@@ -300,6 +298,8 @@ nav {
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="venly-config.js"></script>
   <script src="venly-shared.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 
@@ -438,16 +438,12 @@ nav {
   <!-- MAP VIEW -->
   <div class="map-view-wrap" id="map-view-wrap">
     <div class="map-container" id="map-container">
-      <div id="google-map"></div>
+      <div id="leaflet-map"></div>
       <div class="map-legend" id="map-legend" style="display:none">
         <span><span class="dot" style="background:var(--red)"></span> Standard listing</span>
         <span><span class="dot" style="background:#ff7a1a"></span> Premium listing</span>
       </div>
       <div class="map-empty" id="map-empty" style="display:none">No spaces match your filters in this area</div>
-      <div class="map-setup-notice" id="map-setup-notice" style="display:none">
-        <strong>Map needs a Google Maps API key</strong>
-        Add your key to <code>googleMapsKey</code> in venly-config.js to enable the live map view.
-      </div>
     </div>
   </div>
 
@@ -522,63 +518,61 @@ function setView(view) {
   document.getElementById('btn-view-list').classList.toggle('active', !isMap);
   document.getElementById('btn-view-map').classList.toggle('active', isMap);
 
-  if (isMap) loadGoogleMapsScript();
+  if (isMap) initLeafletMap();
 }
 
-// ── Google Map ────────────────────────────────────────────────────
-let gMap = null;
-let gMarkers = [];
-let gInfoWindow = null;
-let mapsLoadAttempted = false;
+// ── Leaflet / OpenStreetMap (free, no API key, no billing) ─────────
+let lMap = null;
+let lMarkers = [];
 
-function loadGoogleMapsScript() {
-  if (mapsLoadAttempted) return;
-  mapsLoadAttempted = true;
-
-  if (!GOOGLE_MAPS_READY) {
-    document.getElementById('map-setup-notice').style.display = 'block';
+function initLeafletMap() {
+  if (lMap) {
+    // Map already exists — just fix sizing in case the container was hidden when created
+    setTimeout(() => lMap.invalidateSize(), 50);
     return;
   }
 
-  const script = document.createElement('script');
-  script.src = 'https://maps.googleapis.com/maps/api/js?key=' + VENLY_CONFIG.googleMapsKey + '&callback=initGoogleMap';
-  script.async = true;
-  script.onerror = function() {
-    document.getElementById('map-setup-notice').style.display = 'block';
-    document.querySelector('#map-setup-notice strong').textContent = 'Map failed to load';
-    document.querySelector('#map-setup-notice').lastChild.textContent = 'Check that your Google Maps API key is valid and the Maps JavaScript API is enabled.';
-  };
-  document.head.appendChild(script);
+  lMap = L.map('leaflet-map', {
+    center: [-36.8485, 174.7633], // Auckland
+    zoom: 12,
+    scrollWheelZoom: true,
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19,
+  }).addTo(lMap);
+
+  document.getElementById('map-legend').style.display = 'flex';
+
+  // Fix sizing after the container becomes visible
+  setTimeout(() => lMap.invalidateSize(), 50);
+
+  renderMapPins(window.__lastFilteredList || spaces);
 }
 
-window.initGoogleMap = function() {
-  gMap = new google.maps.Map(document.getElementById('google-map'), {
-    center: { lat: -36.8485, lng: 174.7633 }, // Auckland
-    zoom: 12,
-    disableDefaultUI: false,
-    zoomControl: true,
-    streetViewControl: false,
-    mapTypeControl: false,
-    fullscreenControl: false,
-    styles: [
-      { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] },
-      { featureType: 'transit', elementType: 'labels', stylers: [{ visibility: 'off' }] }
-    ]
-  });
-  gInfoWindow = new google.maps.InfoWindow();
-  document.getElementById('map-legend').style.display = 'flex';
-  renderMapPins(window.__lastFilteredList || spaces);
-};
-
 function clearMarkers() {
-  gMarkers.forEach(m => m.setMap(null));
-  gMarkers = [];
+  lMarkers.forEach(m => lMap.removeLayer(m));
+  lMarkers = [];
+}
+
+function makePinIcon(color) {
+  return L.divIcon({
+    className: '',
+    html: `<svg width="28" height="36" viewBox="0 0 24 30" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 3px 5px rgba(0,0,0,0.3))">
+      <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 18 12 18s12-9 12-18c0-6.6-5.4-12-12-12z" fill="${color}" stroke="#fff" stroke-width="1.5"/>
+      <circle cx="12" cy="12" r="5" fill="#fff"/>
+    </svg>`,
+    iconSize: [28, 36],
+    iconAnchor: [14, 36],
+    popupAnchor: [0, -32],
+  });
 }
 
 function renderMapPins(list) {
   window.__lastFilteredList = list;
   const emptyMsg = document.getElementById('map-empty');
-  if (!gMap) { return; } // map not loaded yet — will render once initGoogleMap fires
+  if (!lMap) { return; } // map not loaded yet — will render once initLeafletMap fires
 
   clearMarkers();
   const withCoords = list.filter(s => s.lat !== undefined && s.lng !== undefined);
@@ -589,46 +583,29 @@ function renderMapPins(list) {
   }
   if (emptyMsg) emptyMsg.style.display = 'none';
 
-  const bounds = new google.maps.LatLngBounds();
+  const latlngs = [];
 
   withCoords.forEach(function(s) {
     const color = s.premium ? '#ff7a1a' : '#e03a2f';
-    const marker = new google.maps.Marker({
-      position: { lat: s.lat, lng: s.lng },
-      map: gMap,
-      title: s.name,
-      icon: {
-        path: 'M12 0C5.4 0 0 5.4 0 12c0 9 12 18 12 18s12-9 12-18c0-6.6-5.4-12-12-12z',
-        fillColor: color,
-        fillOpacity: 1,
-        strokeColor: '#ffffff',
-        strokeWeight: 1.5,
-        scale: 1.3,
-        anchor: new google.maps.Point(12, 30),
-      }
-    });
+    const marker = L.marker([s.lat, s.lng], { icon: makePinIcon(color) }).addTo(lMap);
 
-    marker.addListener('click', function() {
-      gInfoWindow.setContent(`
-        <div class="gmap-tooltip">
-          <img src="${s.img}" alt="${s.name}" />
-          <div class="gmap-tooltip-name">${s.name}</div>
-          <div class="gmap-tooltip-meta">${s.type} · ${s.district}</div>
-          <a href="venly-venue.html" class="gmap-tooltip-link">View space →</a>
-        </div>
-      `);
-      gInfoWindow.open(gMap, marker);
-    });
+    marker.bindPopup(`
+      <div class="gmap-tooltip">
+        <img src="${s.img}" alt="${s.name}" />
+        <div class="gmap-tooltip-name">${s.name}</div>
+        <div class="gmap-tooltip-meta">${s.type} · ${s.district}</div>
+        <a href="venly-venue.html" class="gmap-tooltip-link">View space →</a>
+      </div>
+    `);
 
-    gMarkers.push(marker);
-    bounds.extend(marker.getPosition());
+    lMarkers.push(marker);
+    latlngs.push([s.lat, s.lng]);
   });
 
-  if (withCoords.length > 1) {
-    gMap.fitBounds(bounds, 60);
-  } else if (withCoords.length === 1) {
-    gMap.setCenter(bounds.getCenter());
-    gMap.setZoom(14);
+  if (latlngs.length > 1) {
+    lMap.fitBounds(latlngs, { padding: [50, 50] });
+  } else if (latlngs.length === 1) {
+    lMap.setView(latlngs[0], 14);
   }
 }
 

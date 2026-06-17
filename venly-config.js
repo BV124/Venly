@@ -19,14 +19,6 @@ const VENLY_CONFIG = {
   stripeKey: 'YOUR_STRIPE_PUBLISHABLE_KEY',
 
   // ----------------------------------------------------------
-  // GOOGLE MAPS — get this from console.cloud.google.com
-  // APIs & Services → Credentials → Create API key
-  // Enable the "Maps JavaScript API" for this key.
-  // Used on the Find a Space page to show listings on a real map.
-  // ----------------------------------------------------------
-  googleMapsKey: 'YOUR_GOOGLE_MAPS_API_KEY',
-
-  // ----------------------------------------------------------
   // SITE SETTINGS
   // ----------------------------------------------------------
   siteName:    'Venly',
@@ -88,11 +80,6 @@ const sb = SUPABASE_READY
 // STRIPE CLIENT — auto-initialises when key is set
 // ============================================================
 const STRIPE_READY = VENLY_CONFIG.stripeKey !== 'YOUR_STRIPE_PUBLISHABLE_KEY';
-
-// ============================================================
-// GOOGLE MAPS — flag used by venly-find-a-space.html
-// ============================================================
-const GOOGLE_MAPS_READY = VENLY_CONFIG.googleMapsKey !== 'YOUR_GOOGLE_MAPS_API_KEY';
 
 
 // ============================================================
