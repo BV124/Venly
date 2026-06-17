@@ -152,6 +152,78 @@ nav {
 .results-count { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
 .results-count strong { color: var(--text); }
 
+/* Results header row — count + view toggle */
+.results-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+}
+.view-toggle {
+  display: flex; gap: 2px; background: var(--bg);
+  border-radius: 8px; padding: 3px; border: 1px solid var(--border);
+}
+.view-toggle button {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 6px; border: none;
+  background: transparent; cursor: pointer;
+  font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif;
+  color: var(--text-muted); transition: all 0.15s;
+}
+.view-toggle button svg { width: 14px; height: 14px; }
+.view-toggle button.active { background: var(--white); color: var(--red); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+
+/* Map view */
+.map-view-wrap { display: none; margin-bottom: 40px; }
+.map-view-wrap.active { display: block; }
+.map-container {
+  position: relative; width: 100%; aspect-ratio: 16/10; max-height: 560px;
+  background: linear-gradient(180deg, #eef5f7 0%, #e3eef0 100%);
+  border-radius: 16px; border: 1px solid var(--border);
+  overflow: hidden;
+}
+.map-container svg.nz-outline { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+.map-pin {
+  position: absolute; transform: translate(-50%, -100%);
+  cursor: pointer; z-index: 2;
+}
+.map-pin svg { width: 30px; height: 38px; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.25)); transition: transform 0.15s ease; }
+.map-pin:hover svg { transform: translateY(-3px) scale(1.08); }
+.map-pin.premium svg .pin-fill { fill: #ff7a1a; }
+.map-pin .pin-fill { fill: var(--red); }
+
+.map-tooltip {
+  position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%);
+  background: var(--white); border-radius: 10px; box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+  width: 220px; padding: 0; opacity: 0; pointer-events: none; transition: opacity 0.15s ease;
+  z-index: 10;
+}
+.map-pin:hover .map-tooltip, .map-pin.tt-open .map-tooltip { opacity: 1; pointer-events: auto; }
+.map-tooltip img { width: 100%; height: 100px; object-fit: cover; border-radius: 10px 10px 0 0; display: block; }
+.map-tooltip-body { padding: 10px 12px 12px; }
+.map-tooltip-name { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 3px; line-height: 1.3; }
+.map-tooltip-meta { font-size: 11px; color: var(--text-muted); }
+.map-tooltip-link { display: block; margin-top: 8px; font-size: 12px; font-weight: 600; color: var(--red); text-decoration: none; }
+
+.map-legend {
+  position: absolute; bottom: 14px; left: 14px;
+  background: rgba(255,255,255,0.92); border-radius: 8px;
+  padding: 8px 12px; font-size: 11px; color: var(--text-muted);
+  display: flex; gap: 14px; align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.map-legend span { display: flex; align-items: center; gap: 5px; }
+.map-legend .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+.map-empty {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  text-align: center; color: var(--text-muted); font-size: 13px;
+}
+
+@media (max-width: 768px) {
+  .results-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .map-container { aspect-ratio: 4/5; max-height: 460px; }
+  .map-tooltip { width: 180px; }
+}
+
 .cards-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -360,7 +432,37 @@ nav {
 </div>
 
 <div class="results-wrap">
-  <p class="results-count" id="results-count"><strong>8</strong> spaces found</p>
+  <div class="results-header">
+    <p class="results-count" id="results-count" style="margin-bottom:0"><strong>8</strong> spaces found</p>
+    <div class="view-toggle">
+      <button id="btn-view-list" class="active" onclick="setView('list')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3" y2="6"/><line x1="3" y1="12" x2="3" y2="12"/><line x1="3" y1="18" x2="3" y2="18"/></svg>
+        List
+      </button>
+      <button id="btn-view-map" onclick="setView('map')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+        Map
+      </button>
+    </div>
+  </div>
+
+  <!-- MAP VIEW -->
+  <div class="map-view-wrap" id="map-view-wrap">
+    <div class="map-container" id="map-container">
+      <!-- Simplified NZ North Island outline -->
+      <svg class="nz-outline" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+        <path d="M52 6 C58 8 62 14 60 20 C66 24 70 30 68 36 C74 40 76 48 70 54 C72 60 68 66 62 68 C64 74 58 80 50 80 C48 86 40 90 34 86 C28 88 22 84 22 78 C16 76 14 68 18 62 C14 56 16 48 22 44 C20 38 24 32 30 30 C28 24 32 18 38 16 C38 10 46 4 52 6 Z"
+          fill="#dceae7" stroke="#c5dcd7" stroke-width="0.6"/>
+      </svg>
+      <div id="map-pins"></div>
+      <div class="map-legend">
+        <span><span class="dot" style="background:var(--red)"></span> Standard listing</span>
+        <span><span class="dot" style="background:#ff7a1a"></span> Premium listing</span>
+      </div>
+      <div class="map-empty" id="map-empty" style="display:none">No spaces match your filters in this area</div>
+    </div>
+  </div>
+
   <div class="cards-grid" id="cards-grid"></div>
   <div class="no-results" id="no-results">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
@@ -374,20 +476,22 @@ nav {
 
 <script>
 const spaces = [
-  { name: "Brads – Shoot Location", type: "Shoot Location", region: "Auckland", district: "Auckland City", capacity: "1 – 100", premium: true, img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80", events: ["Photography","Commercial","Content Creation"] },
-  { name: "Brads – Meeting Space", type: "Meeting space", region: "Auckland", district: "Auckland City", capacity: "20 – 380", premium: true, img: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&q=80", events: ["Boardroom","Conference","Training","Workshop"] },
-  { name: "Brads Warehouse", type: "Event space", region: "Auckland", district: "Auckland City", capacity: "20 – 506", premium: true, img: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&q=80", events: ["Wedding","21st Party","Corporate Event","Product Launch","Gala / Awards","Live Performance"] },
-  { name: "Okahu – Meeting Space", type: "Meeting space", region: "Auckland", district: "Auckland City", capacity: "1 – 100", premium: true, img: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80", events: ["Boardroom","Conference","Interview Room","Coworking"] },
-  { name: "Okahu – Shoot Location", type: "Shoot Location", region: "Auckland", district: "Auckland City", capacity: "1 – 100", premium: true, img: "https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=600&q=80", events: ["Film & TV","Photography","Commercial","Podcast / Recording"] },
-  { name: "Okahu", type: "Event space", region: "Auckland", district: "Auckland City", capacity: "1 – 350", premium: false, img: "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=600&q=80", events: ["Wedding","21st Party","Private Party","Corporate Event","Market / Expo"] },
-  { name: "North Shore Event Space", type: "Event space", region: "Auckland", district: "North Shore", capacity: "40 – 500", premium: true, img: "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80", events: ["Corporate Event","Gala / Awards","Product Launch","18th Party","21st Party"] },
-  { name: "City Meeting Room", type: "Meeting space", region: "Auckland", district: "Auckland City", capacity: "2 – 20", premium: false, img: "https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=600&q=80", events: ["Boardroom","Interview Room","Training","Workshop"] },
+  { name: "Brads – Shoot Location", type: "Shoot Location", region: "Auckland", district: "Auckland City", capacity: "1 – 100", premium: true, img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80", events: ["Photography","Commercial","Content Creation"], mapX: 47, mapY: 27 },
+  { name: "Brads – Meeting Space", type: "Meeting space", region: "Auckland", district: "Auckland City", capacity: "20 – 380", premium: true, img: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&q=80", events: ["Boardroom","Conference","Training","Workshop"], mapX: 48.5, mapY: 28 },
+  { name: "Brads Warehouse", type: "Event space", region: "Auckland", district: "Auckland City", capacity: "20 – 506", premium: true, img: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&q=80", events: ["Wedding","21st Party","Corporate Event","Product Launch","Gala / Awards","Live Performance"], mapX: 46.5, mapY: 28.5 },
+  { name: "Okahu – Meeting Space", type: "Meeting space", region: "Auckland", district: "Auckland City", capacity: "1 – 100", premium: true, img: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80", events: ["Boardroom","Conference","Interview Room","Coworking"], mapX: 49, mapY: 27.5 },
+  { name: "Okahu – Shoot Location", type: "Shoot Location", region: "Auckland", district: "Auckland City", capacity: "1 – 100", premium: true, img: "https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=600&q=80", events: ["Film & TV","Photography","Commercial","Podcast / Recording"], mapX: 47.5, mapY: 29 },
+  { name: "Okahu", type: "Event space", region: "Auckland", district: "Auckland City", capacity: "1 – 350", premium: false, img: "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=600&q=80", events: ["Wedding","21st Party","Private Party","Corporate Event","Market / Expo"], mapX: 48, mapY: 26.5 },
+  { name: "North Shore Event Space", type: "Event space", region: "Auckland", district: "North Shore", capacity: "40 – 500", premium: true, img: "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80", events: ["Corporate Event","Gala / Awards","Product Launch","18th Party","21st Party"], mapX: 46, mapY: 23 },
+  { name: "City Meeting Room", type: "Meeting space", region: "Auckland", district: "Auckland City", capacity: "2 – 20", premium: false, img: "https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=600&q=80", events: ["Boardroom","Interview Room","Training","Workshop"], mapX: 47.2, mapY: 27.8 },
 ];
 
 function renderCards(list) {
   const grid = document.getElementById('cards-grid');
   const count = document.getElementById('results-count');
   const noResults = document.getElementById('no-results');
+
+  renderMapPins(list);
 
   if (list.length === 0) {
     grid.innerHTML = '';
@@ -422,7 +526,48 @@ function renderCards(list) {
   `).join('');
 }
 
-// ── Chip filter helpers ──────────────────────────────────────────
+// ── Map view ──────────────────────────────────────────────────────
+function setView(view) {
+  const isMap = view === 'map';
+  document.getElementById('map-view-wrap').classList.toggle('active', isMap);
+  document.getElementById('cards-grid').style.display = isMap ? 'none' : '';
+  document.getElementById('btn-view-list').classList.toggle('active', !isMap);
+  document.getElementById('btn-view-map').classList.toggle('active', isMap);
+}
+
+function renderMapPins(list) {
+  const pinsWrap = document.getElementById('map-pins');
+  const emptyMsg = document.getElementById('map-empty');
+  if (!pinsWrap) return;
+
+  const withCoords = list.filter(s => s.mapX !== undefined && s.mapY !== undefined);
+
+  if (withCoords.length === 0) {
+    pinsWrap.innerHTML = '';
+    if (emptyMsg) emptyMsg.style.display = 'block';
+    return;
+  }
+  if (emptyMsg) emptyMsg.style.display = 'none';
+
+  pinsWrap.innerHTML = withCoords.map((s, i) => `
+    <div class="map-pin${s.premium ? ' premium' : ''}" style="left:${s.mapX}%; top:${s.mapY}%;" onclick="this.classList.toggle('tt-open')">
+      <svg viewBox="0 0 24 30" xmlns="http://www.w3.org/2000/svg">
+        <path class="pin-fill" d="M12 0C5.4 0 0 5.4 0 12c0 9 12 18 12 18s12-9 12-18c0-6.6-5.4-12-12-12z"/>
+        <circle cx="12" cy="12" r="5" fill="#fff"/>
+      </svg>
+      <div class="map-tooltip">
+        <img src="${s.img}" alt="${s.name}" />
+        <div class="map-tooltip-body">
+          <div class="map-tooltip-name">${s.name}</div>
+          <div class="map-tooltip-meta">${s.type} · ${s.district}</div>
+          <a href="venly-venue.html" class="map-tooltip-link">View space →</a>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+
 function toggleChip(id) {
   var chip = document.getElementById(id);
   var isOpen = chip.classList.contains('open');
