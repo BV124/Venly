@@ -299,10 +299,14 @@ nav {
       </button>
       <div class="chip-dropdown">
         <button class="chip-option selected" onclick="selectChip('chip-district','filter-district','','District',this)">All districts</button>
-        <button class="chip-option" onclick="selectChip('chip-district','filter-district','Auckland City','Auckland City',this)">Auckland City</button>
-        <button class="chip-option" onclick="selectChip('chip-district','filter-district','North Shore','North Shore',this)">North Shore</button>
-        <button class="chip-option" onclick="selectChip('chip-district','filter-district','Waitakere','Waitakere',this)">Waitakere</button>
-        <button class="chip-option" onclick="selectChip('chip-district','filter-district','Manukau','Manukau',this)">Manukau</button>
+        <button class="chip-option" data-region="Auckland" onclick="selectChip('chip-district','filter-district','Auckland City','Auckland City',this)">Auckland City</button>
+        <button class="chip-option" data-region="Auckland" onclick="selectChip('chip-district','filter-district','North Shore','North Shore',this)">North Shore</button>
+        <button class="chip-option" data-region="Auckland" onclick="selectChip('chip-district','filter-district','Waitakere','Waitakere',this)">Waitakere</button>
+        <button class="chip-option" data-region="Auckland" onclick="selectChip('chip-district','filter-district','Manukau','Manukau',this)">Manukau</button>
+        <button class="chip-option" data-region="Wellington" onclick="selectChip('chip-district','filter-district','Wellington Central','Wellington Central',this)">Wellington Central</button>
+        <button class="chip-option" data-region="Wellington" onclick="selectChip('chip-district','filter-district','Lower Hutt','Lower Hutt',this)">Lower Hutt</button>
+        <button class="chip-option" data-region="Christchurch" onclick="selectChip('chip-district','filter-district','Christchurch Central','Christchurch Central',this)">Christchurch Central</button>
+        <button class="chip-option" data-region="Christchurch" onclick="selectChip('chip-district','filter-district','Riccarton','Riccarton',this)">Riccarton</button>
       </div>
     </div>
 
@@ -315,29 +319,29 @@ nav {
       </button>
       <div class="chip-dropdown" style="min-width:220px">
         <button class="chip-option selected" onclick="selectChip('chip-event','filter-event','','Event type',this)">All event types</button>
-        <span class="chip-optgroup-label">Event Spaces</span>
-        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Wedding','Wedding',this)">Wedding</button>
-        <button class="chip-option" onclick="selectChip('chip-event','filter-event','18th Party','18th Party',this)">18th Party</button>
-        <button class="chip-option" onclick="selectChip('chip-event','filter-event','21st Party','21st Party',this)">21st Party</button>
-        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Corporate Event','Corporate Event',this)">Corporate Event</button>
-        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Private Party','Private Party',this)">Private Party</button>
-        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Product Launch','Product Launch',this)">Product Launch</button>
-        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Gala / Awards','Gala / Awards',this)">Gala / Awards</button>
-        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Market / Expo','Market / Expo',this)">Market / Expo</button>
-        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Live Performance','Live Performance',this)">Live Performance</button>
-        <span class="chip-optgroup-label">Meeting Spaces</span>
-        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Boardroom','Boardroom',this)">Boardroom</button>
-        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Workshop','Workshop',this)">Workshop</button>
-        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Training','Training',this)">Training</button>
-        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Conference','Conference',this)">Conference</button>
-        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Interview Room','Interview Room',this)">Interview Room</button>
-        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Coworking','Coworking',this)">Coworking</button>
-        <span class="chip-optgroup-label">Shoot Locations</span>
-        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Film &amp; TV','Film &amp; TV',this)">Film &amp; TV</button>
-        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Photography','Photography',this)">Photography</button>
-        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Commercial','Commercial',this)">Commercial</button>
-        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Content Creation','Content Creation',this)">Content Creation</button>
-        <button class="chip-option" onclick="selectChip('chip-event','filter-event','Podcast / Recording','Podcast / Recording',this)">Podcast / Recording</button>
+        <span class="chip-optgroup-label" data-type="Event space">Event Spaces</span>
+        <button class="chip-option" data-type="Event space" onclick="selectChip('chip-event','filter-event','Wedding','Wedding',this)">Wedding</button>
+        <button class="chip-option" data-type="Event space" onclick="selectChip('chip-event','filter-event','18th Party','18th Party',this)">18th Party</button>
+        <button class="chip-option" data-type="Event space" onclick="selectChip('chip-event','filter-event','21st Party','21st Party',this)">21st Party</button>
+        <button class="chip-option" data-type="Event space" onclick="selectChip('chip-event','filter-event','Corporate Event','Corporate Event',this)">Corporate Event</button>
+        <button class="chip-option" data-type="Event space" onclick="selectChip('chip-event','filter-event','Private Party','Private Party',this)">Private Party</button>
+        <button class="chip-option" data-type="Event space" onclick="selectChip('chip-event','filter-event','Product Launch','Product Launch',this)">Product Launch</button>
+        <button class="chip-option" data-type="Event space" onclick="selectChip('chip-event','filter-event','Gala / Awards','Gala / Awards',this)">Gala / Awards</button>
+        <button class="chip-option" data-type="Event space" onclick="selectChip('chip-event','filter-event','Market / Expo','Market / Expo',this)">Market / Expo</button>
+        <button class="chip-option" data-type="Event space" onclick="selectChip('chip-event','filter-event','Live Performance','Live Performance',this)">Live Performance</button>
+        <span class="chip-optgroup-label" data-type="Meeting space">Meeting Spaces</span>
+        <button class="chip-option" data-type="Meeting space" onclick="selectChip('chip-event','filter-event','Boardroom','Boardroom',this)">Boardroom</button>
+        <button class="chip-option" data-type="Meeting space" onclick="selectChip('chip-event','filter-event','Workshop','Workshop',this)">Workshop</button>
+        <button class="chip-option" data-type="Meeting space" onclick="selectChip('chip-event','filter-event','Training','Training',this)">Training</button>
+        <button class="chip-option" data-type="Meeting space" onclick="selectChip('chip-event','filter-event','Conference','Conference',this)">Conference</button>
+        <button class="chip-option" data-type="Meeting space" onclick="selectChip('chip-event','filter-event','Interview Room','Interview Room',this)">Interview Room</button>
+        <button class="chip-option" data-type="Meeting space" onclick="selectChip('chip-event','filter-event','Coworking','Coworking',this)">Coworking</button>
+        <span class="chip-optgroup-label" data-type="Shoot Location">Shoot Locations</span>
+        <button class="chip-option" data-type="Shoot Location" onclick="selectChip('chip-event','filter-event','Film &amp; TV','Film &amp; TV',this)">Film &amp; TV</button>
+        <button class="chip-option" data-type="Shoot Location" onclick="selectChip('chip-event','filter-event','Photography','Photography',this)">Photography</button>
+        <button class="chip-option" data-type="Shoot Location" onclick="selectChip('chip-event','filter-event','Commercial','Commercial',this)">Commercial</button>
+        <button class="chip-option" data-type="Shoot Location" onclick="selectChip('chip-event','filter-event','Content Creation','Content Creation',this)">Content Creation</button>
+        <button class="chip-option" data-type="Shoot Location" onclick="selectChip('chip-event','filter-event','Podcast / Recording','Podcast / Recording',this)">Podcast / Recording</button>
       </div>
     </div>
 
@@ -450,22 +454,101 @@ document.addEventListener('click', function(e) {
   }
 });
 
+// ── Master event list, grouped by space type (for rebuilding the Event chip) ──
+const EVENTS_BY_TYPE = {
+  'Event space': ["Wedding","18th Party","21st Party","Corporate Event","Private Party","Product Launch","Gala / Awards","Market / Expo","Live Performance"],
+  'Meeting space': ["Boardroom","Workshop","Training","Conference","Interview Room","Coworking"],
+  'Shoot Location': ["Film & TV","Photography","Commercial","Content Creation","Podcast / Recording"]
+};
+
+function currentFilters() {
+  return {
+    type: document.getElementById('filter-type').value,
+    region: document.getElementById('filter-region').value,
+    district: document.getElementById('filter-district').value,
+    event: document.getElementById('filter-event').value
+  };
+}
+
+// Spaces that match all CURRENT filters except the one named in `except`
+function spacesIgnoring(except) {
+  const f = currentFilters();
+  return spaces.filter(s => {
+    const matchType     = except === 'type'     || !f.type     || s.type === f.type;
+    const matchRegion   = except === 'region'   || !f.region   || s.region === f.region;
+    const matchDistrict = except === 'district' || !f.district || s.district === f.district;
+    const matchEvent    = except === 'event'     || !f.event    || (s.events && s.events.includes(f.event));
+    return matchType && matchRegion && matchDistrict && matchEvent;
+  });
+}
+
+function escAttr(str) { return str.replace(/'/g, "\\'"); }
+
+// Rebuild the options inside a chip dropdown based on what's still possible
+function rebuildChipOptions(key, possibleValues, allLabel) {
+  const chip = document.getElementById('chip-' + key);
+  const dropdown = chip.querySelector('.chip-dropdown');
+  const inputId = 'filter-' + key;
+  const currentVal = document.getElementById(inputId).value;
+
+  let html = '<button class="chip-option' + (!currentVal ? ' selected' : '') + '" onclick="selectChip(\'chip-' + key + '\',\'' + inputId + '\',\'\',\'' + allLabel + '\',this)">' + allLabel + '</button>';
+
+  if (key === 'event') {
+    const groups = currentFilters().type ? [currentFilters().type] : Object.keys(EVENTS_BY_TYPE);
+    groups.forEach(function(groupType) {
+      const opts = (EVENTS_BY_TYPE[groupType] || []).filter(function(ev) { return possibleValues.includes(ev); });
+      if (!opts.length) return;
+      html += '<span class="chip-optgroup-label">' + groupType + '</span>';
+      opts.forEach(function(ev) {
+        const sel = currentVal === ev ? ' selected' : '';
+        html += '<button class="chip-option' + sel + '" onclick="selectChip(\'chip-event\',\'filter-event\',\'' + escAttr(ev) + '\',\'' + escAttr(ev) + '\',this)">' + ev + '</button>';
+      });
+    });
+  } else {
+    possibleValues.forEach(function(val) {
+      const sel = currentVal === val ? ' selected' : '';
+      html += '<button class="chip-option' + sel + '" onclick="selectChip(\'chip-' + key + '\',\'' + inputId + '\',\'' + escAttr(val) + '\',\'' + escAttr(val) + '\',this)">' + val + '</button>';
+    });
+  }
+
+  dropdown.innerHTML = html;
+
+  // If currently selected value is no longer possible, clear it
+  if (currentVal && !possibleValues.includes(currentVal)) {
+    document.getElementById(inputId).value = '';
+    document.getElementById('label-' + key).textContent = allLabel;
+    chip.querySelector('.chip-btn').classList.remove('active');
+  }
+}
+
+// Recompute every chip's available options based on the others' current selections
+function updateChipAvailability() {
+  const typePool = spacesIgnoring('type');
+  rebuildChipOptions('type', [...new Set(typePool.map(s => s.type))], 'Space type');
+
+  const regionPool = spacesIgnoring('region');
+  rebuildChipOptions('region', [...new Set(regionPool.map(s => s.region))], 'Region');
+
+  const districtPool = spacesIgnoring('district');
+  rebuildChipOptions('district', [...new Set(districtPool.map(s => s.district))], 'District');
+
+  const eventPool = spacesIgnoring('event');
+  rebuildChipOptions('event', [...new Set(eventPool.flatMap(s => s.events || []))], 'Event type');
+}
+
 function filterCards() {
   const search = document.getElementById('search-input').value.toLowerCase();
-  const type = document.getElementById('filter-type').value;
-  const region = document.getElementById('filter-region').value;
-  const district = document.getElementById('filter-district').value;
-
-  const event = document.getElementById('filter-event').value;
+  const f = currentFilters();
   const filtered = spaces.filter(s => {
     const matchSearch = !search || s.name.toLowerCase().includes(search) || s.type.toLowerCase().includes(search);
-    const matchType = !type || s.type === type;
-    const matchRegion = !region || s.region === region;
-    const matchDistrict = !district || s.district === district;
-    const matchEvent = !event || (s.events && s.events.includes(event));
+    const matchType = !f.type || s.type === f.type;
+    const matchRegion = !f.region || s.region === f.region;
+    const matchDistrict = !f.district || s.district === f.district;
+    const matchEvent = !f.event || (s.events && s.events.includes(f.event));
     return matchSearch && matchType && matchRegion && matchDistrict && matchEvent;
   });
 
+  updateChipAvailability();
   renderCards(filtered);
 }
 
@@ -475,44 +558,8 @@ function clearFilters() {
   document.getElementById('filter-region').value = '';
   document.getElementById('filter-district').value = '';
   document.getElementById('filter-event').value = '';
-  // Reset chip labels and styles
-  ['type','region','district','event'].forEach(function(key) {
-    var labels = {'type':'Space type','region':'Region','district':'District','event':'Event type'};
-    var el = document.getElementById('label-' + key);
-    if (el) el.textContent = labels[key];
-    var btn = document.querySelector('#chip-' + key + ' .chip-btn');
-    if (btn) btn.classList.remove('active');
-    var opts = document.querySelectorAll('#chip-' + key + ' .chip-option');
-    opts.forEach(function(o,i){ o.classList.toggle('selected', i===0); });
-  });
-  // Read URL params from homepage search and pre-apply filters
-(function() {
-  var params = new URLSearchParams(window.location.search);
-  var type = params.get('type');
-  var region = params.get('region');
-  if (type) {
-    var sel = document.getElementById('filter-type');
-    for (var i = 0; i < sel.options.length; i++) {
-      if (sel.options[i].value === type) { sel.selectedIndex = i; break; }
-    }
-  }
-  var eventParam = params.get('event');
-  if (eventParam) {
-    var esel = document.getElementById('filter-event');
-    for (var i = 0; i < esel.options.length; i++) {
-      if (esel.options[i].value === eventParam) { esel.selectedIndex = i; break; }
-    }
-  }
-  if (region) {
-    var sel2 = document.getElementById('filter-region');
-    for (var i = 0; i < sel2.options.length; i++) {
-      if (sel2.options[i].value === region) { sel2.selectedIndex = i; break; }
-    }
-  }
-})();
-
-renderCards(spaces);
-if (window.location.search) filterCards();
+  updateChipAvailability();
+  renderCards(spaces);
 }
 
 function toggleFav(btn) {
@@ -527,34 +574,40 @@ function toggleFav(btn) {
   }
 }
 
-// Read URL params from homepage search and pre-apply filters
+// Initial chip build + read URL params from homepage search
+updateChipAvailability();
 (function() {
   var params = new URLSearchParams(window.location.search);
   var type = params.get('type');
   var region = params.get('region');
-  if (type) {
-    var sel = document.getElementById('filter-type');
-    for (var i = 0; i < sel.options.length; i++) {
-      if (sel.options[i].value === type) { sel.selectedIndex = i; break; }
-    }
-  }
   var eventParam = params.get('event');
-  if (eventParam) {
-    var esel = document.getElementById('filter-event');
-    for (var i = 0; i < esel.options.length; i++) {
-      if (esel.options[i].value === eventParam) { esel.selectedIndex = i; break; }
-    }
+
+  if (type) {
+    document.getElementById('filter-type').value = type;
+    var lbl = document.getElementById('label-type');
+    if (lbl) lbl.textContent = type;
+    var btn = document.querySelector('#chip-type .chip-btn');
+    if (btn) btn.classList.add('active');
   }
   if (region) {
-    var sel2 = document.getElementById('filter-region');
-    for (var i = 0; i < sel2.options.length; i++) {
-      if (sel2.options[i].value === region) { sel2.selectedIndex = i; break; }
-    }
+    document.getElementById('filter-region').value = region;
+    var lbl2 = document.getElementById('label-region');
+    if (lbl2) lbl2.textContent = region;
+    var btn2 = document.querySelector('#chip-region .chip-btn');
+    if (btn2) btn2.classList.add('active');
+  }
+  if (eventParam) {
+    document.getElementById('filter-event').value = eventParam;
+    var lbl3 = document.getElementById('label-event');
+    if (lbl3) lbl3.textContent = eventParam;
+    var btn3 = document.querySelector('#chip-event .chip-btn');
+    if (btn3) btn3.classList.add('active');
   }
 })();
 
 renderCards(spaces);
 if (window.location.search) filterCards();
+else updateChipAvailability();
 </script>
 </body>
 </html>
