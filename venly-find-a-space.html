@@ -558,6 +558,16 @@ function clearFilters() {
   document.getElementById('filter-region').value = '';
   document.getElementById('filter-district').value = '';
   document.getElementById('filter-event').value = '';
+
+  // Reset visible chip labels and active styling
+  var defaultLabels = { type: 'Space type', region: 'Region', district: 'District', event: 'Event type' };
+  Object.keys(defaultLabels).forEach(function(key) {
+    var label = document.getElementById('label-' + key);
+    if (label) label.textContent = defaultLabels[key];
+    var btn = document.querySelector('#chip-' + key + ' .chip-btn');
+    if (btn) btn.classList.remove('active');
+  });
+
   updateChipAvailability();
   renderCards(spaces);
 }
