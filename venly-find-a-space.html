@@ -174,13 +174,56 @@ nav {
 /* Map view */
 .map-view-wrap { display: none; margin-bottom: 40px; }
 .map-view-wrap.active { display: block; }
+
+.map-split {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 16px;
+  width: 100%;
+  height: 560px;
+}
+
 .map-container {
-  position: relative; width: 100%; aspect-ratio: 16/9; max-height: 560px;
+  position: relative; width: 100%; height: 100%;
   background: #eef5f7;
   border-radius: 16px; border: 1px solid var(--border);
   overflow: hidden;
 }
 #leaflet-map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+
+/* Scrollable sidebar list of venues, synced with map */
+.map-sidebar {
+  height: 100%; overflow-y: auto;
+  border: 1px solid var(--border); border-radius: 16px;
+  background: var(--white);
+  padding: 8px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.map-sidebar::-webkit-scrollbar { width: 6px; }
+.map-sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+.sidebar-card {
+  display: flex; gap: 10px; padding: 8px;
+  border-radius: 10px; cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+.sidebar-card:hover { background: var(--bg); }
+.sidebar-card.active { background: var(--red-light); border-color: var(--red); }
+.sidebar-card img { width: 76px; height: 60px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
+.sidebar-card-body { flex: 1; min-width: 0; }
+.sidebar-card-name { font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.3; margin-bottom: 3px; }
+.sidebar-card-meta { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+.sidebar-card-badges { display: flex; gap: 5px; flex-wrap: wrap; }
+.sidebar-badge { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; padding: 2px 6px; border-radius: 4px; }
+.sidebar-badge.type { background: var(--bg); color: var(--text-muted); }
+.sidebar-badge.premium { background: #fff1e6; color: #ff7a1a; }
+
+.sidebar-empty {
+  display: flex; align-items: center; justify-content: center;
+  height: 100%; text-align: center; color: var(--text-muted); font-size: 13px;
+  padding: 24px;
+}
 
 .map-legend {
   position: absolute; bottom: 14px; left: 14px;
@@ -206,9 +249,14 @@ nav {
 .gmap-tooltip-meta { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
 .gmap-tooltip-link { display: inline-block; font-size: 12px; font-weight: 600; color: var(--red); text-decoration: none; }
 
+@media (max-width: 860px) {
+  .map-split { grid-template-columns: 1fr; height: auto; }
+  .map-container { height: 380px; }
+  .map-sidebar { height: 320px; }
+}
+
 @media (max-width: 768px) {
   .results-header { flex-direction: column; align-items: flex-start; gap: 12px; }
-  .map-container { aspect-ratio: 4/5; max-height: 460px; }
 }
 
 .cards-grid {
@@ -437,13 +485,16 @@ nav {
 
   <!-- MAP VIEW -->
   <div class="map-view-wrap" id="map-view-wrap">
-    <div class="map-container" id="map-container">
-      <div id="leaflet-map"></div>
-      <div class="map-legend" id="map-legend" style="display:none">
-        <span><span class="dot" style="background:var(--red)"></span> Standard listing</span>
-        <span><span class="dot" style="background:#ff7a1a"></span> Premium listing</span>
+    <div class="map-split">
+      <div class="map-container" id="map-container">
+        <div id="leaflet-map"></div>
+        <div class="map-legend" id="map-legend" style="display:none">
+          <span><span class="dot" style="background:var(--red)"></span> Standard listing</span>
+          <span><span class="dot" style="background:#ff7a1a"></span> Premium listing</span>
+        </div>
+        <div class="map-empty" id="map-empty" style="display:none">No spaces match your filters in this area</div>
       </div>
-      <div class="map-empty" id="map-empty" style="display:none">No spaces match your filters in this area</div>
+      <div class="map-sidebar" id="map-sidebar"></div>
     </div>
   </div>
 
@@ -606,19 +657,38 @@ function drawMarkers(list, opts) {
   opts = opts || {};
   const refit = opts.refit !== false;
   const emptyMsg = document.getElementById('map-empty');
+  const sidebar = document.getElementById('map-sidebar');
 
   clearMarkers();
   const withCoords = list.filter(s => s.lat !== undefined && s.lng !== undefined);
 
   if (withCoords.length === 0) {
     if (emptyMsg) emptyMsg.style.display = refit ? 'block' : 'none';
+    if (sidebar) sidebar.innerHTML = '<div class="sidebar-empty">No spaces to show here</div>';
     return;
   }
   if (emptyMsg) emptyMsg.style.display = 'none';
 
   const latlngs = [];
 
-  withCoords.forEach(function(s) {
+  // Build the scrollable sidebar list, synced with the markers below
+  if (sidebar) {
+    sidebar.innerHTML = withCoords.map((s, i) => `
+      <div class="sidebar-card" data-idx="${i}" onclick="focusSpaceOnMap(${i})">
+        <img src="${s.img}" alt="${s.name}" loading="lazy" />
+        <div class="sidebar-card-body">
+          <div class="sidebar-card-name">${s.name}</div>
+          <div class="sidebar-card-meta">${s.district}, ${s.region}</div>
+          <div class="sidebar-card-badges">
+            <span class="sidebar-badge type">${s.type}</span>
+            ${s.premium ? '<span class="sidebar-badge premium">Premium</span>' : ''}
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  withCoords.forEach(function(s, i) {
     const color = s.premium ? '#ff7a1a' : '#e03a2f';
     const marker = L.marker([s.lat, s.lng], { icon: makePinIcon(color) }).addTo(lMap);
 
@@ -631,9 +701,17 @@ function drawMarkers(list, opts) {
       </div>
     `);
 
+    // Highlight the matching sidebar card when its pin is clicked
+    marker.on('click', function() {
+      highlightSidebarCard(i);
+    });
+
     lMarkers.push(marker);
     latlngs.push([s.lat, s.lng]);
   });
+
+  // Keep the current list available so sidebar clicks can find the right marker
+  window.__currentMapList = withCoords;
 
   if (!refit) return;
 
@@ -645,6 +723,30 @@ function drawMarkers(list, opts) {
   }
   // Clear the programmatic flag once Leaflet finishes the move/zoom it triggers
   setTimeout(() => { programmaticMove = false; }, 350);
+}
+
+// Highlights a sidebar card to match the marker that was clicked
+function highlightSidebarCard(idx) {
+  document.querySelectorAll('.sidebar-card').forEach(function(card) {
+    card.classList.toggle('active', card.dataset.idx === String(idx));
+  });
+  const activeCard = document.querySelector('.sidebar-card[data-idx="' + idx + '"]');
+  if (activeCard) activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// Clicking a sidebar card pans to its pin, opens its popup, and highlights the card
+function focusSpaceOnMap(idx) {
+  const list = window.__currentMapList || [];
+  const space = list[idx];
+  const marker = lMarkers[idx];
+  if (!space || !marker || !lMap) return;
+
+  programmaticMove = true;
+  lMap.panTo([space.lat, space.lng]);
+  setTimeout(() => { programmaticMove = false; }, 350);
+
+  marker.openPopup();
+  highlightSidebarCard(idx);
 }
 
 function renderMapPins(list) {
