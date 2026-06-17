@@ -624,12 +624,23 @@ function initLeafletMap() {
 }
 
 // Show every space (ignoring active filters) that falls within the map's current visible bounds
+// When the user manually pans/zooms, location-based filters (region, district)
+// no longer make sense to enforce — they're exploring a new area on purpose.
+// But "what" filters (space type, event type) reflect intent, not location,
+// so those stay applied even as the map view changes.
 function showAllPinsInView() {
   if (!lMap) return;
   const bounds = lMap.getBounds();
-  const visible = spaces.filter(s =>
-    s.lat !== undefined && s.lng !== undefined && bounds.contains([s.lat, s.lng])
-  );
+  const f = currentFilters();
+
+  const visible = spaces.filter(s => {
+    if (s.lat === undefined || s.lng === undefined) return false;
+    if (!bounds.contains([s.lat, s.lng])) return false;
+    const matchType  = !f.type  || s.type === f.type;
+    const matchEvent = !f.event || (s.events && s.events.includes(f.event));
+    return matchType && matchEvent;
+  });
+
   drawMarkers(visible, { refit: false });
 }
 
