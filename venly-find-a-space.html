@@ -548,7 +548,7 @@ function renderCards(list) {
   count.innerHTML = `<strong>${list.length}</strong> space${list.length !== 1 ? 's' : ''} found`;
 
   grid.innerHTML = list.map((s, i) => `
-    <div class="space-card">
+    <div class="space-card" onclick="goToVenueCard(this, event)" data-venue="${encodeURIComponent(s.name)}" style="cursor:pointer">
       <div class="card-img">
         <img src="${s.img}" alt="${s.name}" loading="lazy" />
         <span class="badge-type">${s.type}</span>
@@ -557,7 +557,7 @@ function renderCards(list) {
       <div class="card-body">
         <div class="card-body-top">
           <span class="card-name">${s.name}</span>
-          <button class="fav-btn" onclick="toggleFav(this)" aria-label="Save to favourites">
+          <button class="fav-btn" onclick="toggleFav(this); event.stopPropagation();" aria-label="Save to favourites">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>
           </button>
         </div>
@@ -721,7 +721,7 @@ function drawMarkers(list, opts) {
         <img src="${s.img}" alt="${s.name}" />
         <div class="gmap-tooltip-name">${s.name}</div>
         <div class="gmap-tooltip-meta">${s.type} · ${s.district}</div>
-        <a href="venly-venue.html" class="gmap-tooltip-link">View space →</a>
+        <a href="venly-venue.html?name=${encodeURIComponent(s.name)}" class="gmap-tooltip-link">View space →</a>
       </div>
     `);
 
@@ -789,6 +789,12 @@ function goToVenue(idx) {
   const list = window.__currentMapList || [];
   const space = list[idx];
   window.location.href = 'venly-venue.html' + (space ? '?name=' + encodeURIComponent(space.name) : '');
+}
+
+// Navigates to a venue's page when one of the main result cards is clicked
+function goToVenueCard(card, evt) {
+  const name = card.dataset.venue;
+  window.location.href = 'venly-venue.html' + (name ? '?name=' + name : '');
 }
 
 function renderMapPins(list) {
