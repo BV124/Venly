@@ -639,8 +639,11 @@ tbody tr:last-child td { border-bottom: none; }
         <button class="btn-sm btn-red" onclick="openBlogEditor()">+ New post</button>
       </div>
       <div class="table-card">
-        <div class="table-card-header"><div class="table-card-title" id="blog-posts-title">All posts</div></div>
-        <table>
+        <div class="table-card-header">
+          <div class="table-card-title" id="blog-posts-title">All posts</div>
+          <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input class="search-input" placeholder="Search posts..." oninput="filterTable(this,'blog-table')" /></div>
+        </div>
+        <table id="blog-table">
           <thead><tr><th>Title</th><th>Category</th><th>Published</th><th>Views</th><th>Status</th><th></th></tr></thead>
           <tbody id="blog-posts-tbody"></tbody>
         </table>
