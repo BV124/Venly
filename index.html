@@ -805,7 +805,7 @@ section { padding: 80px 48px; }
 </section>
 
 <!-- RECENT BLOG POSTS -->
-<section style="padding:80px 48px;background:var(--white)">
+<section id="home-blog-section" style="padding:80px 48px;background:var(--white)">
   <div style="max-width:1200px;margin:0 auto">
     <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:36px;flex-wrap:wrap;gap:16px">
       <div>
@@ -834,19 +834,10 @@ section { padding: 80px 48px; }
     var stored = JSON.parse(localStorage.getItem('venly_blog_posts') || 'null');
     if (!stored || !stored.length) return FALLBACK_HOME_POSTS;
 
-    var published = stored.filter(function(p) { return p.published; });
-    var featured = published.filter(function(p) { return p.featured; });
-
-    // Featured posts fill the slots first (max 3). If fewer than 3 are featured,
-    // backfill with the most recent published posts (excluding ones already shown).
-    var chosen = featured.slice(0, 3);
-    if (chosen.length < 3) {
-      var rest = published
-        .filter(function(p) { return chosen.indexOf(p) === -1; })
-        .sort(function(a, b) { return new Date(b.date || 0) - new Date(a.date || 0); });
-      chosen = chosen.concat(rest.slice(0, 3 - chosen.length));
-    }
-    return chosen.length ? chosen : FALLBACK_HOME_POSTS;
+    // Only show posts that are both published AND explicitly selected for the
+    // homepage in the admin — no automatic backfill with other recent posts.
+    var featured = stored.filter(function(p) { return p.published && p.featured; });
+    return featured.slice(0, 3);
   }
 
   function catLabel(cat) {
@@ -857,8 +848,16 @@ section { padding: 80px 48px; }
 
   function renderHomeBlog() {
     var grid = document.getElementById('home-blog-grid');
+    var section = document.getElementById('home-blog-section');
     if (!grid) return;
     var posts = getHomeBlogPosts();
+
+    if (posts.length === 0) {
+      if (section) section.style.display = 'none';
+      return;
+    }
+    if (section) section.style.display = '';
+    grid.style.gridTemplateColumns = 'repeat(' + posts.length + ', 1fr)';
 
     grid.innerHTML = posts.map(function(p) {
       var img = p.img || 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80';
