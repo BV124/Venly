@@ -222,7 +222,6 @@ tbody tr:last-child td { border-bottom: none; }
   .nav-right .btn-primary { padding: 7px 14px !important; font-size: 12px !important; }
 }
 
-
 @media (max-width: 900px) {
   .sidebar { width: 180px; }
   .main { margin-left: 180px; padding: 20px 20px 60px; }
@@ -895,7 +894,7 @@ function buildUsersTable() {
       '<td>' + (u.role || 'User') + '</td>' +
       '<td style="color:var(--text-muted)">' + (u.joined || '—') + '</td>' +
       '<td><span class="badge ' + badgeClass + '">' + u.status + '</span></td>' +
-      "<td><button class="action-btn" onclick="showToast(this.dataset.t)">Edit</button>" +
+      '<td><button class="action-btn" onclick="showToast(this.dataset.t)">Edit</button>' +
       '<button class="action-btn danger" onclick="suspendUser(' + i + ')">Suspend</button></td>' +
       '</tr>';
   }).join('');

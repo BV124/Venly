@@ -389,6 +389,21 @@ section { padding: 80px 48px; }
 <!-- NAV -->
 <div id="venly-nav"></div>
 <script>renderNav({ activePage: "home", loggedIn: !!localStorage.getItem("venly_current_user") });</script>
+<script>
+// TEMPORARY — testing-only Admin shortcut button. Remove once admin testing is done.
+(function() {
+  var navRight = document.querySelector('#venly-nav .nav-right');
+  if (navRight) {
+    var adminBtn = document.createElement('button');
+    adminBtn.className = 'btn btn-outline';
+    adminBtn.textContent = 'Admin';
+    adminBtn.style.fontSize = '13px';
+    adminBtn.style.padding = '7px 16px';
+    adminBtn.onclick = function() { window.location.href = 'venly-admin.html'; };
+    navRight.insertBefore(adminBtn, navRight.firstChild);
+  }
+})();
+</script>
 
 <!-- HERO -->
 <section class="hero">
