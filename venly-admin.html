@@ -165,6 +165,54 @@ tbody tr:last-child td { border-bottom: none; }
 .filter-tag.on { background: var(--red); color: #fff; border-color: var(--red); }
 .filter-tag .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 
+/* Locked/structural filters (Space types, Plans) — shown but not editable */
+.filter-tag.locked {
+  cursor: default; background: var(--bg); color: var(--text-muted);
+  border: 1px solid var(--border); opacity: 0.85;
+}
+.filter-tag.locked:hover { border-color: var(--border); color: var(--text-muted); background: var(--bg); }
+.filter-tag.locked svg { width: 11px; height: 11px; flex-shrink: 0; }
+.filter-card-note { font-size: 11px; color: #bbb; margin-top: 10px; line-height: 1.5; }
+
+/* Editable tags — small × to remove */
+.filter-tag.editable { cursor: default; background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+.filter-tag.editable:hover { border-color: var(--border); color: var(--text); background: var(--bg); }
+.filter-tag.editable .tag-remove {
+  display: flex; align-items: center; justify-content: center;
+  width: 14px; height: 14px; border-radius: 50%; margin-left: 2px;
+  color: var(--text-muted); transition: all 0.15s;
+}
+.filter-tag.editable .tag-remove:hover { background: var(--red); color: #fff; }
+.filter-tag.editable .tag-remove svg { width: 9px; height: 9px; }
+
+/* Grouped sub-headings inside a filter card (e.g. event types per space type) */
+.filter-group-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-muted); margin: 14px 0 8px; display: block;
+}
+.filter-group-label:first-of-type { margin-top: 0; }
+
+/* Inline add-new control */
+.filter-add-row { display: flex; gap: 6px; margin-top: 8px; }
+.filter-add-row input {
+  flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: 20px;
+  font-size: 12px; font-family: 'Inter', sans-serif; color: var(--text);
+}
+.filter-add-row input:focus { outline: none; border-color: var(--red); }
+.filter-add-row button {
+  padding: 6px 14px; border-radius: 20px; border: none; background: var(--red);
+  color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif;
+  white-space: nowrap; transition: background 0.15s;
+}
+.filter-add-row button:hover { background: var(--red-dark); }
+.filter-add-trigger {
+  display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px;
+  border-radius: 20px; border: 1.5px dashed var(--border); background: transparent;
+  font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer;
+  margin: 0 4px 6px 0; transition: all 0.15s; font-family: 'Inter', sans-serif;
+}
+.filter-add-trigger:hover { border-color: var(--red); color: var(--red); border-style: solid; }
+
 /* ---- MESSAGES ---- */
 .msg-row { display: flex; align-items: flex-start; gap: 14px; padding: 16px 20px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
 .msg-row:hover { background: #fafafa; }
@@ -969,73 +1017,67 @@ tbody tr:last-child td { border-bottom: none; }
   <!-- ===== FILTERS ===== -->
   <div id="section-filters" class="page-section">
     <div class="section-header">
-      <div><div class="section-title">Filters</div><div class="section-subtitle">Manage the dropdown options shown to users when searching for spaces.</div></div>
-      <button class="btn-sm btn-red" onclick="showToast('Filter saved')">Save changes</button>
+      <div><div class="section-title">Filters</div><div class="section-subtitle">Manage the dropdown options shown to users when searching for spaces and writing blog posts.</div></div>
     </div>
     <div class="filter-grid">
+
+      <!-- LOCKED: Space types -->
       <div class="filter-card">
         <h3>Space types</h3>
-        <div id="filter-space-types">
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>Event space</span>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>Meeting space</span>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>Shoot Location</span>
-          <span class="filter-tag" onclick="this.classList.toggle('on')"><span class="dot"></span>+ Add new</span>
-        </div>
-      </div>
-      <div class="filter-card">
-        <h3>Regions</h3>
         <div>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>Auckland</span>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>Wellington</span>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>Christchurch</span>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>Hamilton</span>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>Tauranga</span>
-          <span class="filter-tag" onclick="this.classList.toggle('on')"><span class="dot"></span>+ Add new</span>
+          <span class="filter-tag locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Event space</span>
+          <span class="filter-tag locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Meeting space</span>
+          <span class="filter-tag locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Shoot Location</span>
         </div>
+        <div class="filter-card-note">These are core categories used across listings, pricing and the site structure — they can't be changed here.</div>
       </div>
-      <div class="filter-card">
-        <h3>Districts</h3>
-        <div>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>Auckland City</span>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>North Shore</span>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>Waitakere</span>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>Manukau</span>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>Papakura</span>
-          <span class="filter-tag" onclick="this.classList.toggle('on')"><span class="dot"></span>+ Add new</span>
-        </div>
-      </div>
-      <div class="filter-card">
-        <h3>Amenities</h3>
-        <div>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>WiFi</span>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>Parking</span>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>AV Equipment</span>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>Catering</span>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>Wheelchair Access</span>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>Outdoor Space</span>
-          <span class="filter-tag" onclick="this.classList.toggle('on')"><span class="dot"></span>+ Add new</span>
-        </div>
-      </div>
-      <div class="filter-card">
-        <h3>Event types</h3>
-        <div>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>Wedding</span>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>21st Party</span>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>Corporate Event</span>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>Product Launch</span>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>Film & TV</span>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>Photography</span>
-          <span class="filter-tag" onclick="this.classList.toggle('on')"><span class="dot"></span>+ Add new</span>
-        </div>
-      </div>
+
+      <!-- LOCKED: Plans -->
       <div class="filter-card">
         <h3>Plans shown</h3>
         <div>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>Basic</span>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>Standard</span>
-          <span class="filter-tag on" onclick="this.classList.toggle('on')"><span class="dot"></span>Premium</span>
+          <span class="filter-tag locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Basic</span>
+          <span class="filter-tag locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Standard</span>
+          <span class="filter-tag locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Premium</span>
         </div>
+        <div class="filter-card-note">Pricing tiers are tied to billing and listing caps — managed on the Pricing &amp; Plans page, not here.</div>
       </div>
+
+      <!-- EDITABLE: Regions -->
+      <div class="filter-card">
+        <h3>Regions</h3>
+        <div id="filter-regions"></div>
+      </div>
+
+      <!-- EDITABLE: Districts -->
+      <div class="filter-card">
+        <h3>Districts</h3>
+        <div id="filter-districts"></div>
+      </div>
+
+      <!-- EDITABLE: Amenities -->
+      <div class="filter-card">
+        <h3>Amenities</h3>
+        <div id="filter-amenities"></div>
+      </div>
+
+      <!-- EDITABLE: Event types (grouped by space type) -->
+      <div class="filter-card" style="grid-column: span 2">
+        <h3>Event types</h3>
+        <span class="filter-group-label">Event space</span>
+        <div id="filter-events-event"></div>
+        <span class="filter-group-label">Meeting space</span>
+        <div id="filter-events-meeting"></div>
+        <span class="filter-group-label">Shoot Location</span>
+        <div id="filter-events-shoot"></div>
+      </div>
+
+      <!-- EDITABLE: Blog categories -->
+      <div class="filter-card">
+        <h3>Blog categories</h3>
+        <div id="filter-blog-categories"></div>
+      </div>
+
     </div>
   </div>
 
@@ -1691,9 +1733,154 @@ function formatTodayDate() {
   return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
 }
 
+// ---- FILTERS MANAGEMENT ----
+
+var DEFAULT_FILTERS = {
+  regions: ['Auckland', 'Wellington', 'Christchurch', 'Hamilton', 'Tauranga'],
+  districts: ['Auckland City', 'North Shore', 'Waitakere', 'Manukau', 'Papakura'],
+  amenities: ['WiFi', 'Parking', 'AV Equipment', 'Catering', 'Wheelchair Access', 'Outdoor Space'],
+  eventsByType: {
+    event:   ['Wedding', '18th Party', '21st Party', 'Corporate Event', 'Private Party', 'Product Launch', 'Gala / Awards', 'Market / Expo', 'Live Performance'],
+    meeting: ['Boardroom', 'Workshop', 'Training', 'Conference', 'Interview Room', 'Coworking'],
+    shoot:   ['Film & TV', 'Photography', 'Commercial', 'Content Creation', 'Podcast / Recording'],
+  },
+  blogCategories: ['Hosting Tips', 'Event Space', 'Meeting Space', 'Shoot Location', 'Guide', 'Venly News'],
+};
+
+function getFilters() {
+  var stored = JSON.parse(localStorage.getItem('venly_filters') || 'null');
+  if (!stored) return JSON.parse(JSON.stringify(DEFAULT_FILTERS));
+  // Merge with defaults so any newly-added filter groups (e.g. after an update) still show up
+  return Object.assign({}, DEFAULT_FILTERS, stored, {
+    eventsByType: Object.assign({}, DEFAULT_FILTERS.eventsByType, stored.eventsByType || {})
+  });
+}
+
+function saveFilters(filters) {
+  try {
+    localStorage.setItem('venly_filters', JSON.stringify(filters));
+    return true;
+  } catch (e) {
+    showToast('Could not save — storage is full');
+    return false;
+  }
+}
+
+// Renders a simple editable tag list (regions, districts, amenities, blog categories)
+function renderEditableTagList(containerId, listPath) {
+  var container = document.getElementById(containerId);
+  if (!container) return;
+  var filters = getFilters();
+  var list = getByPath(filters, listPath);
+
+  var tagsHtml = list.map(function(item, idx) {
+    return '<span class="filter-tag editable">' + escapeHtml(item) +
+      '<span class="tag-remove" onclick="removeFilterItem(\'' + listPath + '\', ' + idx + ', \'' + containerId + '\')" title="Remove">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+      '</span>' +
+    '</span>';
+  }).join('');
+
+  var addTrigger = '<span class="filter-add-trigger" onclick="showAddRow(\'' + containerId + '\')">+ Add new</span>';
+  var addRow = '<div class="filter-add-row" id="' + containerId + '-add-row" style="display:none">' +
+    '<input type="text" id="' + containerId + '-add-input" placeholder="Type a name..." onkeydown="if(event.key===\'Enter\') addFilterItem(\'' + listPath + '\', \'' + containerId + '\')" />' +
+    '<button onclick="addFilterItem(\'' + listPath + '\', \'' + containerId + '\')">Add</button>' +
+  '</div>';
+
+  container.innerHTML = tagsHtml + addTrigger + addRow;
+}
+
+function showAddRow(containerId) {
+  var row = document.getElementById(containerId + '-add-row');
+  if (row) {
+    row.style.display = 'flex';
+    document.getElementById(containerId + '-add-input').focus();
+  }
+}
+
+function getByPath(obj, path) {
+  return path.split('.').reduce(function(o, key) { return o[key]; }, obj);
+}
+
+function setByPath(obj, path, value) {
+  var keys = path.split('.');
+  var last = keys.pop();
+  var target = keys.reduce(function(o, key) { return o[key]; }, obj);
+  target[last] = value;
+}
+
+function addFilterItem(listPath, containerId) {
+  var input = document.getElementById(containerId + '-add-input');
+  var value = input.value.trim();
+  if (!value) return;
+
+  var filters = getFilters();
+  var list = getByPath(filters, listPath);
+
+  if (list.some(function(item) { return item.toLowerCase() === value.toLowerCase(); })) {
+    showToast('"' + value + '" already exists in this list');
+    return;
+  }
+
+  list.push(value);
+  setByPath(filters, listPath, list);
+
+  if (saveFilters(filters)) {
+    input.value = '';
+    renderEditableTagList(containerId, listPath);
+    refreshDependentDropdowns();
+    showToast('Added "' + value + '"');
+  }
+}
+
+function removeFilterItem(listPath, idx, containerId) {
+  var filters = getFilters();
+  var list = getByPath(filters, listPath);
+  var removed = list.splice(idx, 1)[0];
+  setByPath(filters, listPath, list);
+
+  if (saveFilters(filters)) {
+    renderEditableTagList(containerId, listPath);
+    refreshDependentDropdowns();
+    showToast('Removed "' + removed + '"');
+  }
+}
+
+// Re-renders anything elsewhere in the admin that depends on filter data
+// (e.g. the blog editor's category dropdown), so changes show up immediately.
+function refreshDependentDropdowns() {
+  var filters = getFilters();
+  var categorySelect = document.getElementById('ed-category');
+  if (categorySelect) {
+    var currentVal = categorySelect.value;
+    categorySelect.innerHTML = filters.blogCategories.map(function(cat) {
+      var value = cat.toUpperCase();
+      return '<option value="' + value + '">' + cat + '</option>';
+    }).join('');
+    // Restore previous selection if it still exists, otherwise default to first
+    if ([].some.call(categorySelect.options, function(o) { return o.value === currentVal; })) {
+      categorySelect.value = currentVal;
+    }
+  }
+}
+
+function renderAllFilters() {
+  renderEditableTagList('filter-regions', 'regions');
+  renderEditableTagList('filter-districts', 'districts');
+  renderEditableTagList('filter-amenities', 'amenities');
+  renderEditableTagList('filter-events-event', 'eventsByType.event');
+  renderEditableTagList('filter-events-meeting', 'eventsByType.meeting');
+  renderEditableTagList('filter-events-shoot', 'eventsByType.shoot');
+  renderEditableTagList('filter-blog-categories', 'blogCategories');
+  refreshDependentDropdowns();
+}
+
 buildUsersTable();
 buildRecentSignups();
 buildBlogTable();
+renderAllFilters();
+
+
 
 
 if (typeof loadSupabaseUsers === 'function') {
