@@ -733,8 +733,11 @@ tbody tr:last-child td { border-bottom: none; }
               <div class="toggle-switch" id="ed-published-toggle" onclick="this.classList.toggle('on')"></div>
             </div>
             <div class="publish-status-row">
-              <span>Featured on homepage</span>
-              <div class="toggle-switch" id="ed-featured-toggle" onclick="this.classList.toggle('on')"></div>
+              <div>
+                <span>Featured on homepage</span>
+                <div style="font-size:10px;color:#bbb;margin-top:2px" id="featured-slots-label">0 of 3 homepage slots used</div>
+              </div>
+              <div class="toggle-switch" id="ed-featured-toggle" onclick="toggleFeatured(this)"></div>
             </div>
           </div>
 
@@ -1223,18 +1226,54 @@ function renderBarChart(id, data, color) {
 
 // Seed posts shown the first time (before any are added/edited via the editor)
 var SEED_BLOG_POSTS = [
-  { id: 'seed-0', title: 'How to Choose the Perfect Space for Your Next Event', category: 'HOSTING TIPS', date: '12 Jun 2025', views: 342, published: true, img: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=80', excerpt: 'Finding the right venue can make or break an event.', readTime: '4 min read', blocks: [] },
-  { id: 'seed-1', title: '5 Things to Check Before Booking a Venue', category: 'HOSTING TIPS', date: '8 Jun 2025', views: 218, published: true, img: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=1400&q=80', excerpt: 'Five things to verify before you sign on the dotted line.', readTime: '3 min read', blocks: [] },
-  { id: 'seed-2', title: 'The Best Event Spaces in Auckland Right Now', category: 'EVENT SPACE', date: '5 Jun 2025', views: 410, published: true, img: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1400&q=80', excerpt: 'We rounded up the most unique, versatile spaces on Venly.', readTime: '5 min read', blocks: [] },
-  { id: 'seed-3', title: 'Stop Booking Coffee Shops for Meetings', category: 'MEETING SPACE', date: '1 Jun 2025', views: 189, published: true, img: 'https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=1400&q=80', excerpt: 'Noisy, cramped, and embarrassing to clients.', readTime: '3 min read', blocks: [] },
-  { id: 'seed-4', title: 'How to List Your Space on Venly in 10 Minutes', category: 'GUIDE', date: '28 May 2025', views: 156, published: true, img: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1400&q=80', excerpt: 'A step-by-step walkthrough of getting your space live.', readTime: '4 min read', blocks: [] },
-  { id: 'seed-5', title: 'Venly Launches in New Zealand', category: 'VENLY NEWS', date: '20 May 2025', views: 624, published: true, img: 'https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=1400&q=80', excerpt: 'Everything you need to know about what Venly is.', readTime: '2 min read', blocks: [] },
-  { id: 'seed-6', title: 'Draft: Wedding Venue Guide 2025', category: 'EVENT SPACE', date: null, views: 0, published: false, img: '', excerpt: '', readTime: '5 min read', blocks: [] },
+  { id: 'seed-0', title: 'How to Choose the Perfect Space for Your Next Event', category: 'HOSTING TIPS', date: '12 Jun 2025', views: 342, published: true, featured: true, img: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=80', excerpt: 'Finding the right venue can make or break an event.', readTime: '4 min read', blocks: [] },
+  { id: 'seed-1', title: '5 Things to Check Before Booking a Venue', category: 'HOSTING TIPS', date: '8 Jun 2025', views: 218, published: true, featured: true, img: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=1400&q=80', excerpt: 'Five things to verify before you sign on the dotted line.', readTime: '3 min read', blocks: [] },
+  { id: 'seed-2', title: 'The Best Event Spaces in Auckland Right Now', category: 'EVENT SPACE', date: '5 Jun 2025', views: 410, published: true, featured: false, img: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1400&q=80', excerpt: 'We rounded up the most unique, versatile spaces on Venly.', readTime: '5 min read', blocks: [] },
+  { id: 'seed-3', title: 'Stop Booking Coffee Shops for Meetings', category: 'MEETING SPACE', date: '1 Jun 2025', views: 189, published: true, featured: true, img: 'https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=1400&q=80', excerpt: 'Noisy, cramped, and embarrassing to clients.', readTime: '3 min read', blocks: [] },
+  { id: 'seed-4', title: 'How to List Your Space on Venly in 10 Minutes', category: 'GUIDE', date: '28 May 2025', views: 156, published: true, featured: false, img: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1400&q=80', excerpt: 'A step-by-step walkthrough of getting your space live.', readTime: '4 min read', blocks: [] },
+  { id: 'seed-5', title: 'Venly Launches in New Zealand', category: 'VENLY NEWS', date: '20 May 2025', views: 624, published: true, featured: false, img: 'https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=1400&q=80', excerpt: 'Everything you need to know about what Venly is.', readTime: '2 min read', blocks: [] },
+  { id: 'seed-6', title: 'Draft: Wedding Venue Guide 2025', category: 'EVENT SPACE', date: null, views: 0, published: false, featured: false, img: '', excerpt: '', readTime: '5 min read', blocks: [] },
 ];
 
 function getAllBlogPosts() {
   var fromStorage = JSON.parse(localStorage.getItem('venly_blog_posts') || 'null');
   return fromStorage || SEED_BLOG_POSTS;
+}
+
+var MAX_FEATURED_POSTS = 3;
+
+// Counts how many posts are currently featured, excluding the post being edited
+// right now (so toggling an already-featured post off/on doesn't double-count it).
+function getFeaturedCount(excludePostId) {
+  return getAllBlogPosts().filter(function(p) {
+    return p.featured && p.id !== excludePostId;
+  }).length;
+}
+
+function updateFeaturedSlotsLabel() {
+  var label = document.getElementById('featured-slots-label');
+  if (!label) return;
+  var isOn = document.getElementById('ed-featured-toggle').classList.contains('on');
+  var countExcludingSelf = getFeaturedCount(currentEditingPostId);
+  var total = countExcludingSelf + (isOn ? 1 : 0);
+  label.textContent = total + ' of ' + MAX_FEATURED_POSTS + ' homepage slots used';
+  label.style.color = total >= MAX_FEATURED_POSTS ? 'var(--red)' : '#bbb';
+}
+
+// Handles the Featured toggle click, enforcing the 3-slot homepage limit
+function toggleFeatured(toggleEl) {
+  var isCurrentlyOn = toggleEl.classList.contains('on');
+
+  if (!isCurrentlyOn) {
+    var countExcludingSelf = getFeaturedCount(currentEditingPostId);
+    if (countExcludingSelf >= MAX_FEATURED_POSTS) {
+      showToast('Only 3 posts can be featured on the homepage at once — unfeature another post first');
+      return;
+    }
+  }
+
+  toggleEl.classList.toggle('on');
+  updateFeaturedSlotsLabel();
 }
 
 function saveAllBlogPosts(posts) {
@@ -1313,6 +1352,7 @@ function openBlogEditor(postId) {
   resetUrlToggleState();
   renderBlocks();
   updatePreview();
+  updateFeaturedSlotsLabel();
 }
 
 function closeBlogEditor() {

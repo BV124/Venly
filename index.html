@@ -817,62 +817,73 @@ section { padding: 80px 48px; }
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </a>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px" id="home-blog-grid">
-
-      <!-- Post 1 -->
-      <div class="space-card" onclick="window.location.href='venly-blog-post.html?id=0'" style="cursor:pointer;display:flex;flex-direction:column">
-        <div class="card-img" style="height:200px;position:relative;overflow:hidden">
-          <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80" alt="How to Choose the Perfect Space" style="width:100%;height:100%;object-fit:cover;transition:transform 0.3s" />
-          <span style="position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,0.7);color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:0.05em;text-transform:uppercase">Hosting Tips</span>
-        </div>
-        <div style="padding:18px 18px 20px;flex:1;display:flex;flex-direction:column">
-          <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">12 Jun 2025 · 4 min read</div>
-          <div style="font-size:15px;font-weight:700;line-height:1.35;margin-bottom:10px;color:var(--text)">How to Choose the Perfect Space for Your Next Event</div>
-          <div style="font-size:13px;color:var(--text-muted);line-height:1.6;flex:1;margin-bottom:14px">Size, location, vibe — a no-nonsense guide to finding a space that actually works for your event.</div>
-          <span style="font-size:13px;font-weight:600;color:var(--red);display:flex;align-items:center;gap:4px">
-            Read more
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </span>
-        </div>
-      </div>
-
-      <!-- Post 2 -->
-      <div class="space-card" onclick="window.location.href='venly-blog-post.html?id=1'" style="cursor:pointer;display:flex;flex-direction:column">
-        <div class="card-img" style="height:200px;position:relative;overflow:hidden">
-          <img src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80" alt="5 Things to Check" style="width:100%;height:100%;object-fit:cover;transition:transform 0.3s" />
-          <span style="position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,0.7);color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:0.05em;text-transform:uppercase">Hosting Tips</span>
-        </div>
-        <div style="padding:18px 18px 20px;flex:1;display:flex;flex-direction:column">
-          <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">8 Jun 2025 · 3 min read</div>
-          <div style="font-size:15px;font-weight:700;line-height:1.35;margin-bottom:10px;color:var(--text)">5 Things to Check Before Booking a Venue</div>
-          <div style="font-size:13px;color:var(--text-muted);line-height:1.6;flex:1;margin-bottom:14px">From parking to noise restrictions — the questions every event planner should ask before signing anything.</div>
-          <span style="font-size:13px;font-weight:600;color:var(--red);display:flex;align-items:center;gap:4px">
-            Read more
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </span>
-        </div>
-      </div>
-
-      <!-- Post 3 -->
-      <div class="space-card" onclick="window.location.href='venly-blog-post.html?id=3'" style="cursor:pointer;display:flex;flex-direction:column">
-        <div class="card-img" style="height:200px;position:relative;overflow:hidden">
-          <img src="https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=600&q=80" alt="Stop Booking Coffee Shops" style="width:100%;height:100%;object-fit:cover;transition:transform 0.3s" />
-          <span style="position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,0.7);color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:0.05em;text-transform:uppercase">Meeting Space</span>
-        </div>
-        <div style="padding:18px 18px 20px;flex:1;display:flex;flex-direction:column">
-          <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">1 Jun 2025 · 3 min read</div>
-          <div style="font-size:15px;font-weight:700;line-height:1.35;margin-bottom:10px;color:var(--text)">Stop Booking Coffee Shops for Meetings</div>
-          <div style="font-size:13px;color:var(--text-muted);line-height:1.6;flex:1;margin-bottom:14px">Noisy, cramped and unprofessional. It's time to upgrade to a proper meeting space. Here's how.</div>
-          <span style="font-size:13px;font-weight:600;color:var(--red);display:flex;align-items:center;gap:4px">
-            Read more
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </span>
-        </div>
-      </div>
-
-    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px" id="home-blog-grid"></div>
   </div>
 </section>
+
+<script>
+// ── Homepage "From the Blog" — pulls from the same data the admin blog editor writes to ──
+(function() {
+  var FALLBACK_HOME_POSTS = [
+    { id: 0, title: 'How to Choose the Perfect Space for Your Next Event', category: 'HOSTING TIPS', date: '12 Jun 2025', readTime: '4 min read', img: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80', excerpt: 'Size, location, vibe — a no-nonsense guide to finding a space that actually works for your event.' },
+    { id: 1, title: '5 Things to Check Before Booking a Venue', category: 'HOSTING TIPS', date: '8 Jun 2025', readTime: '3 min read', img: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80', excerpt: 'From parking to noise restrictions — the questions every event planner should ask before signing anything.' },
+    { id: 3, title: 'Stop Booking Coffee Shops for Meetings', category: 'MEETING SPACE', date: '1 Jun 2025', readTime: '3 min read', img: 'https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=600&q=80', excerpt: 'Noisy, cramped and unprofessional. It\'s time to upgrade to a proper meeting space. Here\'s how.' },
+  ];
+
+  function getHomeBlogPosts() {
+    var stored = JSON.parse(localStorage.getItem('venly_blog_posts') || 'null');
+    if (!stored || !stored.length) return FALLBACK_HOME_POSTS;
+
+    var published = stored.filter(function(p) { return p.published; });
+    var featured = published.filter(function(p) { return p.featured; });
+
+    // Featured posts fill the slots first (max 3). If fewer than 3 are featured,
+    // backfill with the most recent published posts (excluding ones already shown).
+    var chosen = featured.slice(0, 3);
+    if (chosen.length < 3) {
+      var rest = published
+        .filter(function(p) { return chosen.indexOf(p) === -1; })
+        .sort(function(a, b) { return new Date(b.date || 0) - new Date(a.date || 0); });
+      chosen = chosen.concat(rest.slice(0, 3 - chosen.length));
+    }
+    return chosen.length ? chosen : FALLBACK_HOME_POSTS;
+  }
+
+  function catLabel(cat) {
+    if (!cat) return '';
+    cat = cat.replace(/_/g, ' ');
+    return cat.charAt(0) + cat.slice(1).toLowerCase();
+  }
+
+  function renderHomeBlog() {
+    var grid = document.getElementById('home-blog-grid');
+    if (!grid) return;
+    var posts = getHomeBlogPosts();
+
+    grid.innerHTML = posts.map(function(p) {
+      var img = p.img || 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80';
+      var meta = (p.date || '') + (p.date && p.readTime ? ' · ' : '') + (p.readTime || '');
+      return '<div class="space-card" onclick="window.location.href=\'venly-blog-post.html?id=' + p.id + '\'" style="cursor:pointer;display:flex;flex-direction:column">' +
+        '<div class="card-img" style="height:200px;position:relative;overflow:hidden">' +
+          '<img src="' + img + '" alt="' + (p.title || '') + '" style="width:100%;height:100%;object-fit:cover;transition:transform 0.3s" />' +
+          '<span style="position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,0.7);color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:0.05em;text-transform:uppercase">' + catLabel(p.category) + '</span>' +
+        '</div>' +
+        '<div style="padding:18px 18px 20px;flex:1;display:flex;flex-direction:column">' +
+          '<div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">' + meta + '</div>' +
+          '<div style="font-size:15px;font-weight:700;line-height:1.35;margin-bottom:10px;color:var(--text)">' + (p.title || 'Untitled post') + '</div>' +
+          '<div style="font-size:13px;color:var(--text-muted);line-height:1.6;flex:1;margin-bottom:14px">' + (p.excerpt || '') + '</div>' +
+          '<span style="font-size:13px;font-weight:600;color:var(--red);display:flex;align-items:center;gap:4px">' +
+            'Read more' +
+            '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>' +
+          '</span>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  renderHomeBlog();
+})();
+</script>
 
 <style>
   #home-blog-grid .space-card:hover img { transform: scale(1.04); }
