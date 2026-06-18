@@ -194,6 +194,148 @@ tbody tr:last-child td { border-bottom: none; }
 .modal-form-group input:focus, .modal-form-group select:focus, .modal-form-group textarea:focus { outline: none; border-color: var(--red); }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
 
+/* ── BLOG EDITOR ───────────────────────────────────────────── */
+.editor-layout { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
+.editor-main { display: flex; flex-direction: column; gap: 16px; }
+.editor-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+.editor-card h4 { font-size: 13px; font-weight: 700; margin-bottom: 14px; color: var(--text); }
+.editor-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.editor-field:last-child { margin-bottom: 0; }
+.editor-field label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.editor-field input, .editor-field select, .editor-field textarea {
+  padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 13px; font-family: 'Inter', sans-serif; color: var(--text); width: 100%;
+}
+.editor-field input:focus, .editor-field select:focus, .editor-field textarea:focus { outline: none; border-color: var(--red); }
+.editor-field textarea { resize: vertical; min-height: 70px; line-height: 1.6; }
+.editor-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.editor-hero-preview { width: 100%; height: 160px; border-radius: var(--radius-sm); object-fit: cover; background: var(--bg); border: 1px solid var(--border); margin-top: 8px; }
+
+.hero-upload-zone {
+  position: relative; width: 100%; min-height: 160px;
+  border: 1.5px dashed var(--border); border-radius: var(--radius-sm);
+  background: var(--bg); cursor: pointer; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color 0.15s, background 0.15s;
+}
+.hero-upload-zone:hover, .hero-upload-zone.drag-over { border-color: var(--red); background: var(--red-light); }
+.hero-upload-zone .editor-hero-preview { margin-top: 0; border: none; height: 160px; display: block; }
+.hero-upload-placeholder {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  text-align: center; padding: 24px; color: var(--text-muted); font-size: 12px;
+}
+.hero-upload-placeholder svg { width: 28px; height: 28px; margin-bottom: 4px; color: #bbb; }
+.hero-upload-placeholder strong { color: var(--text); font-weight: 600; }
+.hero-upload-placeholder span { font-size: 11px; color: #bbb; }
+.hero-remove-btn {
+  position: absolute; top: 8px; right: 8px; width: 26px; height: 26px;
+  border-radius: 50%; background: rgba(0,0,0,0.55); border: none; cursor: pointer;
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.hero-remove-btn:hover { background: rgba(0,0,0,0.8); }
+.hero-remove-btn svg { width: 14px; height: 14px; }
+.use-url-toggle {
+  background: none; border: none; cursor: pointer; padding: 0; margin-top: 6px;
+  font-size: 11px; font-weight: 600; color: var(--text-muted); text-decoration: underline;
+  font-family: 'Inter', sans-serif;
+}
+.use-url-toggle:hover { color: var(--red); }
+
+/* ── BLOG PREVIEW OVERLAY ──────────────────────────────────── */
+.preview-overlay {
+  position: fixed; inset: 0; background: #fff; z-index: 300;
+  overflow-y: auto; display: none;
+}
+.preview-overlay.show { display: block; }
+.preview-topbar {
+  position: sticky; top: 0; z-index: 5;
+  background: #fff; border-bottom: 1px solid var(--border);
+  padding: 14px 24px; display: flex; align-items: center; justify-content: space-between;
+}
+.preview-topbar-label { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; color: var(--text-muted); }
+.preview-topbar-label svg { width: 16px; height: 16px; color: var(--red); }
+.preview-topbar-label .pill { background: var(--red-light); color: var(--red); font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.04em; }
+.preview-close-btn {
+  display: flex; align-items: center; gap: 6px; padding: 8px 16px;
+  border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: transparent;
+  cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text); font-family: 'Inter', sans-serif;
+  transition: all 0.15s;
+}
+.preview-close-btn:hover { border-color: var(--red); color: var(--red); }
+.preview-close-btn svg { width: 14px; height: 14px; }
+
+/* Reused styling matching the live venly-blog-post.html page exactly */
+.preview-body .post-hero { width: 100%; max-height: 480px; overflow: hidden; background: var(--bg); }
+.preview-body .post-hero img { width: 100%; height: 480px; object-fit: cover; display: block; }
+.preview-body .post-hero-empty { width: 100%; height: 320px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 13px; background: var(--bg); }
+.preview-body .post-wrap { max-width: 760px; margin: 0 auto; padding: 48px 24px 80px; }
+.preview-body .post-cat { display: inline-block; background: var(--red-light); color: var(--red); font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 16px; border: 1px solid #f5c4bf; }
+.preview-body .post-title { font-size: 36px; font-weight: 800; letter-spacing: -1px; line-height: 1.15; margin-bottom: 16px; color: var(--text); }
+.preview-body .post-title.placeholder { color: #ccc; }
+.preview-body .post-meta { display: flex; align-items: center; gap: 16px; font-size: 13px; color: var(--text-muted); margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+.preview-body .post-meta-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--border); }
+.preview-body .post-body { font-size: 16px; line-height: 1.85; color: #2a2a2a; }
+.preview-body .post-body h2 { font-size: 22px; font-weight: 700; margin: 36px 0 14px; letter-spacing: -0.3px; color: var(--text); }
+.preview-body .post-body p { margin-bottom: 20px; }
+.preview-body .post-body ul { margin: 0 0 20px 24px; }
+.preview-body .post-body li { margin-bottom: 8px; }
+.preview-body .post-body blockquote { border-left: 4px solid var(--red); padding: 16px 20px; background: var(--red-light); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin: 28px 0; font-style: italic; color: var(--text-muted); }
+.preview-empty-state { text-align: center; padding: 60px 24px; color: var(--text-muted); font-size: 13px; }
+
+/* Content blocks */
+.block-list { display: flex; flex-direction: column; gap: 10px; }
+.content-block { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; position: relative; background: var(--bg); }
+.block-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.block-type-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--red); }
+.block-actions { display: flex; gap: 4px; }
+.block-actions button {
+  background: none; border: none; cursor: pointer; padding: 4px; color: var(--text-muted);
+  border-radius: 5px; display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+}
+.block-actions button:hover { background: var(--white); color: var(--red); }
+.block-actions svg { width: 14px; height: 14px; }
+.content-block textarea, .content-block input {
+  width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px;
+  font-size: 13px; font-family: 'Inter', sans-serif; background: var(--white); color: var(--text);
+}
+.content-block textarea:focus, .content-block input:focus { outline: none; border-color: var(--red); }
+.list-item-row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
+.list-item-row input { flex: 1; }
+.list-item-row button { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px; flex-shrink: 0; }
+.list-item-row button:hover { color: var(--red); }
+.add-list-item-btn {
+  font-size: 12px; font-weight: 600; color: var(--red); background: none; border: none;
+  cursor: pointer; padding: 4px 0; display: flex; align-items: center; gap: 4px;
+}
+
+.add-block-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.add-block-btn {
+  display: flex; align-items: center; gap: 6px; padding: 8px 14px;
+  border: 1.5px dashed var(--border); border-radius: var(--radius-sm);
+  background: var(--white); cursor: pointer; font-size: 12px; font-weight: 600;
+  color: var(--text-muted); font-family: 'Inter', sans-serif; transition: all 0.15s;
+}
+.add-block-btn:hover { border-color: var(--red); color: var(--red); border-style: solid; }
+.add-block-btn svg { width: 14px; height: 14px; }
+
+/* Sidebar */
+.editor-sidebar { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 84px; }
+.publish-status-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.publish-status-row:last-child { border-bottom: none; }
+.publish-status-row span:first-child { font-size: 12px; color: var(--text-muted); }
+.toggle-switch { width: 38px; height: 22px; border-radius: 12px; background: var(--border); position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
+.toggle-switch.on { background: var(--red); }
+.toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: left 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.toggle-switch.on::after { left: 18px; }
+.editor-sidebar-actions { display: flex; flex-direction: column; gap: 8px; }
+.editor-sidebar-actions .btn-sm { width: 100%; justify-content: center; display: flex; }
+
+@media (max-width: 900px) {
+  .editor-layout { grid-template-columns: 1fr; }
+  .editor-sidebar { position: static; }
+}
+
 /* ============================================================
    MOBILE RESPONSIVE — covers all screen sizes
    ============================================================ */
@@ -481,24 +623,152 @@ tbody tr:last-child td { border-bottom: none; }
 
   <!-- ===== BLOG ===== -->
   <div id="section-blog" class="page-section">
-    <div class="section-header">
-      <div><div class="section-title">Blog</div><div class="section-subtitle">Manage blog posts and content.</div></div>
-      <button class="btn-sm btn-red" onclick="showToast('Blog editor coming soon')">+ New post</button>
+    <!-- ===== BLOG LIST VIEW ===== -->
+    <div id="blog-list-view">
+      <div class="section-header">
+        <div><div class="section-title">Blog</div><div class="section-subtitle">Manage blog posts and content.</div></div>
+        <button class="btn-sm btn-red" onclick="openBlogEditor()">+ New post</button>
+      </div>
+      <div class="table-card">
+        <div class="table-card-header"><div class="table-card-title" id="blog-posts-title">All posts</div></div>
+        <table>
+          <thead><tr><th>Title</th><th>Category</th><th>Published</th><th>Views</th><th>Status</th><th></th></tr></thead>
+          <tbody id="blog-posts-tbody"></tbody>
+        </table>
+      </div>
     </div>
-    <div class="table-card">
-      <div class="table-card-header"><div class="table-card-title">All posts (9)</div></div>
-      <table>
-        <thead><tr><th>Title</th><th>Category</th><th>Published</th><th>Views</th><th>Status</th><th></th></tr></thead>
-        <tbody>
-          <tr><td class="cell-name">How to Choose the Perfect Space for Your Next Event</td><td>Hosting Tips</td><td>12 Jun 2025</td><td>342</td><td><span class="badge badge-live">Published</span></td><td><button class="action-btn">Edit</button></td></tr>
-          <tr><td class="cell-name">5 Things to Check Before Booking a Venue</td><td>Hosting Tips</td><td>8 Jun 2025</td><td>218</td><td><span class="badge badge-live">Published</span></td><td><button class="action-btn">Edit</button></td></tr>
-          <tr><td class="cell-name">The Best Event Spaces in Auckland Right Now</td><td>Event Space</td><td>5 Jun 2025</td><td>410</td><td><span class="badge badge-live">Published</span></td><td><button class="action-btn">Edit</button></td></tr>
-          <tr><td class="cell-name">Stop Booking Coffee Shops for Meetings</td><td>Meeting Space</td><td>1 Jun 2025</td><td>189</td><td><span class="badge badge-live">Published</span></td><td><button class="action-btn">Edit</button></td></tr>
-          <tr><td class="cell-name">How to List Your Space on Venly in 10 Minutes</td><td>Guide</td><td>28 May 2025</td><td>156</td><td><span class="badge badge-live">Published</span></td><td><button class="action-btn">Edit</button></td></tr>
-          <tr><td class="cell-name">Venly Launches in New Zealand</td><td>Venly News</td><td>20 May 2025</td><td>624</td><td><span class="badge badge-live">Published</span></td><td><button class="action-btn">Edit</button></td></tr>
-          <tr><td class="cell-name">Draft: Wedding Venue Guide 2025</td><td>Event Space</td><td>—</td><td>0</td><td><span class="badge badge-draft">Draft</span></td><td><button class="action-btn">Edit</button></td></tr>
-        </tbody>
-      </table>
+
+    <!-- ===== BLOG EDITOR VIEW ===== -->
+    <div id="blog-editor-view" style="display:none">
+      <div class="section-header">
+        <div>
+          <div class="section-title" id="editor-heading">New post</div>
+          <div class="section-subtitle">Write and format your blog post below.</div>
+        </div>
+        <button class="action-btn" onclick="closeBlogEditor()">← Back to all posts</button>
+      </div>
+
+      <div class="editor-layout">
+        <!-- MAIN EDITOR -->
+        <div class="editor-main">
+          <div class="editor-card">
+            <h4>Post details</h4>
+            <div class="editor-field">
+              <label>Title</label>
+              <input type="text" id="ed-title" placeholder="e.g. How to Choose the Perfect Space for Your Next Event" oninput="updatePreview()" />
+            </div>
+            <div class="editor-row">
+              <div class="editor-field">
+                <label>Category</label>
+                <select id="ed-category">
+                  <option value="HOSTING TIPS">Hosting Tips</option>
+                  <option value="EVENT SPACE">Event Space</option>
+                  <option value="MEETING SPACE">Meeting Space</option>
+                  <option value="SHOOT LOCATION">Shoot Location</option>
+                  <option value="GUIDE">Guide</option>
+                  <option value="VENLY NEWS">Venly News</option>
+                </select>
+              </div>
+              <div class="editor-field">
+                <label>Read time</label>
+                <input type="text" id="ed-read" placeholder="4 min read" value="4 min read" />
+              </div>
+            </div>
+            <div class="editor-field">
+              <label>Hero image</label>
+              <div class="hero-upload-zone" id="hero-upload-zone" onclick="document.getElementById('hero-file-input').click()"
+                   ondragover="event.preventDefault(); this.classList.add('drag-over')"
+                   ondragleave="this.classList.remove('drag-over')"
+                   ondrop="handleHeroDrop(event)">
+                <input type="file" id="hero-file-input" accept="image/*" style="display:none" onchange="handleHeroFile(this.files[0])" />
+                <img id="ed-hero-preview" class="editor-hero-preview" style="display:none" />
+                <div id="hero-upload-placeholder" class="hero-upload-placeholder">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  <div><strong>Click to upload</strong> or drag an image here</div>
+                  <span>PNG, JPG up to ~2MB looks best</span>
+                </div>
+                <button type="button" id="hero-remove-btn" class="hero-remove-btn" style="display:none" onclick="removeHeroImage(event)" title="Remove image">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+              <button type="button" class="use-url-toggle" onclick="toggleUrlInput()" id="use-url-toggle-btn">or paste an image URL instead</button>
+              <input type="text" id="ed-img" placeholder="https://images.unsplash.com/..." oninput="updateHeroPreviewFromUrl()" style="display:none" />
+            </div>
+            <div class="editor-field">
+              <label>Excerpt <span style="font-weight:400;text-transform:none;color:#bbb">(shown on blog listing card)</span></label>
+              <textarea id="ed-excerpt" placeholder="A short 1-2 sentence summary that appears on the blog grid..."></textarea>
+            </div>
+          </div>
+
+          <div class="editor-card">
+            <h4>Post content</h4>
+            <div class="block-list" id="block-list"></div>
+            <div class="add-block-row" style="margin-top:14px">
+              <button class="add-block-btn" onclick="addBlock('paragraph')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="14" y2="18"/></svg>
+                Paragraph
+              </button>
+              <button class="add-block-btn" onclick="addBlock('heading')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4v16M18 4v16M6 12h12"/></svg>
+                Heading
+              </button>
+              <button class="add-block-btn" onclick="addBlock('list')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>
+                List
+              </button>
+              <button class="add-block-btn" onclick="addBlock('quote')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21c0 0 0 0 1 0z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 3-1.75 3v3c0 0 0 2 1 2z"/></svg>
+                Quote
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SIDEBAR -->
+        <div class="editor-sidebar">
+          <div class="editor-card">
+            <h4>Publish</h4>
+            <div class="publish-status-row">
+              <span>Published</span>
+              <div class="toggle-switch" id="ed-published-toggle" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div class="publish-status-row">
+              <span>Featured on homepage</span>
+              <div class="toggle-switch" id="ed-featured-toggle" onclick="this.classList.toggle('on')"></div>
+            </div>
+          </div>
+
+          <div class="editor-card">
+            <h4>Preview</h4>
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.6" id="ed-preview-text">Start typing to see a live preview of how this post will appear.</div>
+          </div>
+
+          <div class="editor-sidebar-actions">
+            <button class="btn-sm" style="background:var(--white);color:var(--red);border:1.5px solid var(--red)" onclick="openBlogPreview()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              Preview
+            </button>
+            <button class="btn-sm btn-red" onclick="saveBlogPost()">Save post</button>
+            <button class="btn-sm" style="background:var(--bg);color:var(--text)" onclick="closeBlogEditor()">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== FULL-SCREEN PREVIEW OVERLAY ===== -->
+    <div class="preview-overlay" id="preview-overlay">
+      <div class="preview-topbar">
+        <div class="preview-topbar-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Previewing
+          <span class="pill" id="preview-status-pill">Draft</span>
+        </div>
+        <button class="preview-close-btn" onclick="closeBlogPreview()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Close preview
+        </button>
+      </div>
+      <div class="preview-body" id="preview-body"></div>
     </div>
   </div>
 
@@ -949,9 +1219,422 @@ function renderBarChart(id, data, color) {
   }).join('');
 }
 
+// ---- BLOG EDITOR ----
+
+// Seed posts shown the first time (before any are added/edited via the editor)
+var SEED_BLOG_POSTS = [
+  { id: 'seed-0', title: 'How to Choose the Perfect Space for Your Next Event', category: 'HOSTING TIPS', date: '12 Jun 2025', views: 342, published: true, img: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=80', excerpt: 'Finding the right venue can make or break an event.', readTime: '4 min read', blocks: [] },
+  { id: 'seed-1', title: '5 Things to Check Before Booking a Venue', category: 'HOSTING TIPS', date: '8 Jun 2025', views: 218, published: true, img: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=1400&q=80', excerpt: 'Five things to verify before you sign on the dotted line.', readTime: '3 min read', blocks: [] },
+  { id: 'seed-2', title: 'The Best Event Spaces in Auckland Right Now', category: 'EVENT SPACE', date: '5 Jun 2025', views: 410, published: true, img: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1400&q=80', excerpt: 'We rounded up the most unique, versatile spaces on Venly.', readTime: '5 min read', blocks: [] },
+  { id: 'seed-3', title: 'Stop Booking Coffee Shops for Meetings', category: 'MEETING SPACE', date: '1 Jun 2025', views: 189, published: true, img: 'https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=1400&q=80', excerpt: 'Noisy, cramped, and embarrassing to clients.', readTime: '3 min read', blocks: [] },
+  { id: 'seed-4', title: 'How to List Your Space on Venly in 10 Minutes', category: 'GUIDE', date: '28 May 2025', views: 156, published: true, img: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1400&q=80', excerpt: 'A step-by-step walkthrough of getting your space live.', readTime: '4 min read', blocks: [] },
+  { id: 'seed-5', title: 'Venly Launches in New Zealand', category: 'VENLY NEWS', date: '20 May 2025', views: 624, published: true, img: 'https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=1400&q=80', excerpt: 'Everything you need to know about what Venly is.', readTime: '2 min read', blocks: [] },
+  { id: 'seed-6', title: 'Draft: Wedding Venue Guide 2025', category: 'EVENT SPACE', date: null, views: 0, published: false, img: '', excerpt: '', readTime: '5 min read', blocks: [] },
+];
+
+function getAllBlogPosts() {
+  var fromStorage = JSON.parse(localStorage.getItem('venly_blog_posts') || 'null');
+  return fromStorage || SEED_BLOG_POSTS;
+}
+
+function saveAllBlogPosts(posts) {
+  try {
+    localStorage.setItem('venly_blog_posts', JSON.stringify(posts));
+    return true;
+  } catch (e) {
+    showToast('Storage is full — try a smaller image or remove an older post');
+    return false;
+  }
+}
+
+var currentEditingPostId = null;
+var currentBlocks = [];
+var blockIdCounter = 0;
+
+function buildBlogTable() {
+  var posts = getAllBlogPosts();
+  var tbody = document.getElementById('blog-posts-tbody');
+  var title = document.getElementById('blog-posts-title');
+  if (title) title.textContent = 'All posts (' + posts.length + ')';
+  if (!tbody) return;
+
+  tbody.innerHTML = posts.map(function(p) {
+    var statusBadge = p.published
+      ? '<span class="badge badge-live">Published</span>'
+      : '<span class="badge badge-draft">Draft</span>';
+    var catLabel = (p.category || '').replace(/_/g, ' ');
+    catLabel = catLabel.charAt(0) + catLabel.slice(1).toLowerCase();
+    return '<tr>' +
+      '<td class="cell-name">' + (p.title || 'Untitled post') + '</td>' +
+      '<td>' + catLabel + '</td>' +
+      '<td>' + (p.date || '—') + '</td>' +
+      '<td>' + (p.views || 0) + '</td>' +
+      '<td>' + statusBadge + '</td>' +
+      '<td><button class="action-btn" onclick="openBlogEditor(\'' + p.id + '\')">Edit</button>' +
+      '<button class="action-btn danger" onclick="deleteBlogPost(\'' + p.id + '\')">Delete</button></td>' +
+      '</tr>';
+  }).join('');
+}
+
+function openBlogEditor(postId) {
+  document.getElementById('blog-list-view').style.display = 'none';
+  document.getElementById('blog-editor-view').style.display = 'block';
+
+  var heading = document.getElementById('editor-heading');
+
+  if (postId) {
+    var post = getAllBlogPosts().find(function(p) { return p.id === postId; });
+    currentEditingPostId = postId;
+    heading.textContent = 'Edit post';
+
+    document.getElementById('ed-title').value = post.title || '';
+    document.getElementById('ed-category').value = post.category || 'HOSTING TIPS';
+    document.getElementById('ed-read').value = post.readTime || '4 min read';
+    document.getElementById('ed-img').value = post.img || '';
+    document.getElementById('ed-excerpt').value = post.excerpt || '';
+    document.getElementById('ed-published-toggle').classList.toggle('on', !!post.published);
+    document.getElementById('ed-featured-toggle').classList.toggle('on', !!post.featured);
+
+    currentBlocks = (post.blocks && post.blocks.length) ? JSON.parse(JSON.stringify(post.blocks)) : [];
+  } else {
+    currentEditingPostId = null;
+    heading.textContent = 'New post';
+    document.getElementById('ed-title').value = '';
+    document.getElementById('ed-category').value = 'HOSTING TIPS';
+    document.getElementById('ed-read').value = '4 min read';
+    document.getElementById('ed-img').value = '';
+    document.getElementById('ed-excerpt').value = '';
+    document.getElementById('ed-published-toggle').classList.remove('on');
+    document.getElementById('ed-featured-toggle').classList.remove('on');
+    currentBlocks = [];
+  }
+
+  updateHeroPreview();
+  resetUrlToggleState();
+  renderBlocks();
+  updatePreview();
+}
+
+function closeBlogEditor() {
+  document.getElementById('blog-editor-view').style.display = 'none';
+  document.getElementById('blog-list-view').style.display = 'block';
+  buildBlogTable();
+}
+
+// ── Hero image: upload, drag-drop, compression, URL fallback ──
+
+function updateHeroPreviewFromUrl() {
+  var url = document.getElementById('ed-img').value.trim();
+  setHeroPreview(url);
+}
+
+// Shared by both upload and URL paths — shows/hides the preview + placeholder + remove button
+function setHeroPreview(src) {
+  var img = document.getElementById('ed-hero-preview');
+  var placeholder = document.getElementById('hero-upload-placeholder');
+  var removeBtn = document.getElementById('hero-remove-btn');
+
+  if (src) {
+    img.src = src;
+    img.style.display = 'block';
+    placeholder.style.display = 'none';
+    removeBtn.style.display = 'flex';
+  } else {
+    img.style.display = 'none';
+    img.src = '';
+    placeholder.style.display = 'flex';
+    removeBtn.style.display = 'none';
+  }
+}
+
+function handleHeroDrop(evt) {
+  evt.preventDefault();
+  document.getElementById('hero-upload-zone').classList.remove('drag-over');
+  var file = evt.dataTransfer.files && evt.dataTransfer.files[0];
+  if (file) handleHeroFile(file);
+}
+
+function handleHeroFile(file) {
+  if (!file || !file.type.startsWith('image/')) {
+    showToast('Please choose an image file');
+    return;
+  }
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    compressImage(e.target.result, 1400, 0.82, function(compressedDataUrl) {
+      document.getElementById('ed-img').value = compressedDataUrl;
+      setHeroPreview(compressedDataUrl);
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+// Resizes/compresses an uploaded image client-side so it stays small enough
+// for localStorage (which has a strict ~5-10MB total limit across all posts).
+function compressImage(dataUrl, maxWidth, quality, callback) {
+  var img = new Image();
+  img.onload = function() {
+    var scale = Math.min(1, maxWidth / img.width);
+    var canvas = document.createElement('canvas');
+    canvas.width = img.width * scale;
+    canvas.height = img.height * scale;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    callback(canvas.toDataURL('image/jpeg', quality));
+  };
+  img.onerror = function() { callback(dataUrl); }; // fall back to original if something goes wrong
+  img.src = dataUrl;
+}
+
+function removeHeroImage(evt) {
+  evt.stopPropagation();
+  document.getElementById('ed-img').value = '';
+  document.getElementById('hero-file-input').value = '';
+  setHeroPreview(null);
+}
+
+function toggleUrlInput() {
+  var urlInput = document.getElementById('ed-img');
+  var btn = document.getElementById('use-url-toggle-btn');
+  var showing = urlInput.style.display !== 'none';
+  urlInput.style.display = showing ? 'none' : 'block';
+  btn.textContent = showing ? 'or paste an image URL instead' : 'hide URL field';
+}
+
+// Called when opening the editor — shows the URL field already if the post
+// has an image URL/data set, otherwise keeps it tucked away behind the toggle.
+function resetUrlToggleState() {
+  var urlInput = document.getElementById('ed-img');
+  var btn = document.getElementById('use-url-toggle-btn');
+  var hasValue = urlInput.value.trim().length > 0;
+  urlInput.style.display = hasValue ? 'block' : 'none';
+  btn.textContent = hasValue ? 'hide URL field' : 'or paste an image URL instead';
+}
+
+// Kept for compatibility with existing calls in openBlogEditor()
+function updateHeroPreview() {
+  var url = document.getElementById('ed-img').value.trim();
+  setHeroPreview(url || null);
+}
+
+function updatePreview() {
+  var title = document.getElementById('ed-title').value.trim();
+  var preview = document.getElementById('ed-preview-text');
+  preview.innerHTML = title
+    ? '<strong style="color:var(--text);display:block;margin-bottom:4px">' + title + '</strong>This is how the post title will appear on the blog listing and post page.'
+    : 'Start typing to see a live preview of how this post will appear.';
+}
+
+// ── Content blocks ──────────────────────────────────────────
+function addBlock(type) {
+  var block = { _id: 'b' + (blockIdCounter++), type: type };
+  if (type === 'paragraph') block.text = '';
+  if (type === 'heading') block.text = '';
+  if (type === 'quote') block.text = '';
+  if (type === 'list') block.items = [''];
+  currentBlocks.push(block);
+  renderBlocks();
+}
+
+function removeBlock(id) {
+  currentBlocks = currentBlocks.filter(function(b) { return b._id !== id; });
+  renderBlocks();
+}
+
+function moveBlock(id, dir) {
+  var idx = currentBlocks.findIndex(function(b) { return b._id === id; });
+  var newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= currentBlocks.length) return;
+  var tmp = currentBlocks[idx];
+  currentBlocks[idx] = currentBlocks[newIdx];
+  currentBlocks[newIdx] = tmp;
+  renderBlocks();
+}
+
+function updateBlockText(id, value) {
+  var block = currentBlocks.find(function(b) { return b._id === id; });
+  if (block) block.text = value;
+}
+
+function updateListItem(blockId, itemIdx, value) {
+  var block = currentBlocks.find(function(b) { return b._id === blockId; });
+  if (block) block.items[itemIdx] = value;
+}
+
+function addListItem(blockId) {
+  var block = currentBlocks.find(function(b) { return b._id === blockId; });
+  if (block) { block.items.push(''); renderBlocks(); }
+}
+
+function removeListItem(blockId, itemIdx) {
+  var block = currentBlocks.find(function(b) { return b._id === blockId; });
+  if (block) { block.items.splice(itemIdx, 1); renderBlocks(); }
+}
+
+var BLOCK_LABELS = { paragraph: 'Paragraph', heading: 'Heading', list: 'List', quote: 'Quote' };
+
+function renderBlocks() {
+  var wrap = document.getElementById('block-list');
+  if (!wrap) return;
+
+  if (currentBlocks.length === 0) {
+    wrap.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px">No content blocks yet — add one below to start writing.</div>';
+    return;
+  }
+
+  wrap.innerHTML = currentBlocks.map(function(b, i) {
+    var moveUp = '<button onclick="moveBlock(\'' + b._id + '\',-1)" title="Move up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg></button>';
+    var moveDown = '<button onclick="moveBlock(\'' + b._id + '\',1)" title="Move down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>';
+    var del = '<button onclick="removeBlock(\'' + b._id + '\')" title="Delete block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>';
+    var head = '<div class="block-head"><span class="block-type-label">' + BLOCK_LABELS[b.type] + '</span><div class="block-actions">' + moveUp + moveDown + del + '</div></div>';
+
+    var body = '';
+    if (b.type === 'paragraph') {
+      body = '<textarea rows="3" placeholder="Write a paragraph..." oninput="updateBlockText(\'' + b._id + '\', this.value)">' + (b.text || '') + '</textarea>';
+    } else if (b.type === 'heading') {
+      body = '<input type="text" placeholder="Section heading..." value="' + (b.text || '').replace(/"/g, '&quot;') + '" oninput="updateBlockText(\'' + b._id + '\', this.value)" />';
+    } else if (b.type === 'quote') {
+      body = '<textarea rows="2" placeholder="A short, quotable line..." oninput="updateBlockText(\'' + b._id + '\', this.value)">' + (b.text || '') + '</textarea>';
+    } else if (b.type === 'list') {
+      body = b.items.map(function(item, idx) {
+        return '<div class="list-item-row">' +
+          '<input type="text" placeholder="List item..." value="' + (item || '').replace(/"/g, '&quot;') + '" oninput="updateListItem(\'' + b._id + '\', ' + idx + ', this.value)" />' +
+          '<button onclick="removeListItem(\'' + b._id + '\', ' + idx + ')" title="Remove item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>' +
+        '</div>';
+      }).join('') + '<button class="add-list-item-btn" onclick="addListItem(\'' + b._id + '\')">+ Add item</button>';
+    }
+
+    return '<div class="content-block">' + head + body + '</div>';
+  }).join('');
+}
+
+function saveBlogPost() {
+  var title = document.getElementById('ed-title').value.trim();
+  if (!title) { showToast('Please add a title before saving'); return; }
+
+  var posts = getAllBlogPosts();
+  var published = document.getElementById('ed-published-toggle').classList.contains('on');
+  var featured = document.getElementById('ed-featured-toggle').classList.contains('on');
+
+  var postData = {
+    title: title,
+    category: document.getElementById('ed-category').value,
+    readTime: document.getElementById('ed-read').value.trim() || '4 min read',
+    img: document.getElementById('ed-img').value.trim(),
+    excerpt: document.getElementById('ed-excerpt').value.trim(),
+    published: published,
+    featured: featured,
+    blocks: currentBlocks,
+  };
+
+  if (currentEditingPostId) {
+    var idx = posts.findIndex(function(p) { return p.id === currentEditingPostId; });
+    if (idx > -1) {
+      postData.id = posts[idx].id;
+      postData.date = posts[idx].date || (published ? formatTodayDate() : null);
+      postData.views = posts[idx].views || 0;
+      if (published && !posts[idx].date) postData.date = formatTodayDate();
+      posts[idx] = postData;
+    }
+  } else {
+    postData.id = 'post-' + Date.now();
+    postData.date = published ? formatTodayDate() : null;
+    postData.views = 0;
+    posts.unshift(postData);
+  }
+
+  if (saveAllBlogPosts(posts)) {
+    showToast('Post saved successfully');
+    closeBlogEditor();
+  }
+}
+
+function deleteBlogPost(postId) {
+  var posts = getAllBlogPosts().filter(function(p) { return p.id !== postId; });
+  saveAllBlogPosts(posts);
+  showToast('Post deleted');
+  buildBlogTable();
+}
+
+// ── Live preview ──────────────────────────────────────────────
+
+// Converts the editor's block array into the same HTML the live
+// venly-blog-post.html page renders, so the preview matches exactly.
+function blocksToHtml(blocks) {
+  if (!blocks || blocks.length === 0) return '';
+  return blocks.map(function(b) {
+    if (b.type === 'paragraph') {
+      return b.text ? '<p>' + escapeHtml(b.text) + '</p>' : '';
+    }
+    if (b.type === 'heading') {
+      return b.text ? '<h2>' + escapeHtml(b.text) + '</h2>' : '';
+    }
+    if (b.type === 'quote') {
+      return b.text ? '<blockquote>' + escapeHtml(b.text) + '</blockquote>' : '';
+    }
+    if (b.type === 'list') {
+      var items = (b.items || []).filter(function(i) { return i && i.trim(); });
+      if (items.length === 0) return '';
+      return '<ul>' + items.map(function(i) { return '<li>' + escapeHtml(i) + '</li>'; }).join('') + '</ul>';
+    }
+    return '';
+  }).join('\n');
+}
+
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function openBlogPreview() {
+  var title = document.getElementById('ed-title').value.trim();
+  var category = document.getElementById('ed-category').value;
+  var readTime = document.getElementById('ed-read').value.trim() || '4 min read';
+  var img = document.getElementById('ed-img').value.trim();
+  var published = document.getElementById('ed-published-toggle').classList.contains('on');
+  var bodyHtml = blocksToHtml(currentBlocks);
+
+  var catLabel = category.charAt(0) + category.slice(1).toLowerCase();
+  var todayLabel = formatTodayDate();
+
+  var heroHtml = img
+    ? '<div class="post-hero"><img src="' + img + '" alt="' + escapeHtml(title) + '" /></div>'
+    : '<div class="post-hero post-hero-empty">No hero image set yet</div>';
+
+  var bodyContent = bodyHtml || '<div class="preview-empty-state">No content blocks added yet — go back and add some paragraphs, headings, lists or quotes to see them appear here.</div>';
+
+  document.getElementById('preview-body').innerHTML =
+    heroHtml +
+    '<div class="post-wrap">' +
+      '<span class="post-cat">' + escapeHtml(catLabel) + '</span>' +
+      '<h1 class="post-title' + (title ? '' : ' placeholder') + '">' + (title ? escapeHtml(title) : 'Untitled post') + '</h1>' +
+      '<div class="post-meta"><span>' + todayLabel + '</span><span class="post-meta-dot"></span><span>' + escapeHtml(readTime) + '</span></div>' +
+      '<div class="post-body">' + bodyContent + '</div>' +
+    '</div>';
+
+  var pill = document.getElementById('preview-status-pill');
+  pill.textContent = published ? 'Published' : 'Draft';
+
+  document.getElementById('preview-overlay').classList.add('show');
+}
+
+function closeBlogPreview() {
+  document.getElementById('preview-overlay').classList.remove('show');
+}
+
+function formatTodayDate() {
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var d = new Date();
+  return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
 buildUsersTable();
 buildRecentSignups();
-// Load live data if Supabase is connected
+buildBlogTable();
+
+
 if (typeof loadSupabaseUsers === 'function') {
   loadSupabaseUsers();
   loadSupabaseVenues();
