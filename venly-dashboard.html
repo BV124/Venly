@@ -166,6 +166,25 @@ tbody tr:last-child td { border-bottom: none; }
 .photo-slot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .photo-slot .remove-photo { position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; background: rgba(0,0,0,0.6); border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; line-height: 1; }
 
+/* Cover photo selection */
+.photo-slot.is-cover { border: 2px solid var(--red); box-shadow: 0 0 0 3px var(--red-light); }
+.photo-slot-cover-badge {
+  position: absolute; top: 4px; left: 4px; display: flex; align-items: center; gap: 4px;
+  background: var(--red); color: #fff; font-size: 9px; font-weight: 700;
+  padding: 3px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.03em;
+  pointer-events: none;
+}
+.photo-slot-cover-badge svg { width: 9px; height: 9px; flex-shrink: 0; }
+.set-cover-btn {
+  position: absolute; bottom: 4px; left: 4px; right: 26px;
+  background: rgba(0,0,0,0.65); color: #fff; border: none; border-radius: 6px;
+  font-size: 10px; font-weight: 600; padding: 4px 6px; cursor: pointer;
+  font-family: 'Inter', sans-serif; opacity: 0; transition: opacity 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 3px;
+}
+.photo-slot:hover .set-cover-btn { opacity: 1; }
+.set-cover-btn svg { width: 10px; height: 10px; flex-shrink: 0; }
+
 /* FEATURES */
 .features-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 .feature-chip {
@@ -466,7 +485,7 @@ tbody tr:last-child td { border-bottom: none; }
         <div class="modal-section">
           <div class="modal-section-title">Venue photos</div>
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <p style="font-size:13px;color:var(--text-muted);margin:0">Upload up to <strong id="photo-cap-label">8</strong> photos. First photo is your cover image.</p>
+            <p style="font-size:13px;color:var(--text-muted);margin:0">Upload up to <strong id="photo-cap-label">8</strong> photos. Hover a photo and click "Set as cover" to choose which one shows first.</p>
             <span id="photo-count-badge" style="font-size:12px;font-weight:600;color:var(--text-muted)">0 / 8</span>
           </div>
           <div class="photo-upload-grid" id="photo-grid"></div>
@@ -923,6 +942,8 @@ function closeModal() {
   currentStep = 1;
   selectedFeatures = [];
   selectedEventTypes = [];
+  photoDataUrls = [];
+  coverPhotoIndex = 0;
 }
 
 function updateStepUI() {
@@ -1008,20 +1029,68 @@ function getCaps() {
   return planCaps[activePlan] || planCaps['Premium'];
 }
 
+// ---- PHOTOS (with selectable cover image) ----
+let photoDataUrls = []; // index-aligned with photo slots; '' = empty slot
+let coverPhotoIndex = 0; // which slot is currently the cover photo
+
 function renderPhotoGrid() {
   const cap = getCaps().photos;
   document.getElementById('photo-cap-label').textContent = cap;
-  updatePhotoCount();
-  const grid = document.getElementById('photo-grid');
+
+  // Trim or pad the working array to match the current plan's cap
+  photoDataUrls = photoDataUrls.slice(0, cap);
+  while (photoDataUrls.length < cap) photoDataUrls.push('');
+
+  // If the cover slot no longer has a photo (removed, or trimmed by a plan
+  // change), fall back to the first slot that actually has one.
+  if (!photoDataUrls[coverPhotoIndex]) {
+    const firstFilled = photoDataUrls.findIndex(u => !!u);
+    coverPhotoIndex = firstFilled > -1 ? firstFilled : 0;
+  }
+
   const uploadSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="22" height="22"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>`;
-  grid.innerHTML = Array.from({length: cap}, (_, i) => `
-    <div class="photo-slot" id="photo-slot-${i}" onclick="triggerUpload(${i})">${uploadSVG}Upload photo</div>
-  `).join('');
+  const starSVG = `<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l2.9 6.6 7.1.7-5.4 4.7 1.7 7-6.3-3.8L6 21l1.7-7-5.4-4.7 7.1-.7z"/></svg>`;
+  const badgeSVG = `<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l2.9 6.6 7.1.7-5.4 4.7 1.7 7-6.3-3.8L6 21l1.7-7-5.4-4.7 7.1-.7z"/></svg>`;
+
+  const grid = document.getElementById('photo-grid');
+  grid.innerHTML = photoDataUrls.map((url, i) => {
+    if (url) {
+      const isCover = i === coverPhotoIndex;
+      return `<div class="photo-slot${isCover ? ' is-cover' : ''}" id="photo-slot-${i}" onclick="triggerUpload(${i})">
+        <img src="${url}" alt="Uploaded" />
+        ${isCover
+          ? `<span class="photo-slot-cover-badge">${badgeSVG}Cover</span>`
+          : `<button class="set-cover-btn" onclick="setCoverPhoto(event, ${i})">${starSVG}Set as cover</button>`
+        }
+        <button class="remove-photo" onclick="removePhoto(event, ${i})">×</button>
+      </div>`;
+    }
+    return `<div class="photo-slot" id="photo-slot-${i}" onclick="triggerUpload(${i})">${uploadSVG}Upload photo</div>`;
+  }).join('');
+
+  updatePhotoCount();
+}
+
+function setCoverPhoto(e, slot) {
+  e.stopPropagation();
+  coverPhotoIndex = slot;
+  renderPhotoGrid();
+  showToast('Cover photo updated');
+}
+
+// Returns the filled photos with the chosen cover moved to the front —
+// this is the order that actually gets saved against the listing.
+function getOrderedPhotos() {
+  const coverUrl = photoDataUrls[coverPhotoIndex];
+  if (!coverUrl) return photoDataUrls.filter(p => !!p);
+  const rest = [];
+  photoDataUrls.forEach((p, i) => { if (p && i !== coverPhotoIndex) rest.push(p); });
+  return [coverUrl, ...rest];
 }
 
 function updatePhotoCount() {
   const cap = getCaps().photos;
-  const filled = document.querySelectorAll('.photo-slot img').length;
+  const filled = photoDataUrls.filter(u => !!u).length;
   const badge = document.getElementById('photo-count-badge');
   if (badge) {
     badge.textContent = filled + ' / ' + cap;
@@ -1093,24 +1162,40 @@ function triggerUpload(slot) {
 
 function handleFileUpload(e) {
   const file = e.target.files[0];
-  if (!file) return;
+  if (!file || !file.type.startsWith('image/')) { e.target.value = ''; return; }
+
   const reader = new FileReader();
   reader.onload = function(ev) {
-    const slots = document.querySelectorAll('.photo-slot');
-    const slot = slots[currentUploadSlot];
-    slot.innerHTML = `<img src="${ev.target.result}" alt="Uploaded" /><button class="remove-photo" onclick="removePhoto(event, ${currentUploadSlot})">×</button>`;
+    compressImage(ev.target.result, 1400, 0.82, function(compressed) {
+      photoDataUrls[currentUploadSlot] = compressed;
+      renderPhotoGrid();
+    });
   };
   reader.readAsDataURL(file);
   e.target.value = '';
-  setTimeout(updatePhotoCount, 100);
+}
+
+// Resizes/compresses an uploaded image client-side so it doesn't bloat
+// localStorage if the listing ends up saved there.
+function compressImage(dataUrl, maxWidth, quality, callback) {
+  const img = new Image();
+  img.onload = function() {
+    const scale = Math.min(1, maxWidth / img.width);
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width * scale;
+    canvas.height = img.height * scale;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    callback(canvas.toDataURL('image/jpeg', quality));
+  };
+  img.onerror = function() { callback(dataUrl); };
+  img.src = dataUrl;
 }
 
 function removePhoto(e, slot) {
   e.stopPropagation();
-  const slots = document.querySelectorAll('.photo-slot');
-  slots[slot].innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="22" height="22"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload photo`;
-  slots[slot].onclick = () => triggerUpload(slot);
-  updatePhotoCount();
+  photoDataUrls[slot] = '';
+  renderPhotoGrid();
 }
 
 // ---- TOAST ----
