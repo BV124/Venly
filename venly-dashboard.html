@@ -827,6 +827,21 @@ function confirmUpgrade() {
   showToast('⚡ Upgraded to ' + activePlan + ' — continue adding your listing!');
 }
 
+// Shows a clearer label for venues the admin set up on a host's behalf
+// that are still waiting on payment, vs a normal host-created draft.
+function renderListingStatus(l) {
+  if (l.status === 'live') {
+    return '<span class="live-dot live">Live</span>';
+  }
+  if (l.createdBy === 'admin' && l.subscriptionStatus === 'none') {
+    return '<span class="live-dot draft" style="color:#a06000">Pending setup</span>';
+  }
+  if (l.subscriptionStatus === 'cancelled') {
+    return '<span class="live-dot draft" style="color:var(--red)">Cancelled</span>';
+  }
+  return '<span class="live-dot draft">Draft</span>';
+}
+
 // ---- LISTINGS TABLE ----
 function buildTable() {
   const tbody = document.getElementById('listings-body');
@@ -847,7 +862,7 @@ function buildTable() {
       <td style="color:var(--text-muted)">${l.type}</td>
       <td>${l.hits}</td>
       <td><span class="badge-${l.plan.toLowerCase()}">${l.plan}</span></td>
-      <td><span class="live-dot ${l.status === 'live' ? 'live' : 'draft'}">${l.status === 'live' ? 'Live' : 'Draft'}</span></td>
+      <td>${renderListingStatus(l)}</td>
       <td>
         <div class="row-actions">
           <button class="icon-btn" title="Edit" onclick="openEditListing(${i})">
@@ -1110,7 +1125,10 @@ async function loadUserProfile() {
 }
 
 async function loadUserListings() {
-  if (!SUPABASE_READY) return; // demo mode uses listings array
+  if (!SUPABASE_READY) {
+    loadUserListingsDemo();
+    return;
+  }
   const user = await getCurrentUser();
   if (!user) return;
   const { data, error } = await sb.from('venues').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
@@ -1125,6 +1143,32 @@ async function loadUserListings() {
     }));
     buildTable();
   }
+}
+
+// DEMO MODE: reads from the same venly_venues data the admin panel manages,
+// matched by the logged-in user's email. This is how admin-created venues
+// tagged to a host's email actually show up under "My Listings".
+function loadUserListingsDemo() {
+  const user = JSON.parse(localStorage.getItem('venly_current_user') || 'null');
+  if (!user || !user.email) return;
+
+  const allVenues = JSON.parse(localStorage.getItem('venly_venues') || 'null');
+  if (!allVenues) return; // admin hasn't created the store yet — keep the hardcoded demo listings
+
+  const mine = allVenues.filter(v => (v.hostEmail || '').toLowerCase() === user.email.toLowerCase());
+
+  listings = mine.map(v => ({
+    id: v.id,
+    name: v.name,
+    type: v.type,
+    hits: v.hits || 0,
+    plan: v.plan || 'Basic',
+    status: v.isLive ? 'live' : 'draft',
+    subscriptionStatus: v.subscriptionStatus || 'none',
+    createdBy: v.createdBy || 'host',
+  }));
+
+  buildTable();
 }
 
 async function saveListing(listingData) {

@@ -119,6 +119,8 @@ tbody tr:last-child td { border-bottom: none; }
 .featured-home-pill svg { width: 10px; height: 10px; flex-shrink: 0; }
 .badge-standard { background: #e8f4fd; color: #1a6fa8; border: 1px solid #b3d9f5; }
 .badge-basic { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+.badge-pending { background: #fdf0e8; color: #c2632a; border: 1px solid #f5cfa8; }
+.badge-cancelled { background: #fdecec; color: var(--red); border: 1px solid #f5c4bf; }
 .badge-new { background: #e8f8ee; color: #1a8a4a; border: 1px solid #b8e8c8; }
 .badge-active { background: #e8f4fd; color: #1a6fa8; border: 1px solid #b3d9f5; }
 .badge-inactive { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
@@ -413,6 +415,43 @@ tbody tr:last-child td { border-bottom: none; }
 .toggle-switch.on { background: var(--red); }
 .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: left 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
 .toggle-switch.on::after { left: 18px; }
+
+/* ── VENUE EDITOR — host tagging & status controls ───────────── */
+.host-lookup-result {
+  margin-top: 10px; padding: 10px 12px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--bg);
+  display: flex; align-items: center; gap: 10px; font-size: 12px;
+}
+.host-lookup-result.found { border-color: #b8e8c8; background: #e8f8ee; }
+.host-lookup-result.not-found { border-color: #fde7a0; background: #fff8ec; }
+.host-lookup-avatar {
+  width: 30px; height: 30px; border-radius: 50%; background: var(--red); color: #fff;
+  font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.host-lookup-text strong { display: block; color: var(--text); font-size: 12px; }
+.host-lookup-text span { color: var(--text-muted); font-size: 11px; }
+
+.venue-status-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 14px 16px; border-radius: var(--radius-sm); margin-bottom: 16px;
+  border: 1px solid var(--border); background: var(--bg);
+}
+.venue-status-banner.pending { background: #fdf0e8; border-color: #f5cfa8; }
+.venue-status-banner.live { background: #e8f8ee; border-color: #b8e8c8; }
+.venue-status-banner.cancelled { background: #fdecec; border-color: #f5c4bf; }
+.venue-status-banner-text { font-size: 12px; }
+.venue-status-banner-text strong { display: block; font-size: 13px; margin-bottom: 2px; }
+.venue-status-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.venue-status-actions button {
+  padding: 7px 14px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600;
+  border: none; cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; transition: all 0.15s;
+}
+.btn-override-live { background: #1a8a4a; color: #fff; }
+.btn-override-live:hover { background: #157038; }
+.btn-cancel-sub { background: transparent; color: var(--red); border: 1.5px solid var(--red) !important; }
+.btn-cancel-sub:hover { background: var(--red-light); }
+.btn-reactivate { background: var(--red); color: #fff; }
+.btn-reactivate:hover { background: var(--red-dark); }
 .editor-sidebar-actions { display: flex; flex-direction: column; gap: 8px; }
 .editor-sidebar-actions .btn-sm { width: 100%; justify-content: center; display: flex; }
 
@@ -649,33 +688,117 @@ tbody tr:last-child td { border-bottom: none; }
 
   <!-- ===== VENUES ===== -->
   <div id="section-venues" class="page-section">
-    <div class="section-header">
-      <div><div class="section-title">Venues</div><div class="section-subtitle">Manage, edit and moderate all listings on the platform.</div></div>
-      <button class="btn-sm btn-red" onclick="openModal('venue')">+ Add venue</button>
+    <!-- ===== VENUES LIST VIEW ===== -->
+    <div id="venues-list-view">
+      <div class="section-header">
+        <div><div class="section-title">Venues</div><div class="section-subtitle">Manage, edit and moderate all listings on the platform.</div></div>
+        <button class="btn-sm btn-red" onclick="openVenueEditor()">+ Add venue</button>
+      </div>
+      <div class="table-card">
+        <div class="table-card-header">
+          <div class="table-card-title" id="venues-table-title">All venues</div>
+          <div class="table-search">
+            <div class="search-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+              <input class="search-input" placeholder="Search venues..." oninput="filterTable(this,'venues-table')" />
+            </div>
+          </div>
+        </div>
+        <table id="venues-table">
+          <thead><tr><th>Venue name</th><th>Host</th><th>Type</th><th>Region</th><th>Plan</th><th>Page hits</th><th>Status</th><th></th></tr></thead>
+          <tbody id="venues-tbody"></tbody>
+        </table>
+      </div>
     </div>
-    <div class="table-card">
-      <div class="table-card-header">
-        <div class="table-card-title">All venues (8)</div>
-        <div class="table-search">
-          <div class="search-wrap">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-            <input class="search-input" placeholder="Search venues..." oninput="filterTable(this,'venues-table')" />
+
+    <!-- ===== VENUE EDITOR VIEW ===== -->
+    <div id="venue-editor-view" style="display:none">
+      <div class="section-header">
+        <div>
+          <div class="section-title" id="venue-editor-heading">New venue</div>
+          <div class="section-subtitle">Set up a venue, tag a host, and control whether it's live.</div>
+        </div>
+        <button class="action-btn" onclick="closeVenueEditor()">← Back to all venues</button>
+      </div>
+
+      <!-- Status banner — only shown when editing an existing venue -->
+      <div id="venue-status-banner-wrap"></div>
+
+      <div class="editor-layout">
+        <!-- MAIN -->
+        <div class="editor-main">
+          <div class="editor-card">
+            <h4>Venue details</h4>
+            <div class="editor-field">
+              <label>Venue name</label>
+              <input type="text" id="ven-name" placeholder="e.g. The Rooftop Auckland" />
+            </div>
+            <div class="editor-row">
+              <div class="editor-field">
+                <label>Space type</label>
+                <select id="ven-type">
+                  <option value="Event space">Event space</option>
+                  <option value="Meeting space">Meeting space</option>
+                  <option value="Shoot Location">Shoot Location</option>
+                </select>
+              </div>
+              <div class="editor-field">
+                <label>Plan</label>
+                <select id="ven-plan">
+                  <option value="Basic">Basic</option>
+                  <option value="Standard">Standard</option>
+                  <option value="Premium">Premium</option>
+                </select>
+              </div>
+            </div>
+            <div class="editor-row">
+              <div class="editor-field">
+                <label>Region</label>
+                <select id="ven-region" onchange="populateVenueDistrictOptions()"></select>
+              </div>
+              <div class="editor-field">
+                <label>District</label>
+                <select id="ven-district"></select>
+              </div>
+            </div>
+            <div class="editor-field">
+              <label>Description <span style="font-weight:400;text-transform:none;color:#bbb">(shown on the venue's public page)</span></label>
+              <textarea id="ven-description" placeholder="A short description of the space..."></textarea>
+            </div>
+          </div>
+
+          <div class="editor-card">
+            <h4>Host</h4>
+            <div class="editor-field">
+              <label>Host email</label>
+              <input type="email" id="ven-host-email" placeholder="host@example.com" oninput="lookupHostByEmail()" />
+            </div>
+            <div id="host-lookup-result-wrap"></div>
+            <div class="filter-card-note" style="margin-top:10px">
+              Tagging a venue to a host's email links it to their account — it'll appear under "My Listings" on their dashboard. If no account exists yet with that email, it'll link automatically as soon as they sign up.
+            </div>
+          </div>
+        </div>
+
+        <!-- SIDEBAR -->
+        <div class="editor-sidebar">
+          <div class="editor-card">
+            <h4>Visibility</h4>
+            <div class="publish-status-row">
+              <div>
+                <span>Live on the site</span>
+                <div style="font-size:10px;color:#bbb;margin-top:2px" id="ven-live-helper">Off until the host pays, unless overridden</div>
+              </div>
+              <div class="toggle-switch" id="ven-live-toggle" onclick="this.classList.toggle('on'); updateVenueLiveHelper()"></div>
+            </div>
+          </div>
+
+          <div class="editor-sidebar-actions">
+            <button class="btn-sm btn-red" onclick="saveVenue()">Save venue</button>
+            <button class="btn-sm" style="background:var(--bg);color:var(--text)" onclick="closeVenueEditor()">Cancel</button>
           </div>
         </div>
       </div>
-      <table id="venues-table">
-        <thead><tr><th>Venue name</th><th>Host</th><th>Type</th><th>Region</th><th>Plan</th><th>Page hits</th><th>Status</th><th></th></tr></thead>
-        <tbody>
-          <tr><td class="cell-name">Brads – Shoot Location</td><td style="color:var(--text-muted)">Braedyn Veysi</td><td>Shoot Location</td><td>Auckland City</td><td><span class="badge badge-premium">Premium</span></td><td>8</td><td><span class="badge badge-draft">Draft</span></td><td><button class="action-btn" onclick="showToast('Opening editor...')">Edit</button><button class="action-btn" onclick="toggleLive(this)">Go live</button></td></tr>
-          <tr><td class="cell-name">Brads – Meeting Space</td><td style="color:var(--text-muted)">Braedyn Veysi</td><td>Meeting space</td><td>Auckland City</td><td><span class="badge badge-premium">Premium</span></td><td>6</td><td><span class="badge badge-live">Live</span></td><td><button class="action-btn" onclick="showToast('Opening editor...')">Edit</button><button class="action-btn danger" onclick="showToast('Listing unpublished')">Unpublish</button></td></tr>
-          <tr><td class="cell-name">Brads Warehouse</td><td style="color:var(--text-muted)">Braedyn Veysi</td><td>Event space</td><td>Auckland City</td><td><span class="badge badge-standard">Standard</span></td><td>10</td><td><span class="badge badge-live">Live</span></td><td><button class="action-btn" onclick="showToast('Opening editor...')">Edit</button><button class="action-btn danger" onclick="showToast('Listing unpublished')">Unpublish</button></td></tr>
-          <tr><td class="cell-name">Okahu – Meeting Space</td><td style="color:var(--text-muted)">Braedyn Veysi</td><td>Meeting space</td><td>Auckland City</td><td><span class="badge badge-premium">Premium</span></td><td>10</td><td><span class="badge badge-live">Live</span></td><td><button class="action-btn" onclick="showToast('Opening editor...')">Edit</button><button class="action-btn danger" onclick="showToast('Listing unpublished')">Unpublish</button></td></tr>
-          <tr><td class="cell-name">Okahu – Shoot Location</td><td style="color:var(--text-muted)">Braedyn Veysi</td><td>Shoot Location</td><td>Auckland City</td><td><span class="badge badge-premium">Premium</span></td><td>6</td><td><span class="badge badge-draft">Draft</span></td><td><button class="action-btn" onclick="showToast('Opening editor...')">Edit</button><button class="action-btn" onclick="toggleLive(this)">Go live</button></td></tr>
-          <tr><td class="cell-name">Okahu</td><td style="color:var(--text-muted)">Braedyn Veysi</td><td>Event space</td><td>Auckland City</td><td><span class="badge badge-basic">Basic</span></td><td>4</td><td><span class="badge badge-live">Live</span></td><td><button class="action-btn" onclick="showToast('Opening editor...')">Edit</button><button class="action-btn danger" onclick="showToast('Listing unpublished')">Unpublish</button></td></tr>
-          <tr><td class="cell-name">North Shore Event Space</td><td style="color:var(--text-muted)">Alex Turner</td><td>Event space</td><td>North Shore</td><td><span class="badge badge-standard">Standard</span></td><td>22</td><td><span class="badge badge-live">Live</span></td><td><button class="action-btn" onclick="showToast('Opening editor...')">Edit</button><button class="action-btn danger" onclick="showToast('Listing unpublished')">Unpublish</button></td></tr>
-          <tr><td class="cell-name">City Meeting Room</td><td style="color:var(--text-muted)">Maria Chen</td><td>Meeting space</td><td>Auckland City</td><td><span class="badge badge-basic">Basic</span></td><td>3</td><td><span class="badge badge-draft">Draft</span></td><td><button class="action-btn" onclick="showToast('Opening editor...')">Edit</button><button class="action-btn" onclick="toggleLive(this)">Go live</button></td></tr>
-        </tbody>
-      </table>
     </div>
   </div>
 
@@ -1908,6 +2031,7 @@ function removeFilterItem(listPath, idx, containerId) {
   document.getElementById('confirm-delete-desc').textContent = desc;
 
   var confirmBtn = document.getElementById('confirm-delete-btn');
+  confirmBtn.textContent = 'Remove';
   confirmBtn.onclick = function() {
     performFilterRemoval(listPath, idx, containerId, itemName);
   };
@@ -2023,13 +2147,346 @@ function renderDistrictsForRegion() {
   renderEditableTagList('filter-districts', 'districtsByRegion.' + region);
 }
 
+// ---- VENUE MANAGEMENT ----
+
+// Seed venues — matches what was previously hardcoded in the table
+var SEED_VENUES = [
+  { id: 'v-seed-0', name: 'Brads – Shoot Location', type: 'Shoot Location', region: 'Auckland', district: 'Auckland City', plan: 'Premium', hits: 8, hostEmail: 'braedyn@venly.co.nz', hostName: 'Braedyn Veysi', description: '', isLive: false, subscriptionStatus: 'none', createdBy: 'host' },
+  { id: 'v-seed-1', name: 'Brads – Meeting Space', type: 'Meeting space', region: 'Auckland', district: 'Auckland City', plan: 'Premium', hits: 6, hostEmail: 'braedyn@venly.co.nz', hostName: 'Braedyn Veysi', description: '', isLive: true, subscriptionStatus: 'active', createdBy: 'host' },
+  { id: 'v-seed-2', name: 'Brads Warehouse', type: 'Event space', region: 'Auckland', district: 'Auckland City', plan: 'Standard', hits: 10, hostEmail: 'braedyn@venly.co.nz', hostName: 'Braedyn Veysi', description: '', isLive: true, subscriptionStatus: 'active', createdBy: 'host' },
+  { id: 'v-seed-3', name: 'Okahu – Meeting Space', type: 'Meeting space', region: 'Auckland', district: 'Auckland City', plan: 'Premium', hits: 10, hostEmail: 'braedyn@venly.co.nz', hostName: 'Braedyn Veysi', description: '', isLive: true, subscriptionStatus: 'active', createdBy: 'host' },
+  { id: 'v-seed-4', name: 'Okahu – Shoot Location', type: 'Shoot Location', region: 'Auckland', district: 'Auckland City', plan: 'Premium', hits: 6, hostEmail: 'braedyn@venly.co.nz', hostName: 'Braedyn Veysi', description: '', isLive: false, subscriptionStatus: 'none', createdBy: 'host' },
+  { id: 'v-seed-5', name: 'Okahu', type: 'Event space', region: 'Auckland', district: 'Auckland City', plan: 'Basic', hits: 4, hostEmail: 'braedyn@venly.co.nz', hostName: 'Braedyn Veysi', description: '', isLive: true, subscriptionStatus: 'active', createdBy: 'host' },
+  { id: 'v-seed-6', name: 'North Shore Event Space', type: 'Event space', region: 'Auckland', district: 'North Shore', plan: 'Standard', hits: 22, hostEmail: 'alex@example.com', hostName: 'Alex Turner', description: '', isLive: true, subscriptionStatus: 'active', createdBy: 'host' },
+  { id: 'v-seed-7', name: 'City Meeting Room', type: 'Meeting space', region: 'Auckland', district: 'Auckland City', plan: 'Basic', hits: 3, hostEmail: 'maria@example.com', hostName: 'Maria Chen', description: '', isLive: false, subscriptionStatus: 'none', createdBy: 'host' },
+];
+
+function getAllVenues() {
+  var fromStorage = JSON.parse(localStorage.getItem('venly_venues') || 'null');
+  return fromStorage || SEED_VENUES;
+}
+
+function saveAllVenues(venues) {
+  try {
+    localStorage.setItem('venly_venues', JSON.stringify(venues));
+    return true;
+  } catch (e) {
+    showToast('Could not save — storage is full');
+    return false;
+  }
+}
+
+// Works out the badge shown in the Status column, combining live-state and subscription
+function getVenueStatusBadge(v) {
+  if (v.isLive && v.subscriptionStatus === 'overridden') return '<span class="badge badge-live">Live (override)</span>';
+  if (v.isLive) return '<span class="badge badge-live">Live</span>';
+  if (v.subscriptionStatus === 'cancelled') return '<span class="badge badge-cancelled">Cancelled</span>';
+  if (v.subscriptionStatus === 'none' && v.createdBy === 'admin') return '<span class="badge badge-pending">Pending setup</span>';
+  return '<span class="badge badge-draft">Draft</span>';
+}
+
+var currentEditingVenueId = null;
+
+function buildVenuesTable() {
+  var venues = getAllVenues();
+  var tbody = document.getElementById('venues-tbody');
+  var title = document.getElementById('venues-table-title');
+  if (title) title.textContent = 'All venues (' + venues.length + ')';
+  if (!tbody) return;
+
+  tbody.innerHTML = venues.map(function(v) {
+    return '<tr>' +
+      '<td class="cell-name">' + escapeHtml(v.name || 'Untitled venue') + '</td>' +
+      '<td style="color:var(--text-muted)">' + escapeHtml(v.hostName || v.hostEmail || '—') + '</td>' +
+      '<td>' + escapeHtml(v.type || '—') + '</td>' +
+      '<td>' + escapeHtml(v.district || v.region || '—') + '</td>' +
+      '<td><span class="badge badge-' + (v.plan || 'basic').toLowerCase() + '">' + escapeHtml(v.plan || 'Basic') + '</span></td>' +
+      '<td>' + (v.hits || 0) + '</td>' +
+      '<td>' + getVenueStatusBadge(v) + '</td>' +
+      '<td><button class="action-btn" onclick="openVenueEditor(\'' + v.id + '\')">Edit</button>' +
+      '<button class="action-btn danger" onclick="deleteVenueWithConfirm(\'' + v.id + '\')">Delete</button></td>' +
+      '</tr>';
+  }).join('');
+}
+
+// ── Region/district dropdowns inside the venue editor (reuses Filters data) ──
+function populateVenueRegionOptions() {
+  var select = document.getElementById('ven-region');
+  var filters = getFilters();
+  var currentVal = select.value;
+  select.innerHTML = filters.regions.map(function(r) {
+    return '<option value="' + escapeHtml(r) + '">' + escapeHtml(r) + '</option>';
+  }).join('');
+  if (filters.regions.indexOf(currentVal) > -1) select.value = currentVal;
+  populateVenueDistrictOptions();
+}
+
+function populateVenueDistrictOptions() {
+  var regionSelect = document.getElementById('ven-region');
+  var districtSelect = document.getElementById('ven-district');
+  var filters = getFilters();
+  var region = regionSelect.value;
+  var districts = (filters.districtsByRegion && filters.districtsByRegion[region]) || [];
+  var currentVal = districtSelect.value;
+  districtSelect.innerHTML = districts.map(function(d) {
+    return '<option value="' + escapeHtml(d) + '">' + escapeHtml(d) + '</option>';
+  }).join('');
+  if (districts.indexOf(currentVal) > -1) districtSelect.value = currentVal;
+}
+
+// ── Host lookup by email ──────────────────────────────────────
+function lookupHostByEmail() {
+  var email = document.getElementById('ven-host-email').value.trim().toLowerCase();
+  var wrap = document.getElementById('host-lookup-result-wrap');
+
+  if (!email) { wrap.innerHTML = ''; return; }
+
+  var users = getAllUsers();
+  var match = users.find(function(u) { return u.email.toLowerCase() === email; });
+
+  if (match) {
+    var initials = match.initials || (match.name ? match.name.split(' ').map(function(n){return n[0];}).join('').slice(0,2).toUpperCase() : '?');
+    wrap.innerHTML =
+      '<div class="host-lookup-result found">' +
+        '<div class="host-lookup-avatar" style="background:' + (match.color || 'var(--red)') + '">' + initials + '</div>' +
+        '<div class="host-lookup-text"><strong>' + escapeHtml(match.name || 'Unknown') + '</strong><span>Existing account — will link immediately</span></div>' +
+      '</div>';
+  } else {
+    wrap.innerHTML =
+      '<div class="host-lookup-result not-found">' +
+        '<div class="host-lookup-avatar" style="background:#bbb">?</div>' +
+        '<div class="host-lookup-text"><strong>No account yet</strong><span>Will link automatically once they sign up with this email</span></div>' +
+      '</div>';
+  }
+}
+
+// ── Status banner (only shown when editing an existing venue) ──
+function renderVenueStatusBanner(venue) {
+  var wrap = document.getElementById('venue-status-banner-wrap');
+  if (!venue) { wrap.innerHTML = ''; return; }
+
+  if (venue.isLive) {
+    wrap.innerHTML =
+      '<div class="venue-status-banner live">' +
+        '<div class="venue-status-banner-text"><strong>Live on the site</strong>' + (venue.subscriptionStatus === 'active' ? 'Subscription is active.' : 'Currently live via admin override — no active subscription.') + '</div>' +
+        '<div class="venue-status-actions">' +
+          '<button class="btn-cancel-sub" onclick="confirmCancelSubscription()">Cancel subscription</button>' +
+        '</div>' +
+      '</div>';
+  } else if (venue.subscriptionStatus === 'cancelled') {
+    wrap.innerHTML =
+      '<div class="venue-status-banner cancelled">' +
+        '<div class="venue-status-banner-text"><strong>Subscription cancelled</strong>This listing has been taken offline. Reactivating will require the host to set up billing again, or you can override it live.</div>' +
+        '<div class="venue-status-actions">' +
+          '<button class="btn-reactivate" onclick="reactivateVenue()">Reactivate</button>' +
+        '</div>' +
+      '</div>';
+  } else {
+    wrap.innerHTML =
+      '<div class="venue-status-banner pending">' +
+        '<div class="venue-status-banner-text"><strong>Pending setup</strong>Not visible on the site yet. Waiting on the host to pay, or you can override it live now.</div>' +
+        '<div class="venue-status-actions">' +
+          '<button class="btn-override-live" onclick="overrideVenueLive()">Make live now</button>' +
+        '</div>' +
+      '</div>';
+  }
+}
+
+function overrideVenueLive() {
+  document.getElementById('ven-live-toggle').classList.add('on');
+  updateVenueLiveHelper();
+  showToast('Venue will go live once you save');
+}
+
+function confirmCancelSubscription() {
+  document.getElementById('confirm-delete-title').textContent = 'Cancel this subscription?';
+  document.getElementById('confirm-delete-desc').textContent =
+    'This will take the listing offline immediately and mark the subscription as cancelled. The host can be re-subscribed later, or you can override it live again.';
+  var confirmBtn = document.getElementById('confirm-delete-btn');
+  confirmBtn.textContent = 'Cancel subscription';
+  confirmBtn.onclick = function() {
+    document.getElementById('ven-live-toggle').classList.remove('on');
+    updateVenueLiveHelper();
+    if (currentEditingVenueId) {
+      var venues = getAllVenues();
+      var v = venues.find(function(x) { return x.id === currentEditingVenueId; });
+      if (v) {
+        v.subscriptionStatus = 'cancelled';
+        v.isLive = false;
+        saveAllVenues(venues);
+        renderVenueStatusBanner(v);
+      }
+    }
+    closeConfirmDelete();
+    confirmBtn.textContent = 'Remove'; // restore default label for the delete-item flow
+    showToast('Subscription cancelled — listing taken offline');
+  };
+  document.getElementById('confirm-delete-modal').classList.remove('hidden');
+}
+
+function reactivateVenue() {
+  if (!currentEditingVenueId) return;
+  var venues = getAllVenues();
+  var v = venues.find(function(x) { return x.id === currentEditingVenueId; });
+  if (v) {
+    v.subscriptionStatus = 'active';
+    v.isLive = true;
+    saveAllVenues(venues);
+    document.getElementById('ven-live-toggle').classList.add('on');
+    updateVenueLiveHelper();
+    renderVenueStatusBanner(v);
+    showToast('Venue reactivated and live again');
+  }
+}
+
+function updateVenueLiveHelper() {
+  var isOn = document.getElementById('ven-live-toggle').classList.contains('on');
+  document.getElementById('ven-live-helper').textContent = isOn
+    ? 'Live now — visible on the public site'
+    : 'Off until the host pays, unless overridden';
+}
+
+// ── Open / close / save ──────────────────────────────────────
+function openVenueEditor(venueId) {
+  document.getElementById('venues-list-view').style.display = 'none';
+  document.getElementById('venue-editor-view').style.display = 'block';
+
+  populateVenueRegionOptions();
+  var heading = document.getElementById('venue-editor-heading');
+
+  if (venueId) {
+    var venue = getAllVenues().find(function(v) { return v.id === venueId; });
+    currentEditingVenueId = venueId;
+    heading.textContent = 'Edit venue';
+
+    document.getElementById('ven-name').value = venue.name || '';
+    document.getElementById('ven-type').value = venue.type || 'Event space';
+    document.getElementById('ven-plan').value = venue.plan || 'Basic';
+    document.getElementById('ven-region').value = venue.region || '';
+    populateVenueDistrictOptions();
+    document.getElementById('ven-district').value = venue.district || '';
+    document.getElementById('ven-description').value = venue.description || '';
+    document.getElementById('ven-host-email').value = venue.hostEmail || '';
+    lookupHostByEmail();
+    document.getElementById('ven-live-toggle').classList.toggle('on', !!venue.isLive);
+
+    renderVenueStatusBanner(venue);
+  } else {
+    currentEditingVenueId = null;
+    heading.textContent = 'New venue';
+    document.getElementById('ven-name').value = '';
+    document.getElementById('ven-type').value = 'Event space';
+    document.getElementById('ven-plan').value = 'Basic';
+    populateVenueDistrictOptions();
+    document.getElementById('ven-description').value = '';
+    document.getElementById('ven-host-email').value = '';
+    document.getElementById('host-lookup-result-wrap').innerHTML = '';
+    document.getElementById('ven-live-toggle').classList.remove('on');
+
+    renderVenueStatusBanner(null);
+  }
+
+  updateVenueLiveHelper();
+}
+
+function closeVenueEditor() {
+  document.getElementById('venue-editor-view').style.display = 'none';
+  document.getElementById('venues-list-view').style.display = 'block';
+  buildVenuesTable();
+}
+
+function saveVenue() {
+  var name = document.getElementById('ven-name').value.trim();
+  if (!name) { showToast('Please add a venue name before saving'); return; }
+
+  var hostEmail = document.getElementById('ven-host-email').value.trim();
+  if (!hostEmail) { showToast('Please tag a host email before saving'); return; }
+
+  var venues = getAllVenues();
+  var isLive = document.getElementById('ven-live-toggle').classList.contains('on');
+  var users = getAllUsers();
+  var matchedUser = users.find(function(u) { return u.email.toLowerCase() === hostEmail.toLowerCase(); });
+
+  var venueData = {
+    name: name,
+    type: document.getElementById('ven-type').value,
+    plan: document.getElementById('ven-plan').value,
+    region: document.getElementById('ven-region').value,
+    district: document.getElementById('ven-district').value,
+    description: document.getElementById('ven-description').value.trim(),
+    hostEmail: hostEmail,
+    hostName: matchedUser ? matchedUser.name : hostEmail,
+    isLive: isLive,
+  };
+
+  if (currentEditingVenueId) {
+    var idx = venues.findIndex(function(v) { return v.id === currentEditingVenueId; });
+    if (idx > -1) {
+      venueData.id = venues[idx].id;
+      venueData.hits = venues[idx].hits || 0;
+      venueData.createdBy = venues[idx].createdBy;
+      // The live toggle is the source of truth — subscriptionStatus should never
+      // contradict it. If the admin turns a venue live without a real paid
+      // subscription behind it (i.e. it was 'none' or 'cancelled'), that's
+      // recorded as an explicit admin override rather than leaving a stale
+      // 'cancelled'/'none' label next to a venue that's actually showing live.
+      var prevStatus = venues[idx].subscriptionStatus;
+      if (isLive) {
+        venueData.subscriptionStatus = (prevStatus === 'active') ? 'active' : 'overridden';
+      } else {
+        // Turning live off keeps the existing status as-is (e.g. stays 'cancelled'
+        // if that's why it was turned off, or 'none' if it was never subscribed)
+        venueData.subscriptionStatus = prevStatus;
+      }
+      venues[idx] = venueData;
+    }
+  } else {
+    venueData.id = 'venue-' + Date.now();
+    venueData.hits = 0;
+    venueData.createdBy = 'admin'; // created via the admin panel, tagged to a host
+    venueData.subscriptionStatus = isLive ? 'active' : 'none';
+    venues.unshift(venueData);
+  }
+
+  if (saveAllVenues(venues)) {
+    showToast(matchedUser
+      ? 'Venue saved and linked to ' + matchedUser.name
+      : 'Venue saved — will link once ' + hostEmail + ' signs up');
+    closeVenueEditor();
+  }
+}
+
+function deleteVenueWithConfirm(venueId) {
+  var venues = getAllVenues();
+  var venue = venues.find(function(v) { return v.id === venueId; });
+  if (!venue) return;
+
+  document.getElementById('confirm-delete-title').textContent = 'Delete "' + venue.name + '"?';
+  document.getElementById('confirm-delete-desc').textContent =
+    'This will permanently remove the venue listing. This can\'t be undone.';
+  var confirmBtn = document.getElementById('confirm-delete-btn');
+  confirmBtn.textContent = 'Delete';
+  confirmBtn.onclick = function() {
+    var updated = getAllVenues().filter(function(v) { return v.id !== venueId; });
+    saveAllVenues(updated);
+    buildVenuesTable();
+    closeConfirmDelete();
+    confirmBtn.textContent = 'Remove';
+    showToast('Venue deleted');
+  };
+  document.getElementById('confirm-delete-modal').classList.remove('hidden');
+}
+
+
+
+
+
+
 buildUsersTable();
 buildRecentSignups();
 buildBlogTable();
 renderAllFilters();
-
-
-
+buildVenuesTable();
 
 if (typeof loadSupabaseUsers === 'function') {
   loadSupabaseUsers();
