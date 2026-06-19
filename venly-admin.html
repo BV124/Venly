@@ -452,6 +452,35 @@ tbody tr:last-child td { border-bottom: none; }
 .btn-cancel-sub:hover { background: var(--red-light); }
 .btn-reactivate { background: var(--red); color: #fff; }
 .btn-reactivate:hover { background: var(--red-dark); }
+
+/* ── VENUE EDITOR — photos, features, event types, pricing ──── */
+.photo-upload-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 8px; }
+.photo-slot {
+  aspect-ratio: 1; border-radius: var(--radius-sm); border: 2px dashed var(--border);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; background: var(--bg); transition: all 0.15s; position: relative; overflow: hidden;
+  font-size: 11px; color: var(--text-muted); gap: 6px;
+}
+.photo-slot:hover { border-color: var(--red); background: var(--red-light); color: var(--red); }
+.photo-slot svg { width: 20px; height: 20px; }
+.photo-slot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.photo-slot .remove-photo { position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; background: rgba(0,0,0,0.6); border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; line-height: 1; }
+.photo-cap-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.photo-cap-row p { font-size: 12px; color: var(--text-muted); margin: 0; }
+.photo-count-badge { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+
+.features-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.feature-chip {
+  padding: 7px 14px; border-radius: 20px; border: 1.5px solid var(--border);
+  font-size: 12px; font-weight: 500; cursor: pointer; background: var(--white);
+  color: var(--text-muted); transition: all 0.15s; font-family: 'Inter', sans-serif;
+}
+.feature-chip:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
+.feature-chip.selected { background: var(--red); color: #fff; border-color: var(--red); }
+.feature-chip.capped { opacity: 0.38; cursor: not-allowed; }
+.feature-chip.capped:hover { border-color: var(--border); color: var(--text-muted); background: var(--white); }
+.cap-note { font-size: 11px; color: #bbb; margin-top: 8px; }
+.cap-note.maxed { color: var(--red); }
 .editor-sidebar-actions { display: flex; flex-direction: column; gap: 8px; }
 .editor-sidebar-actions .btn-sm { width: 100%; justify-content: center; display: flex; }
 
@@ -728,15 +757,25 @@ tbody tr:last-child td { border-bottom: none; }
         <!-- MAIN -->
         <div class="editor-main">
           <div class="editor-card">
-            <h4>Venue details</h4>
+            <h4>Venue information</h4>
+            <div class="editor-row">
+              <div class="editor-field">
+                <label>Venue title</label>
+                <input type="text" id="ven-name" placeholder="e.g. The Rooftop at Britomart" />
+              </div>
+              <div class="editor-field">
+                <label>Address</label>
+                <input type="text" id="ven-address" placeholder="123 Queen St, Auckland" />
+              </div>
+            </div>
             <div class="editor-field">
-              <label>Venue name</label>
-              <input type="text" id="ven-name" placeholder="e.g. The Rooftop Auckland" />
+              <label>Description <span style="font-weight:400;text-transform:none;color:#bbb">(shown on the venue's public page)</span></label>
+              <textarea id="ven-description" placeholder="Describe the space — what makes it special, what it's great for..."></textarea>
             </div>
             <div class="editor-row">
               <div class="editor-field">
                 <label>Space type</label>
-                <select id="ven-type">
+                <select id="ven-type" onchange="renderVenueFeatures(); renderVenueEventTypes()">
                   <option value="Event space">Event space</option>
                   <option value="Meeting space">Meeting space</option>
                   <option value="Shoot Location">Shoot Location</option>
@@ -744,7 +783,7 @@ tbody tr:last-child td { border-bottom: none; }
               </div>
               <div class="editor-field">
                 <label>Plan</label>
-                <select id="ven-plan">
+                <select id="ven-plan" onchange="renderVenuePhotoGrid(); renderVenueFeatures(); renderVenueEventTypes()">
                   <option value="Basic">Basic</option>
                   <option value="Standard">Standard</option>
                   <option value="Premium">Premium</option>
@@ -761,17 +800,67 @@ tbody tr:last-child td { border-bottom: none; }
                 <select id="ven-district"></select>
               </div>
             </div>
-            <div class="editor-field">
-              <label>Description <span style="font-weight:400;text-transform:none;color:#bbb">(shown on the venue's public page)</span></label>
-              <textarea id="ven-description" placeholder="A short description of the space..."></textarea>
+            <div class="editor-row">
+              <div class="editor-field">
+                <label>Capacity <span style="font-weight:400;text-transform:none;color:#bbb">(e.g. 1–10, 50–100)</span></label>
+                <input type="text" id="ven-capacity" placeholder="e.g. 20–150" />
+              </div>
+              <div class="editor-field">
+                <label>Website <span style="font-weight:400;text-transform:none;color:#bbb">(optional)</span></label>
+                <input type="text" id="ven-website" placeholder="https://example.co.nz" />
+              </div>
+            </div>
+            <div class="editor-row">
+              <div class="editor-field">
+                <label>Price from <span style="font-weight:400;text-transform:none;color:#bbb">(NZD/hr)</span></label>
+                <input type="number" id="ven-price-from" placeholder="e.g. 150" />
+              </div>
+              <div class="editor-field">
+                <label>Price to <span style="font-weight:400;text-transform:none;color:#bbb">(NZD/hr)</span></label>
+                <input type="number" id="ven-price-to" placeholder="e.g. 500" />
+              </div>
             </div>
           </div>
 
           <div class="editor-card">
+            <h4>Photos</h4>
+            <div class="photo-cap-row">
+              <p>Upload up to <strong id="ven-photo-cap-label">4</strong> photos. First photo is the cover image.</p>
+              <span class="photo-count-badge" id="ven-photo-count-badge">0 / 4</span>
+            </div>
+            <div class="photo-upload-grid" id="ven-photo-grid"></div>
+            <input type="file" id="ven-file-input" accept="image/*" style="display:none" onchange="handleVenuePhotoUpload(event)" />
+          </div>
+
+          <div class="editor-card">
+            <h4>Features</h4>
+            <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">Select all features that apply to this space.</p>
+            <div class="features-grid" id="ven-features-grid"></div>
+            <div class="cap-note" id="ven-features-cap-note"></div>
+          </div>
+
+          <div class="editor-card">
+            <h4>Type of events / use</h4>
+            <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">Select all event types or uses this space is suited for.</p>
+            <div class="features-grid" id="ven-events-grid"></div>
+            <div class="cap-note" id="ven-events-cap-note"></div>
+          </div>
+
+          <div class="editor-card">
             <h4>Host</h4>
+            <div class="editor-row">
+              <div class="editor-field">
+                <label>Host email</label>
+                <input type="email" id="ven-host-email" placeholder="host@example.com" oninput="lookupHostByEmail()" />
+              </div>
+              <div class="editor-field">
+                <label>Host name</label>
+                <input type="text" id="ven-host-name" placeholder="Jane Smith" />
+              </div>
+            </div>
             <div class="editor-field">
-              <label>Host email</label>
-              <input type="email" id="ven-host-email" placeholder="host@example.com" oninput="lookupHostByEmail()" />
+              <label>Host phone <span style="font-weight:400;text-transform:none;color:#bbb">(optional)</span></label>
+              <input type="tel" id="ven-host-phone" placeholder="021 000 0000" />
             </div>
             <div id="host-lookup-result-wrap"></div>
             <div class="filter-card-note" style="margin-top:10px">
@@ -2187,6 +2276,174 @@ function getVenueStatusBadge(v) {
 
 var currentEditingVenueId = null;
 
+// ── Shared option data — matches the host's own listing wizard exactly ──
+var ALL_VENUE_FEATURES = [
+  'Kitchen / Catering Facilities', 'AV Equipment', 'Projector & Screen', 'WiFi',
+  'Air Conditioning', 'Heating', 'Natural Light', 'Wheelchair Accessible',
+  'Parking Available', 'Outdoor Space', 'Toilets On-Site', 'Bar / Drinks',
+  'Stage / Performance Area', 'Dressing Room', 'Loading Dock', 'Private Entrance',
+  'Security', 'Furniture Included', 'Dance Floor', 'Rooftop Access',
+];
+
+var VENUE_EVENT_TYPES_BY_SPACE = {
+  'Event space': ['Wedding', '18th Party', '21st Party', 'Corporate Event', 'Private Party', 'Product Launch', 'Gala / Awards', 'Market / Expo', 'Live Performance', 'Other Event'],
+  'Meeting space': ['Boardroom', 'Workshop', 'Training', 'Conference', 'Interview Room', 'Coworking'],
+  'Shoot Location': ['Film & TV', 'Photography', 'Commercial', 'Content Creation', 'Podcast / Recording'],
+};
+
+var venueSelectedFeatures = [];
+var venueSelectedEventTypes = [];
+var venuePhotoDataUrls = []; // index-aligned with photo slots; empty string = no photo in that slot
+
+function getVenuePlanCaps() {
+  var plan = document.getElementById('ven-plan').value;
+  return (typeof VENLY_CONFIG !== 'undefined' && VENLY_CONFIG.planCaps && VENLY_CONFIG.planCaps[plan])
+    || { photos: 4, features: 6, eventTypes: 4 };
+}
+
+// ── Photos ──────────────────────────────────────────────────
+function renderVenuePhotoGrid() {
+  var cap = getVenuePlanCaps().photos;
+  document.getElementById('ven-photo-cap-label').textContent = cap;
+
+  // Trim or pad the working array to match the cap
+  venuePhotoDataUrls = venuePhotoDataUrls.slice(0, cap);
+  while (venuePhotoDataUrls.length < cap) venuePhotoDataUrls.push('');
+
+  var uploadSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload photo';
+
+  var grid = document.getElementById('ven-photo-grid');
+  grid.innerHTML = venuePhotoDataUrls.map(function(url, i) {
+    if (url) {
+      return '<div class="photo-slot" id="ven-photo-slot-' + i + '" onclick="triggerVenuePhotoUpload(' + i + ')">' +
+        '<img src="' + url + '" alt="Venue photo" />' +
+        '<button class="remove-photo" onclick="removeVenuePhoto(event, ' + i + ')">×</button>' +
+      '</div>';
+    }
+    return '<div class="photo-slot" id="ven-photo-slot-' + i + '" onclick="triggerVenuePhotoUpload(' + i + ')">' + uploadSVG + '</div>';
+  }).join('');
+
+  updateVenuePhotoCount();
+}
+
+var venueCurrentUploadSlot = 0;
+function triggerVenuePhotoUpload(slot) {
+  venueCurrentUploadSlot = slot;
+  document.getElementById('ven-file-input').click();
+}
+
+function handleVenuePhotoUpload(e) {
+  var file = e.target.files[0];
+  if (!file || !file.type.startsWith('image/')) { e.target.value = ''; return; }
+
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    compressImage(ev.target.result, 1400, 0.82, function(compressed) {
+      venuePhotoDataUrls[venueCurrentUploadSlot] = compressed;
+      renderVenuePhotoGrid();
+    });
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+
+function removeVenuePhoto(e, slot) {
+  e.stopPropagation();
+  venuePhotoDataUrls[slot] = '';
+  renderVenuePhotoGrid();
+}
+
+function updateVenuePhotoCount() {
+  var cap = getVenuePlanCaps().photos;
+  var filled = venuePhotoDataUrls.filter(function(u) { return !!u; }).length;
+  var badge = document.getElementById('ven-photo-count-badge');
+  badge.textContent = filled + ' / ' + cap;
+  badge.style.color = filled >= cap ? 'var(--red)' : 'var(--text-muted)';
+}
+
+// ── Features (plan-capped chip selector) ────────────────────
+function renderVenueFeatures() {
+  var cap = getVenuePlanCaps().features;
+
+  // If a plan downgrade means the existing selection now exceeds the cap, trim
+  // it down (keeping the first N) so the data and UI never show an impossible state.
+  if (venueSelectedFeatures.length > cap) {
+    var removedCount = venueSelectedFeatures.length - cap;
+    venueSelectedFeatures = venueSelectedFeatures.slice(0, cap);
+    showToast('Plan change removed ' + removedCount + ' feature' + (removedCount === 1 ? '' : 's') + ' over the new limit');
+  }
+
+  var grid = document.getElementById('ven-features-grid');
+  var note = document.getElementById('ven-features-cap-note');
+
+  grid.innerHTML = ALL_VENUE_FEATURES.map(function(f) {
+    var isSelected = venueSelectedFeatures.includes(f);
+    var isCapped = !isSelected && venueSelectedFeatures.length >= cap;
+    return '<span class="feature-chip' + (isSelected ? ' selected' : '') + (isCapped ? ' capped' : '') + '" onclick="toggleVenueFeature(' + JSON.stringify(f).replace(/"/g, '&quot;') + ')">' + f + '</span>';
+  }).join('');
+
+  note.textContent = venueSelectedFeatures.length + ' / ' + cap + ' features selected (based on the ' + document.getElementById('ven-plan').value + ' plan)';
+  note.classList.toggle('maxed', venueSelectedFeatures.length >= cap);
+}
+
+function toggleVenueFeature(name) {
+  var cap = getVenuePlanCaps().features;
+  var idx = venueSelectedFeatures.indexOf(name);
+  if (idx > -1) {
+    venueSelectedFeatures.splice(idx, 1);
+  } else {
+    if (venueSelectedFeatures.length >= cap) {
+      showToast('This plan allows up to ' + cap + ' features — upgrade the plan to add more');
+      return;
+    }
+    venueSelectedFeatures.push(name);
+  }
+  renderVenueFeatures();
+}
+
+// ── Event types (plan-capped, filtered by current space type) ──
+function renderVenueEventTypes() {
+  var spaceType = document.getElementById('ven-type').value;
+  var options = VENUE_EVENT_TYPES_BY_SPACE[spaceType] || [];
+  var cap = getVenuePlanCaps().eventTypes;
+  var grid = document.getElementById('ven-events-grid');
+  var note = document.getElementById('ven-events-cap-note');
+
+  // Drop any previously selected event types that don't belong to the current space type
+  venueSelectedEventTypes = venueSelectedEventTypes.filter(function(et) { return options.includes(et); });
+
+  // If a plan downgrade means the existing selection now exceeds the cap, trim it down
+  if (venueSelectedEventTypes.length > cap) {
+    var removedCount = venueSelectedEventTypes.length - cap;
+    venueSelectedEventTypes = venueSelectedEventTypes.slice(0, cap);
+    showToast('Plan change removed ' + removedCount + ' event type' + (removedCount === 1 ? '' : 's') + ' over the new limit');
+  }
+
+  grid.innerHTML = options.map(function(et) {
+    var isSelected = venueSelectedEventTypes.includes(et);
+    var isCapped = !isSelected && venueSelectedEventTypes.length >= cap;
+    return '<span class="feature-chip' + (isSelected ? ' selected' : '') + (isCapped ? ' capped' : '') + '" onclick="toggleVenueEventType(' + JSON.stringify(et).replace(/"/g, '&quot;') + ')">' + et + '</span>';
+  }).join('');
+
+  note.textContent = venueSelectedEventTypes.length + ' / ' + cap + ' event types selected (based on the ' + document.getElementById('ven-plan').value + ' plan)';
+  note.classList.toggle('maxed', venueSelectedEventTypes.length >= cap);
+}
+
+function toggleVenueEventType(name) {
+  var cap = getVenuePlanCaps().eventTypes;
+  var idx = venueSelectedEventTypes.indexOf(name);
+  if (idx > -1) {
+    venueSelectedEventTypes.splice(idx, 1);
+  } else {
+    if (venueSelectedEventTypes.length >= cap) {
+      showToast('This plan allows up to ' + cap + ' event types — upgrade the plan to add more');
+      return;
+    }
+    venueSelectedEventTypes.push(name);
+  }
+  renderVenueEventTypes();
+}
+
 function buildVenuesTable() {
   var venues = getAllVenues();
   var tbody = document.getElementById('venues-tbody');
@@ -2251,6 +2508,12 @@ function lookupHostByEmail() {
         '<div class="host-lookup-avatar" style="background:' + (match.color || 'var(--red)') + '">' + initials + '</div>' +
         '<div class="host-lookup-text"><strong>' + escapeHtml(match.name || 'Unknown') + '</strong><span>Existing account — will link immediately</span></div>' +
       '</div>';
+
+    // Auto-fill name/phone from their account, but never overwrite something already typed
+    var nameField = document.getElementById('ven-host-name');
+    var phoneField = document.getElementById('ven-host-phone');
+    if (nameField && !nameField.value.trim() && match.name) nameField.value = match.name;
+    if (phoneField && !phoneField.value.trim() && match.phone) phoneField.value = match.phone;
   } else {
     wrap.innerHTML =
       '<div class="host-lookup-result not-found">' +
@@ -2360,32 +2623,57 @@ function openVenueEditor(venueId) {
     heading.textContent = 'Edit venue';
 
     document.getElementById('ven-name').value = venue.name || '';
+    document.getElementById('ven-address').value = venue.address || '';
     document.getElementById('ven-type').value = venue.type || 'Event space';
     document.getElementById('ven-plan').value = venue.plan || 'Basic';
     document.getElementById('ven-region').value = venue.region || '';
     populateVenueDistrictOptions();
     document.getElementById('ven-district').value = venue.district || '';
     document.getElementById('ven-description').value = venue.description || '';
+    document.getElementById('ven-capacity').value = venue.capacity || '';
+    document.getElementById('ven-website').value = venue.website || '';
+    document.getElementById('ven-price-from').value = venue.priceFrom || '';
+    document.getElementById('ven-price-to').value = venue.priceTo || '';
     document.getElementById('ven-host-email').value = venue.hostEmail || '';
+    document.getElementById('ven-host-name').value = venue.hostName || '';
+    document.getElementById('ven-host-phone').value = venue.hostPhone || '';
     lookupHostByEmail();
     document.getElementById('ven-live-toggle').classList.toggle('on', !!venue.isLive);
+
+    venuePhotoDataUrls = (venue.photos && venue.photos.length) ? venue.photos.slice() : [];
+    venueSelectedFeatures = (venue.features && venue.features.length) ? venue.features.slice() : [];
+    venueSelectedEventTypes = (venue.eventTypes && venue.eventTypes.length) ? venue.eventTypes.slice() : [];
 
     renderVenueStatusBanner(venue);
   } else {
     currentEditingVenueId = null;
     heading.textContent = 'New venue';
     document.getElementById('ven-name').value = '';
+    document.getElementById('ven-address').value = '';
     document.getElementById('ven-type').value = 'Event space';
     document.getElementById('ven-plan').value = 'Basic';
     populateVenueDistrictOptions();
     document.getElementById('ven-description').value = '';
+    document.getElementById('ven-capacity').value = '';
+    document.getElementById('ven-website').value = '';
+    document.getElementById('ven-price-from').value = '';
+    document.getElementById('ven-price-to').value = '';
     document.getElementById('ven-host-email').value = '';
+    document.getElementById('ven-host-name').value = '';
+    document.getElementById('ven-host-phone').value = '';
     document.getElementById('host-lookup-result-wrap').innerHTML = '';
     document.getElementById('ven-live-toggle').classList.remove('on');
+
+    venuePhotoDataUrls = [];
+    venueSelectedFeatures = [];
+    venueSelectedEventTypes = [];
 
     renderVenueStatusBanner(null);
   }
 
+  renderVenuePhotoGrid();
+  renderVenueFeatures();
+  renderVenueEventTypes();
   updateVenueLiveHelper();
 }
 
@@ -2409,14 +2697,25 @@ function saveVenue() {
 
   var venueData = {
     name: name,
+    address: document.getElementById('ven-address').value.trim(),
     type: document.getElementById('ven-type').value,
     plan: document.getElementById('ven-plan').value,
     region: document.getElementById('ven-region').value,
     district: document.getElementById('ven-district').value,
     description: document.getElementById('ven-description').value.trim(),
+    capacity: document.getElementById('ven-capacity').value.trim(),
+    website: document.getElementById('ven-website').value.trim(),
+    priceFrom: document.getElementById('ven-price-from').value.trim(),
+    priceTo: document.getElementById('ven-price-to').value.trim(),
     hostEmail: hostEmail,
-    hostName: matchedUser ? matchedUser.name : hostEmail,
+    // Prefer whatever name the admin typed in; fall back to the matched account's
+    // name, then to the email itself if nothing else is available.
+    hostName: document.getElementById('ven-host-name').value.trim() || (matchedUser ? matchedUser.name : hostEmail),
+    hostPhone: document.getElementById('ven-host-phone').value.trim(),
     isLive: isLive,
+    photos: venuePhotoDataUrls.filter(function(p) { return !!p; }),
+    features: venueSelectedFeatures.slice(),
+    eventTypes: venueSelectedEventTypes.slice(),
   };
 
   if (currentEditingVenueId) {
