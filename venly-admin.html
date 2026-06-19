@@ -850,7 +850,7 @@ tbody tr:last-child td { border-bottom: none; }
             <h4>Host</h4>
             <div class="editor-row">
               <div class="editor-field">
-                <label>Host email</label>
+                <label>Host email <span style="font-weight:400;text-transform:none;color:#bbb">(account this venue is linked to)</span></label>
                 <input type="email" id="ven-host-email" placeholder="host@example.com" oninput="lookupHostByEmail()" />
               </div>
               <div class="editor-field">
@@ -867,6 +867,15 @@ tbody tr:last-child td { border-bottom: none; }
             <div class="filter-card-note" style="margin-top:10px">
               Tagging a venue to a host's email links it to their account — it'll appear under "My Listings" on their dashboard. If no account exists yet with that email, it'll link automatically as soon as they sign up.
             </div>
+          </div>
+
+          <div class="editor-card">
+            <h4>Enquiries</h4>
+            <div class="editor-field">
+              <label>Send enquiries to <span style="font-weight:400;text-transform:none;color:#bbb">(optional)</span></label>
+              <input type="email" id="ven-enquiry-email" placeholder="Leave blank to use the host's account email" oninput="updateEnquiryFallbackNote()" />
+            </div>
+            <div class="filter-card-note" id="ven-enquiry-fallback-note" style="margin-top:6px"></div>
           </div>
         </div>
 
@@ -2496,10 +2505,28 @@ function populateVenueDistrictOptions() {
 }
 
 // ── Host lookup by email ──────────────────────────────────────
+// Shows a live note explaining exactly which email enquiries will be sent to —
+// either the one typed in, or (if left blank) the host's account email as a fallback.
+function updateEnquiryFallbackNote() {
+  var note = document.getElementById('ven-enquiry-fallback-note');
+  if (!note) return;
+  var enquiryEmail = document.getElementById('ven-enquiry-email').value.trim();
+  var hostEmail = document.getElementById('ven-host-email').value.trim();
+
+  if (enquiryEmail) {
+    note.textContent = 'Enquiries for this venue will be sent to ' + enquiryEmail + '.';
+  } else if (hostEmail) {
+    note.textContent = 'No enquiry email set — will default to the host\'s account email: ' + hostEmail + '.';
+  } else {
+    note.textContent = 'No enquiry email set yet — add a host email above, or set one specifically for this venue.';
+  }
+}
+
 function lookupHostByEmail() {
   var email = document.getElementById('ven-host-email').value.trim().toLowerCase();
   var wrap = document.getElementById('host-lookup-result-wrap');
   var idField = document.getElementById('ven-host-user-id');
+  updateEnquiryFallbackNote();
 
   if (!email) { wrap.innerHTML = ''; idField.value = ''; return; }
 
@@ -2645,6 +2672,7 @@ function openVenueEditor(venueId) {
     document.getElementById('ven-host-user-id').value = venue.hostUserId || '';
     document.getElementById('ven-host-name').value = venue.hostName || '';
     document.getElementById('ven-host-phone').value = venue.hostPhone || '';
+    document.getElementById('ven-enquiry-email').value = venue.enquiryEmail || '';
     lookupHostByEmail();
     document.getElementById('ven-live-toggle').classList.toggle('on', !!venue.isLive);
 
@@ -2670,6 +2698,7 @@ function openVenueEditor(venueId) {
     document.getElementById('ven-host-user-id').value = '';
     document.getElementById('ven-host-name').value = '';
     document.getElementById('ven-host-phone').value = '';
+    document.getElementById('ven-enquiry-email').value = '';
     document.getElementById('host-lookup-result-wrap').innerHTML = '';
     document.getElementById('ven-live-toggle').classList.remove('on');
 
@@ -2684,6 +2713,7 @@ function openVenueEditor(venueId) {
   renderVenueFeatures();
   renderVenueEventTypes();
   updateVenueLiveHelper();
+  updateEnquiryFallbackNote();
 }
 
 function closeVenueEditor() {
@@ -2726,6 +2756,11 @@ function saveVenue() {
     // multiple venues under different names without affecting the account link.
     hostName: document.getElementById('ven-host-name').value.trim() || (matchedUser ? matchedUser.name : hostEmail),
     hostPhone: document.getElementById('ven-host-phone').value.trim(),
+    // The email actually typed for this venue's enquiries — may be blank.
+    enquiryEmail: document.getElementById('ven-enquiry-email').value.trim(),
+    // Pre-resolved so anything sending an enquiry can just read this one field
+    // without re-deriving the fallback logic every time.
+    effectiveEnquiryEmail: document.getElementById('ven-enquiry-email').value.trim() || hostEmail,
     isLive: isLive,
     photos: venuePhotoDataUrls.filter(function(p) { return !!p; }),
     features: venueSelectedFeatures.slice(),

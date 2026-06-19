@@ -453,6 +453,11 @@ tbody tr:last-child td { border-bottom: none; }
             <div class="form-group"><label>Host name</label><input type="text" id="h-name" value="Braedyn Veysi" /></div>
             <div class="form-group"><label>Phone number</label><input type="tel" id="h-phone" value="274254550" /></div>
           </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label>Send enquiries to <span style="font-weight:400;color:var(--text-muted)">(optional)</span></label>
+            <input type="email" id="h-enquiry-email" placeholder="Leave blank to use your account email" oninput="updateHostEnquiryNote()" />
+            <div style="font-size:11px;color:#bbb;margin-top:6px" id="h-enquiry-note">Leave this blank and booking enquiries will go to the email you signed up with.</div>
+          </div>
         </div>
       </div>
 
@@ -908,6 +913,7 @@ function openModal() {
   updateStepUI();
   renderPhotoGrid();
   renderFeatures();
+  updateHostEnquiryNote();
   document.body.style.overflow = 'hidden';
 }
 
@@ -955,6 +961,22 @@ function nextStep() {
 
 function prevStep() {
   if (currentStep > 1) { currentStep--; updateStepUI(); }
+}
+
+// Shows what email enquiries will go to — either what's typed, or (if left
+// blank) the email the host originally signed up with.
+function updateHostEnquiryNote() {
+  const note = document.getElementById('h-enquiry-note');
+  if (!note) return;
+  const typed = document.getElementById('h-enquiry-email').value.trim();
+  if (typed) {
+    note.textContent = 'Enquiries for this listing will be sent to ' + typed + '.';
+  } else {
+    const user = JSON.parse(localStorage.getItem('venly_current_user') || 'null');
+    note.textContent = user && user.email
+      ? 'Leave this blank and enquiries will go to ' + user.email + ' (your account email).'
+      : 'Leave this blank and booking enquiries will go to the email you signed up with.';
+  }
 }
 
 function saveDraft() {
