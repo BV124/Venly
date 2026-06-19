@@ -465,6 +465,26 @@ tbody tr:last-child td { border-bottom: none; }
 .photo-slot svg { width: 20px; height: 20px; }
 .photo-slot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .photo-slot .remove-photo { position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; background: rgba(0,0,0,0.6); border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; line-height: 1; }
+
+/* Cover photo selection */
+.photo-slot.is-cover { border: 2px solid var(--red); box-shadow: 0 0 0 3px var(--red-light); }
+.photo-slot-cover-badge {
+  position: absolute; top: 4px; left: 4px; display: flex; align-items: center; gap: 4px;
+  background: var(--red); color: #fff; font-size: 9px; font-weight: 700;
+  padding: 3px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.03em;
+  pointer-events: none;
+}
+.photo-slot-cover-badge svg { width: 9px; height: 9px; flex-shrink: 0; }
+.set-cover-btn {
+  position: absolute; bottom: 4px; left: 4px; right: 26px;
+  background: rgba(0,0,0,0.65); color: #fff; border: none; border-radius: 6px;
+  font-size: 10px; font-weight: 600; padding: 4px 6px; cursor: pointer;
+  font-family: 'Inter', sans-serif; opacity: 0; transition: opacity 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 3px;
+}
+.photo-slot:hover .set-cover-btn { opacity: 1; }
+.set-cover-btn svg { width: 10px; height: 10px; flex-shrink: 0; }
+.photo-cap-row .cover-hint { font-size: 11px; color: #bbb; display: block; margin-top: 4px; }
 .photo-cap-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .photo-cap-row p { font-size: 12px; color: var(--text-muted); margin: 0; }
 .photo-count-badge { font-size: 12px; font-weight: 600; color: var(--text-muted); }
@@ -825,7 +845,7 @@ tbody tr:last-child td { border-bottom: none; }
           <div class="editor-card">
             <h4>Photos</h4>
             <div class="photo-cap-row">
-              <p>Upload up to <strong id="ven-photo-cap-label">4</strong> photos. First photo is the cover image.</p>
+              <p>Upload up to <strong id="ven-photo-cap-label">4</strong> photos. Hover a photo and click "Set as cover" to choose which one shows first.</p>
               <span class="photo-count-badge" id="ven-photo-count-badge">0 / 4</span>
             </div>
             <div class="photo-upload-grid" id="ven-photo-grid"></div>
@@ -2304,6 +2324,7 @@ var VENUE_EVENT_TYPES_BY_SPACE = {
 var venueSelectedFeatures = [];
 var venueSelectedEventTypes = [];
 var venuePhotoDataUrls = []; // index-aligned with photo slots; empty string = no photo in that slot
+var venueCoverPhotoIndex = 0; // which slot is currently the cover photo
 
 function getVenuePlanCaps() {
   var plan = document.getElementById('ven-plan').value;
@@ -2320,13 +2341,27 @@ function renderVenuePhotoGrid() {
   venuePhotoDataUrls = venuePhotoDataUrls.slice(0, cap);
   while (venuePhotoDataUrls.length < cap) venuePhotoDataUrls.push('');
 
+  // If the current cover slot no longer has a photo (removed, or trimmed by
+  // a plan downgrade), fall back to the first slot that actually has one.
+  if (!venuePhotoDataUrls[venueCoverPhotoIndex]) {
+    var firstFilled = venuePhotoDataUrls.findIndex(function(u) { return !!u; });
+    venueCoverPhotoIndex = firstFilled > -1 ? firstFilled : 0;
+  }
+
   var uploadSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload photo';
+  var starSVG = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l2.9 6.6 7.1.7-5.4 4.7 1.7 7-6.3-3.8L6 21l1.7-7-5.4-4.7 7.1-.7z"/></svg>';
+  var badgeSVG = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l2.9 6.6 7.1.7-5.4 4.7 1.7 7-6.3-3.8L6 21l1.7-7-5.4-4.7 7.1-.7z"/></svg>';
 
   var grid = document.getElementById('ven-photo-grid');
   grid.innerHTML = venuePhotoDataUrls.map(function(url, i) {
     if (url) {
-      return '<div class="photo-slot" id="ven-photo-slot-' + i + '" onclick="triggerVenuePhotoUpload(' + i + ')">' +
+      var isCover = i === venueCoverPhotoIndex;
+      return '<div class="photo-slot' + (isCover ? ' is-cover' : '') + '" id="ven-photo-slot-' + i + '" onclick="triggerVenuePhotoUpload(' + i + ')">' +
         '<img src="' + url + '" alt="Venue photo" />' +
+        (isCover
+          ? '<span class="photo-slot-cover-badge">' + badgeSVG + 'Cover</span>'
+          : '<button class="set-cover-btn" onclick="setVenueCoverPhoto(event, ' + i + ')">' + starSVG + 'Set as cover</button>'
+        ) +
         '<button class="remove-photo" onclick="removeVenuePhoto(event, ' + i + ')">×</button>' +
       '</div>';
     }
@@ -2334,6 +2369,27 @@ function renderVenuePhotoGrid() {
   }).join('');
 
   updateVenuePhotoCount();
+}
+
+function setVenueCoverPhoto(e, slot) {
+  e.stopPropagation();
+  venueCoverPhotoIndex = slot;
+  renderVenuePhotoGrid();
+  showToast('Cover photo updated');
+}
+
+// Returns just the filled photos, with whichever one is marked as the cover
+// moved to the front — this is the order that actually gets saved.
+function getOrderedVenuePhotos() {
+  var coverUrl = venuePhotoDataUrls[venueCoverPhotoIndex];
+  if (!coverUrl) {
+    return venuePhotoDataUrls.filter(function(p) { return !!p; });
+  }
+  var rest = [];
+  venuePhotoDataUrls.forEach(function(p, i) {
+    if (p && i !== venueCoverPhotoIndex) rest.push(p);
+  });
+  return [coverUrl].concat(rest);
 }
 
 var venueCurrentUploadSlot = 0;
@@ -2677,6 +2733,7 @@ function openVenueEditor(venueId) {
     document.getElementById('ven-live-toggle').classList.toggle('on', !!venue.isLive);
 
     venuePhotoDataUrls = (venue.photos && venue.photos.length) ? venue.photos.slice() : [];
+    venueCoverPhotoIndex = 0; // photos[0] is always saved as the cover photo
     venueSelectedFeatures = (venue.features && venue.features.length) ? venue.features.slice() : [];
     venueSelectedEventTypes = (venue.eventTypes && venue.eventTypes.length) ? venue.eventTypes.slice() : [];
 
@@ -2703,6 +2760,7 @@ function openVenueEditor(venueId) {
     document.getElementById('ven-live-toggle').classList.remove('on');
 
     venuePhotoDataUrls = [];
+    venueCoverPhotoIndex = 0;
     venueSelectedFeatures = [];
     venueSelectedEventTypes = [];
 
@@ -2762,7 +2820,10 @@ function saveVenue() {
     // without re-deriving the fallback logic every time.
     effectiveEnquiryEmail: document.getElementById('ven-enquiry-email').value.trim() || hostEmail,
     isLive: isLive,
-    photos: venuePhotoDataUrls.filter(function(p) { return !!p; }),
+    // Save with the chosen cover photo first — anything reading photos[0]
+    // as the cover image (e.g. the public venue page, search cards) will
+    // always show whichever photo was picked here, regardless of upload order.
+    photos: getOrderedVenuePhotos(),
     features: venueSelectedFeatures.slice(),
     eventTypes: venueSelectedEventTypes.slice(),
   };
