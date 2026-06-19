@@ -589,31 +589,31 @@ tbody tr:last-child td { border-bottom: none; }
         <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
         <div class="stat-label">Total Venues</div>
         <div class="stat-value">24</div>
-        <div class="stat-change up">↑ 3 this week</div>
+        <div class="stat-change up">↑ 3 this month</div>
       </div>
       <div class="stat-card">
         <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
         <div class="stat-label">Total Users</div>
         <div class="stat-value" id="stat-total-users">138</div>
-        <div class="stat-change up" id="stat-users-change">↑ 12 this week</div>
+        <div class="stat-change up" id="stat-users-change">↑ 12 this month</div>
       </div>
       <div class="stat-card">
         <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
         <div class="stat-label">Monthly Revenue</div>
         <div class="stat-value">$1,840</div>
-        <div class="stat-change up">↑ $340 vs last month</div>
+        <div class="stat-change up">↑ $340 this month</div>
       </div>
       <div class="stat-card">
         <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div class="stat-label">Page Views</div>
         <div class="stat-value">4,291</div>
-        <div class="stat-change up">↑ 18% this month</div>
+        <div class="stat-change up">↑ 654 this month</div>
       </div>
     </div>
 
     <div class="two-col">
       <div class="chart-wrap">
-        <div class="chart-title">New users per month</div>
+        <div class="chart-title">New venues per month</div>
         <div class="chart-subtitle">Last 6 months</div>
         <div class="bar-chart" id="users-chart"></div>
       </div>
@@ -685,7 +685,7 @@ tbody tr:last-child td { border-bottom: none; }
       <div><div class="section-title">Venue Analytics</div><div class="section-subtitle">Page views, engagement and performance per listing.</div></div>
     </div>
     <div class="stats-grid">
-      <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></div><div class="stat-label">Total Page Views</div><div class="stat-value">4,291</div><div class="stat-change up">↑ 18% this month</div></div>
+      <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></div><div class="stat-label">Total Page Views</div><div class="stat-value">4,291</div><div class="stat-change up">↑ 654 this month</div></div>
       <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg></div><div class="stat-label">Total Favourites</div><div class="stat-value">86</div><div class="stat-change up">↑ 9 this week</div></div>
       <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.12 1.18 2 2 0 012.1 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg></div><div class="stat-label">Contact Enquiries</div><div class="stat-value">34</div><div class="stat-change up">↑ 6 this week</div></div>
       <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="stat-label">Avg. Time on Page</div><div class="stat-value">2:34</div><div class="stat-change up">↑ 12s vs last month</div></div>
@@ -2037,8 +2037,8 @@ if (typeof loadSupabaseUsers === 'function') {
 }
 
 renderBarChart('users-chart', [
-  {label:'Jan',label2:'18',val:18},{label:'Feb',label2:'22',val:22},{label:'Mar',label2:'19',val:19},
-  {label:'Apr',label2:'31',val:31},{label:'May',label2:'26',val:26},{label:'Jun',label2:'22',val:22}
+  {label:'Jan',label2:'2',val:2},{label:'Feb',label2:'4',val:4},{label:'Mar',label2:'3',val:3},
+  {label:'Apr',label2:'5',val:5},{label:'May',label2:'7',val:7},{label:'Jun',label2:'3',val:3}
 ], '#f5c4bf');
 
 renderBarChart('revenue-chart', [
@@ -2132,7 +2132,5 @@ document.querySelector('nav .btn-red') && document.querySelector('nav .btn-red')
   showToast('Logged out');
 });
 </script>
-<div id="venly-footer"></div>
-<script>renderFooter();</script>
 </body>
 </html>
