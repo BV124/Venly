@@ -65,8 +65,6 @@ nav { background: var(--white); border-bottom: 1px solid var(--border); display:
 .pw-bar.good { background: #1a8a4a; }
 .pw-label { font-size: 11px; color: var(--text-muted); }
 
-
-
 /* DIVIDER */
 .auth-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
 .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
@@ -461,7 +459,18 @@ function handleLogin() {
     // DEMO MODE — simulates login
     setTimeout(function() {
       setLoading('login-btn','login-btn-text', false);
-      localStorage.setItem('venly_current_user', JSON.stringify({ email: email, name: 'Demo User' }));
+
+      // Look up the real account that was created at signup so we store a
+      // stable id — without this, nothing (like venues tagged by an admin)
+      // can reliably link back to "this account" later.
+      var users = JSON.parse(localStorage.getItem('venly_users') || '[]');
+      var matched = users.find(function(u) { return u.email.toLowerCase() === email.toLowerCase(); });
+
+      localStorage.setItem('venly_current_user', JSON.stringify({
+        id: matched ? matched.id : 'demo-' + email.toLowerCase(),
+        email: email,
+        name: matched ? matched.name : 'Demo User'
+      }));
       document.getElementById('login-form-wrap').style.display = 'none';
       document.getElementById('login-success').style.display = 'block';
       setTimeout(function() { window.location.href = 'venly-dashboard.html'; }, 1500);
@@ -534,6 +543,21 @@ function handleSignup() {
       };
       users.push(newUser);
       localStorage.setItem('venly_users', JSON.stringify(users));
+
+      // If an admin already tagged a venue to this email before the person signed up,
+      // link it to their new account now by filling in the stable hostUserId.
+      var venues = JSON.parse(localStorage.getItem('venly_venues') || 'null');
+      if (venues) {
+        var linkedAny = false;
+        venues.forEach(function(v) {
+          if (!v.hostUserId && v.hostEmail && v.hostEmail.toLowerCase() === email.toLowerCase()) {
+            v.hostUserId = newUser.id;
+            linkedAny = true;
+          }
+        });
+        if (linkedAny) localStorage.setItem('venly_venues', JSON.stringify(venues));
+      }
+
       document.getElementById('signup-email-confirm').textContent = email;
       document.getElementById('signup-form-wrap').style.display = 'none';
       document.getElementById('signup-success').style.display = 'block';

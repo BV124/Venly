@@ -1063,16 +1063,6 @@ function toggleEventType(name, btn) {
   renderFeatures();
 }
 
-function toggleFeature(name, btn) {
-  if (selectedFeatures.includes(name)) {
-    selectedFeatures = selectedFeatures.filter(f => f !== name);
-    btn.classList.remove('selected');
-  } else {
-    selectedFeatures.push(name);
-    btn.classList.add('selected');
-  }
-}
-
 // ---- PHOTO UPLOAD ----
 function triggerUpload(slot) {
   currentUploadSlot = slot;
@@ -1155,7 +1145,14 @@ function loadUserListingsDemo() {
   const allVenues = JSON.parse(localStorage.getItem('venly_venues') || 'null');
   if (!allVenues) return; // admin hasn't created the store yet — keep the hardcoded demo listings
 
-  const mine = allVenues.filter(v => (v.hostEmail || '').toLowerCase() === user.email.toLowerCase());
+  // Match by the stable account id first — this is what actually survives a
+  // host using a different display name per listing, or any small mismatch
+  // in how their email was typed when the admin tagged the venue. Email match
+  // is kept only as a fallback for older venue records saved before hostUserId existed.
+  const mine = allVenues.filter(v => {
+    if (v.hostUserId) return String(v.hostUserId) === String(user.id);
+    return (v.hostEmail || '').toLowerCase() === user.email.toLowerCase();
+  });
 
   listings = mine.map(v => ({
     id: v.id,

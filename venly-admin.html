@@ -863,6 +863,7 @@ tbody tr:last-child td { border-bottom: none; }
               <input type="tel" id="ven-host-phone" placeholder="021 000 0000" />
             </div>
             <div id="host-lookup-result-wrap"></div>
+            <input type="hidden" id="ven-host-user-id" value="" />
             <div class="filter-card-note" style="margin-top:10px">
               Tagging a venue to a host's email links it to their account — it'll appear under "My Listings" on their dashboard. If no account exists yet with that email, it'll link automatically as soon as they sign up.
             </div>
@@ -2240,14 +2241,14 @@ function renderDistrictsForRegion() {
 
 // Seed venues — matches what was previously hardcoded in the table
 var SEED_VENUES = [
-  { id: 'v-seed-0', name: 'Brads – Shoot Location', type: 'Shoot Location', region: 'Auckland', district: 'Auckland City', plan: 'Premium', hits: 8, hostEmail: 'braedyn@venly.co.nz', hostName: 'Braedyn Veysi', description: '', isLive: false, subscriptionStatus: 'none', createdBy: 'host' },
-  { id: 'v-seed-1', name: 'Brads – Meeting Space', type: 'Meeting space', region: 'Auckland', district: 'Auckland City', plan: 'Premium', hits: 6, hostEmail: 'braedyn@venly.co.nz', hostName: 'Braedyn Veysi', description: '', isLive: true, subscriptionStatus: 'active', createdBy: 'host' },
-  { id: 'v-seed-2', name: 'Brads Warehouse', type: 'Event space', region: 'Auckland', district: 'Auckland City', plan: 'Standard', hits: 10, hostEmail: 'braedyn@venly.co.nz', hostName: 'Braedyn Veysi', description: '', isLive: true, subscriptionStatus: 'active', createdBy: 'host' },
-  { id: 'v-seed-3', name: 'Okahu – Meeting Space', type: 'Meeting space', region: 'Auckland', district: 'Auckland City', plan: 'Premium', hits: 10, hostEmail: 'braedyn@venly.co.nz', hostName: 'Braedyn Veysi', description: '', isLive: true, subscriptionStatus: 'active', createdBy: 'host' },
-  { id: 'v-seed-4', name: 'Okahu – Shoot Location', type: 'Shoot Location', region: 'Auckland', district: 'Auckland City', plan: 'Premium', hits: 6, hostEmail: 'braedyn@venly.co.nz', hostName: 'Braedyn Veysi', description: '', isLive: false, subscriptionStatus: 'none', createdBy: 'host' },
-  { id: 'v-seed-5', name: 'Okahu', type: 'Event space', region: 'Auckland', district: 'Auckland City', plan: 'Basic', hits: 4, hostEmail: 'braedyn@venly.co.nz', hostName: 'Braedyn Veysi', description: '', isLive: true, subscriptionStatus: 'active', createdBy: 'host' },
-  { id: 'v-seed-6', name: 'North Shore Event Space', type: 'Event space', region: 'Auckland', district: 'North Shore', plan: 'Standard', hits: 22, hostEmail: 'alex@example.com', hostName: 'Alex Turner', description: '', isLive: true, subscriptionStatus: 'active', createdBy: 'host' },
-  { id: 'v-seed-7', name: 'City Meeting Room', type: 'Meeting space', region: 'Auckland', district: 'Auckland City', plan: 'Basic', hits: 3, hostEmail: 'maria@example.com', hostName: 'Maria Chen', description: '', isLive: false, subscriptionStatus: 'none', createdBy: 'host' },
+  { id: 'v-seed-0', name: 'Brads – Shoot Location', type: 'Shoot Location', region: 'Auckland', district: 'Auckland City', plan: 'Premium', hits: 8, hostUserId: 1, hostEmail: 'braedyn@venly.co.nz', hostName: 'Braedyn Veysi', description: '', isLive: false, subscriptionStatus: 'none', createdBy: 'host' },
+  { id: 'v-seed-1', name: 'Brads – Meeting Space', type: 'Meeting space', region: 'Auckland', district: 'Auckland City', plan: 'Premium', hits: 6, hostUserId: 1, hostEmail: 'braedyn@venly.co.nz', hostName: 'Braedyn Veysi', description: '', isLive: true, subscriptionStatus: 'active', createdBy: 'host' },
+  { id: 'v-seed-2', name: 'Brads Warehouse', type: 'Event space', region: 'Auckland', district: 'Auckland City', plan: 'Standard', hits: 10, hostUserId: 1, hostEmail: 'braedyn@venly.co.nz', hostName: 'Braedyn Veysi', description: '', isLive: true, subscriptionStatus: 'active', createdBy: 'host' },
+  { id: 'v-seed-3', name: 'Okahu – Meeting Space', type: 'Meeting space', region: 'Auckland', district: 'Auckland City', plan: 'Premium', hits: 10, hostUserId: 1, hostEmail: 'braedyn@venly.co.nz', hostName: 'Braedyn Veysi', description: '', isLive: true, subscriptionStatus: 'active', createdBy: 'host' },
+  { id: 'v-seed-4', name: 'Okahu – Shoot Location', type: 'Shoot Location', region: 'Auckland', district: 'Auckland City', plan: 'Premium', hits: 6, hostUserId: 1, hostEmail: 'braedyn@venly.co.nz', hostName: 'Braedyn Veysi', description: '', isLive: false, subscriptionStatus: 'none', createdBy: 'host' },
+  { id: 'v-seed-5', name: 'Okahu', type: 'Event space', region: 'Auckland', district: 'Auckland City', plan: 'Basic', hits: 4, hostUserId: 1, hostEmail: 'braedyn@venly.co.nz', hostName: 'Braedyn Veysi', description: '', isLive: true, subscriptionStatus: 'active', createdBy: 'host' },
+  { id: 'v-seed-6', name: 'North Shore Event Space', type: 'Event space', region: 'Auckland', district: 'North Shore', plan: 'Standard', hits: 22, hostUserId: 2, hostEmail: 'alex@northshore.co.nz', hostName: 'Alex Turner', description: '', isLive: true, subscriptionStatus: 'active', createdBy: 'host' },
+  { id: 'v-seed-7', name: 'City Meeting Room', type: 'Meeting space', region: 'Auckland', district: 'Auckland City', plan: 'Basic', hits: 3, hostUserId: 3, hostEmail: 'maria@studio.co.nz', hostName: 'Maria Chen', description: '', isLive: false, subscriptionStatus: 'none', createdBy: 'host' },
 ];
 
 function getAllVenues() {
@@ -2452,9 +2453,12 @@ function buildVenuesTable() {
   if (!tbody) return;
 
   tbody.innerHTML = venues.map(function(v) {
+    var linkNote = v.hostUserId
+      ? '<div style="font-size:10px;color:#1a8a4a">✓ Linked to account</div>'
+      : '<div style="font-size:10px;color:#c2632a">Awaiting signup</div>';
     return '<tr>' +
       '<td class="cell-name">' + escapeHtml(v.name || 'Untitled venue') + '</td>' +
-      '<td style="color:var(--text-muted)">' + escapeHtml(v.hostName || v.hostEmail || '—') + '</td>' +
+      '<td style="color:var(--text-muted)">' + escapeHtml(v.hostName || v.hostEmail || '—') + linkNote + '</td>' +
       '<td>' + escapeHtml(v.type || '—') + '</td>' +
       '<td>' + escapeHtml(v.district || v.region || '—') + '</td>' +
       '<td><span class="badge badge-' + (v.plan || 'basic').toLowerCase() + '">' + escapeHtml(v.plan || 'Basic') + '</span></td>' +
@@ -2495,13 +2499,15 @@ function populateVenueDistrictOptions() {
 function lookupHostByEmail() {
   var email = document.getElementById('ven-host-email').value.trim().toLowerCase();
   var wrap = document.getElementById('host-lookup-result-wrap');
+  var idField = document.getElementById('ven-host-user-id');
 
-  if (!email) { wrap.innerHTML = ''; return; }
+  if (!email) { wrap.innerHTML = ''; idField.value = ''; return; }
 
   var users = getAllUsers();
   var match = users.find(function(u) { return u.email.toLowerCase() === email; });
 
   if (match) {
+    idField.value = match.id;
     var initials = match.initials || (match.name ? match.name.split(' ').map(function(n){return n[0];}).join('').slice(0,2).toUpperCase() : '?');
     wrap.innerHTML =
       '<div class="host-lookup-result found">' +
@@ -2515,6 +2521,7 @@ function lookupHostByEmail() {
     if (nameField && !nameField.value.trim() && match.name) nameField.value = match.name;
     if (phoneField && !phoneField.value.trim() && match.phone) phoneField.value = match.phone;
   } else {
+    idField.value = '';
     wrap.innerHTML =
       '<div class="host-lookup-result not-found">' +
         '<div class="host-lookup-avatar" style="background:#bbb">?</div>' +
@@ -2635,6 +2642,7 @@ function openVenueEditor(venueId) {
     document.getElementById('ven-price-from').value = venue.priceFrom || '';
     document.getElementById('ven-price-to').value = venue.priceTo || '';
     document.getElementById('ven-host-email').value = venue.hostEmail || '';
+    document.getElementById('ven-host-user-id').value = venue.hostUserId || '';
     document.getElementById('ven-host-name').value = venue.hostName || '';
     document.getElementById('ven-host-phone').value = venue.hostPhone || '';
     lookupHostByEmail();
@@ -2659,6 +2667,7 @@ function openVenueEditor(venueId) {
     document.getElementById('ven-price-from').value = '';
     document.getElementById('ven-price-to').value = '';
     document.getElementById('ven-host-email').value = '';
+    document.getElementById('ven-host-user-id').value = '';
     document.getElementById('ven-host-name').value = '';
     document.getElementById('ven-host-phone').value = '';
     document.getElementById('host-lookup-result-wrap').innerHTML = '';
@@ -2707,9 +2716,14 @@ function saveVenue() {
     website: document.getElementById('ven-website').value.trim(),
     priceFrom: document.getElementById('ven-price-from').value.trim(),
     priceTo: document.getElementById('ven-price-to').value.trim(),
+    // hostUserId is the real link — it ties this venue to a specific account,
+    // independent of whatever the host typed as their email at signup. The
+    // email field below is just how the admin looks up that account; once
+    // matched, hostUserId is what actually connects them.
+    hostUserId: document.getElementById('ven-host-user-id').value || null,
     hostEmail: hostEmail,
-    // Prefer whatever name the admin typed in; fall back to the matched account's
-    // name, then to the email itself if nothing else is available.
+    // hostName is purely a display label for this listing — a host can run
+    // multiple venues under different names without affecting the account link.
     hostName: document.getElementById('ven-host-name').value.trim() || (matchedUser ? matchedUser.name : hostEmail),
     hostPhone: document.getElementById('ven-host-phone').value.trim(),
     isLive: isLive,
