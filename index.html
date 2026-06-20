@@ -421,11 +421,6 @@ section { padding: 80px 48px; }
       <div class="search-divider"></div>
       <select id="hero-region">
         <option value="" disabled selected>Select a region</option>
-        <option>Auckland</option>
-        <option>Wellington</option>
-        <option>Christchurch</option>
-        <option>Hamilton</option>
-        <option>Tauranga</option>
       </select>
       <button class="btn btn-primary" onclick="doSearch()">Search</button>
     </div>
@@ -920,6 +915,20 @@ function doSearch() {
   var query = params.toString();
   window.location.href = 'venly-find-a-space.html' + (query ? '?' + query : '');
 }
+
+// Populates the hero search region dropdown from the same shared filters
+// the admin's Filters page manages — so a region added there shows up here
+// without needing a separate hardcoded list.
+function populateHeroRegionOptions() {
+  var select = document.getElementById('hero-region');
+  if (!select || typeof getVenlyFilters !== 'function') return;
+  var filters = getVenlyFilters();
+  var optionsHtml = filters.regions.map(function(r) {
+    return '<option>' + r + '</option>';
+  }).join('');
+  select.innerHTML = '<option value="" disabled selected>Select a region</option>' + optionsHtml;
+}
+populateHeroRegionOptions();
 </script>
 
 <script>

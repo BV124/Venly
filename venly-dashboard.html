@@ -434,13 +434,8 @@ tbody tr:last-child td { border-bottom: none; }
             </div>
             <div class="form-group">
               <label>Region</label>
-              <select id="v-region">
+              <select id="v-region" onchange="populateDistrictOptions()">
                 <option value="">Choose</option>
-                <option>Auckland</option>
-                <option>Wellington</option>
-                <option>Christchurch</option>
-                <option>Hamilton</option>
-                <option>Tauranga</option>
               </select>
             </div>
           </div>
@@ -449,10 +444,6 @@ tbody tr:last-child td { border-bottom: none; }
               <label>District</label>
               <select id="v-district">
                 <option value="">Choose</option>
-                <option>Auckland City</option>
-                <option>North Shore</option>
-                <option>Waitakere</option>
-                <option>Manukau</option>
               </select>
             </div>
             <div class="form-group">
@@ -654,13 +645,16 @@ let listings = [
   { name: "Okahu – Shoot Location", type: "Shoot Location", hits: 6, plan: "Premium", status: "draft" },
 ];
 
-const allFeatures = [
-  'Kitchen / Catering Facilities', 'AV Equipment', 'Projector & Screen', 'WiFi',
-  'Air Conditioning', 'Heating', 'Natural Light', 'Wheelchair Accessible',
-  'Parking Available', 'Outdoor Space', 'Toilets On-Site', 'Bar / Drinks',
-  'Stage / Performance Area', 'Dressing Room', 'Loading Dock', 'Private Entrance',
-  'Security', 'Furniture Included', 'Dance Floor', 'Rooftop Access',
-];
+// allFeatures and eventTypes used to be hardcoded — they now read live from
+// the same shared filters the admin's Filters page manages, via the
+// getVenlyFilters() helper in venly-config.js. Calling them as functions
+// (rather than plain consts) means every render picks up the latest data,
+// so an amenity or event type added in the admin shows up here immediately.
+function getAllFeatures() {
+  return (typeof getVenlyFilters === 'function') ? getVenlyFilters().amenities : [
+    'WiFi', 'Parking', 'AV Equipment', 'Catering', 'Wheelchair Access', 'Outdoor Space'
+  ];
+}
 
 let selectedFeatures = [];
 let selectedEventTypes = [];
@@ -671,11 +665,13 @@ const planCaps = {
   'Premium':  { photos: 12, features: 12, eventTypes: 10 },
 };
 
-const eventTypes = {
-  'Event space': ['Wedding','18th Party','21st Party','Corporate Event','Private Party','Product Launch','Gala / Awards','Market / Expo','Live Performance','Other Event'],
-  'Meeting space': ['Boardroom','Workshop','Training','Conference','Interview Room','Coworking'],
-  'Shoot Location': ['Film & TV','Photography','Commercial','Content Creation','Podcast / Recording'],
-};
+function getEventTypes() {
+  return (typeof getVenlyFilters === 'function') ? getVenlyFilters().eventsBySpaceType : {
+    'Event space': ['Wedding','18th Party','21st Party','Corporate Event','Private Party','Product Launch','Gala / Awards','Market / Expo','Live Performance'],
+    'Meeting space': ['Boardroom','Workshop','Training','Conference','Interview Room','Coworking'],
+    'Shoot Location': ['Film & TV','Photography','Commercial','Content Creation','Podcast / Recording'],
+  };
+}
 let currentStep = 1;
 let activePlan = 'Premium';
 let activeType = 'Event Space';
@@ -930,6 +926,7 @@ function openModal() {
   document.getElementById('summary-type').textContent = activeType;
   document.getElementById('summary-price').textContent = planPrices[activePlan]?.[activeType] || '$79/mo';
   updateStepUI();
+  populateRegionOptions();
   renderPhotoGrid();
   renderFeatures();
   updateHostEnquiryNote();
@@ -1098,8 +1095,37 @@ function updatePhotoCount() {
   }
 }
 
+// Populates the Region/District dropdowns from the same shared filters the
+// admin's Filters page manages, so a region or district added there shows
+// up here immediately without needing its own hardcoded list.
+function populateRegionOptions() {
+  var select = document.getElementById('v-region');
+  if (!select || typeof getVenlyFilters !== 'function') return;
+  var filters = getVenlyFilters();
+  var currentVal = select.value;
+  select.innerHTML = '<option value="">Choose</option>' +
+    filters.regions.map(function(r) { return '<option>' + r + '</option>'; }).join('');
+  if (filters.regions.indexOf(currentVal) > -1) select.value = currentVal;
+  populateDistrictOptions();
+}
+
+function populateDistrictOptions() {
+  var regionSelect = document.getElementById('v-region');
+  var districtSelect = document.getElementById('v-district');
+  if (!regionSelect || !districtSelect || typeof getVenlyFilters !== 'function') return;
+  var filters = getVenlyFilters();
+  var region = regionSelect.value;
+  var districts = (filters.districtsByRegion && filters.districtsByRegion[region]) || [];
+  var currentVal = districtSelect.value;
+  districtSelect.innerHTML = '<option value="">Choose</option>' +
+    districts.map(function(d) { return '<option>' + d + '</option>'; }).join('');
+  if (districts.indexOf(currentVal) > -1) districtSelect.value = currentVal;
+}
+
 function renderFeatures() {
   const caps = getCaps();
+  const allFeatures = getAllFeatures();
+  const eventTypes = getEventTypes();
 
   // Features
   const grid = document.getElementById('features-grid');

@@ -641,7 +641,6 @@ tbody tr:last-child td { border-bottom: none; }
   <button class="nav-item" onclick="showSection('venues',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     Venues
-    <span class="nav-badge-count">8</span>
   </button>
   <button class="nav-item" onclick="showSection('analytics',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
@@ -2070,32 +2069,12 @@ function formatTodayDate() {
 
 // ---- FILTERS MANAGEMENT ----
 
-var DEFAULT_FILTERS = {
-  regions: ['Auckland', 'Wellington', 'Christchurch', 'Hamilton', 'Bay of Plenty'],
-  districtsByRegion: {
-    'Auckland': ['Auckland City', 'North Shore', 'Waitakere', 'Manukau', 'Papakura'],
-    'Wellington': ['Wellington City', 'Lower Hutt', 'Upper Hutt', 'Porirua'],
-    'Christchurch': ['Christchurch Central', 'Riccarton', 'Sydenham'],
-    'Hamilton': ['Hamilton Central', 'Chartwell', 'Rototuna'],
-    'Bay of Plenty': ['Tauranga', 'Mount Maunganui', 'Rotorua', 'Whakatane'],
-  },
-  amenities: ['WiFi', 'Parking', 'AV Equipment', 'Catering', 'Wheelchair Access', 'Outdoor Space'],
-  eventsByType: {
-    event:   ['Wedding', '18th Party', '21st Party', 'Corporate Event', 'Private Party', 'Product Launch', 'Gala / Awards', 'Market / Expo', 'Live Performance'],
-    meeting: ['Boardroom', 'Workshop', 'Training', 'Conference', 'Interview Room', 'Coworking'],
-    shoot:   ['Film & TV', 'Photography', 'Commercial', 'Content Creation', 'Podcast / Recording'],
-  },
-  blogCategories: ['Hosting Tips', 'Event Space', 'Meeting Space', 'Shoot Location', 'Guide', 'Venly News'],
-};
-
+// DEFAULT_FILTERS and the actual read logic now live in venly-config.js as
+// VENLY_DEFAULT_FILTERS / getVenlyFilters(), shared by every page on the
+// site. getFilters() here is kept as a thin alias so the rest of this file
+// doesn't need to change — it just delegates to the shared version.
 function getFilters() {
-  var stored = JSON.parse(localStorage.getItem('venly_filters') || 'null');
-  if (!stored) return JSON.parse(JSON.stringify(DEFAULT_FILTERS));
-  // Merge with defaults so any newly-added filter groups (e.g. after an update) still show up
-  return Object.assign({}, DEFAULT_FILTERS, stored, {
-    eventsByType: Object.assign({}, DEFAULT_FILTERS.eventsByType, stored.eventsByType || {}),
-    districtsByRegion: Object.assign({}, DEFAULT_FILTERS.districtsByRegion, stored.districtsByRegion || {})
-  });
+  return getVenlyFilters();
 }
 
 function saveFilters(filters) {
@@ -2367,11 +2346,13 @@ var ALL_VENUE_FEATURES = [
   'Security', 'Furniture Included', 'Dance Floor', 'Rooftop Access',
 ];
 
-var VENUE_EVENT_TYPES_BY_SPACE = {
-  'Event space': ['Wedding', '18th Party', '21st Party', 'Corporate Event', 'Private Party', 'Product Launch', 'Gala / Awards', 'Market / Expo', 'Live Performance', 'Other Event'],
-  'Meeting space': ['Boardroom', 'Workshop', 'Training', 'Conference', 'Interview Room', 'Coworking'],
-  'Shoot Location': ['Film & TV', 'Photography', 'Commercial', 'Content Creation', 'Podcast / Recording'],
-};
+// VENUE_EVENT_TYPES_BY_SPACE used to be a hardcoded copy of the event type
+// lists — now it's derived live from the same shared filters the admin's
+// Filters page manages, so adding/removing an event type there immediately
+// shows up here without needing a separate update.
+function getVenueEventTypesBySpace() {
+  return getVenlyFilters().eventsBySpaceType;
+}
 
 var venueSelectedFeatures = [];
 var venueSelectedEventTypes = [];
@@ -2522,7 +2503,7 @@ function toggleVenueFeature(name) {
 // ── Event types (plan-capped, filtered by current space type) ──
 function renderVenueEventTypes() {
   var spaceType = document.getElementById('ven-type').value;
-  var options = VENUE_EVENT_TYPES_BY_SPACE[spaceType] || [];
+  var options = getVenueEventTypesBySpace()[spaceType] || [];
   var cap = getVenuePlanCaps().eventTypes;
   var grid = document.getElementById('ven-events-grid');
   var note = document.getElementById('ven-events-cap-note');
@@ -2626,13 +2607,14 @@ function populateVenueEventTypeFilter() {
   if (!eventSelect) return;
   var currentVal = eventSelect.value;
   var typeFilter = document.getElementById('vf-type').value;
+  var eventsBySpace = getVenueEventTypesBySpace();
 
   var options;
-  if (typeFilter && VENUE_EVENT_TYPES_BY_SPACE[typeFilter]) {
-    options = VENUE_EVENT_TYPES_BY_SPACE[typeFilter];
+  if (typeFilter && eventsBySpace[typeFilter]) {
+    options = eventsBySpace[typeFilter];
   } else {
-    options = Object.keys(VENUE_EVENT_TYPES_BY_SPACE).reduce(function(acc, key) {
-      return acc.concat(VENUE_EVENT_TYPES_BY_SPACE[key]);
+    options = Object.keys(eventsBySpace).reduce(function(acc, key) {
+      return acc.concat(eventsBySpace[key]);
     }, []);
   }
 
