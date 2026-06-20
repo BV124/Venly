@@ -1040,17 +1040,26 @@ async function saveListing(isLive) {
 
   // LIVE MODE: write to Supabase instead of localStorage
   if (typeof SUPABASE_READY !== 'undefined' && SUPABASE_READY) {
+    var enquiryEmailField = document.getElementById('h-enquiry-email').value.trim();
     var saved = await saveListingToSupabase({
-      title: title,
+      name: title,
       type: document.getElementById('v-type').value || activeType,
       region: document.getElementById('v-region').value,
       district: document.getElementById('v-district').value,
+      address: document.getElementById('v-address').value.trim(),
       description: document.getElementById('v-desc').value.trim(),
       capacity: document.getElementById('v-capacity').value.trim(),
       website: document.getElementById('v-website').value.trim(),
+      priceFrom: document.getElementById('v-price').value.trim(),
+      priceTo: document.getElementById('v-price-to').value.trim(),
       hostName: document.getElementById('h-name').value.trim(),
       hostPhone: document.getElementById('h-phone').value.trim(),
-      status: isLive ? 'live' : 'draft',
+      enquiryEmail: enquiryEmailField,
+      plan: activePlan,
+      isLive: !!isLive,
+      photos: getOrderedPhotos(),
+      features: selectedFeatures.slice(),
+      eventTypes: selectedEventTypes.slice(),
     });
     if (!saved) { showToast('Could not save — please try again'); return; }
     await loadUserListings();
@@ -1383,11 +1392,13 @@ async function loadUserListings() {
   const { data, error } = await sb.from('venues').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
   if (data) {
     listings = data.map(v => ({
-      name: v.title,
+      name: v.name,
       type: v.type,
       hits: v.page_hits || 0,
       plan: v.plan || 'Basic',
-      status: v.status || 'draft',
+      status: v.is_live ? 'live' : 'draft',
+      subscriptionStatus: v.subscription_status || 'none',
+      createdBy: v.created_by || 'host',
       id: v.id
     }));
     buildTable();
@@ -1437,20 +1448,29 @@ async function saveListingToSupabase(listingData) {
   if (!user) return null;
   const { data, error } = await sb.from('venues').insert({
     user_id: user.id,
-    title: listingData.title,
+    host_email: user.email,
+    name: listingData.name,
     type: listingData.type,
     region: listingData.region,
     district: listingData.district,
+    address: listingData.address,
     description: listingData.description,
     capacity: listingData.capacity,
     website: listingData.website,
+    price_from: listingData.priceFrom || null,
+    price_to: listingData.priceTo || null,
     host_name: listingData.hostName,
     host_phone: listingData.hostPhone,
-    plan: activePlan,
-    status: listingData.status,
-    features: selectedFeatures,
-    event_types: selectedEventTypes,
+    enquiry_email: listingData.enquiryEmail,
+    effective_enquiry_email: listingData.enquiryEmail || user.email,
+    plan: listingData.plan,
+    is_live: listingData.isLive,
+    subscription_status: listingData.isLive ? 'active' : 'none',
+    photos: listingData.photos,
+    features: listingData.features,
+    event_types: listingData.eventTypes,
   }).select().single();
+  if (error) { console.error('saveListingToSupabase error:', error); return null; }
   return data;
 }
 

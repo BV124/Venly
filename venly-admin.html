@@ -1497,6 +1497,11 @@ async function loadSupabaseUsers() {
 }
 
 // LIVE MODE: load real venues
+// NOTE: this renders a read-only view of Supabase venues using the correct
+// column names. The Edit/Delete buttons on the main venues-tbody table are
+// still wired to localStorage (getAllVenues/saveAllVenues) — building out
+// full live-mode editing (so Edit/Delete genuinely work against Supabase
+// too) is a separate piece of work, not done yet.
 async function loadSupabaseVenues() {
   if (!SUPABASE_READY) return;
   const { data: venues } = await sb.from('venues').select('*, profiles(first_name,last_name)').order('created_at', { ascending: false });
@@ -1504,19 +1509,19 @@ async function loadSupabaseVenues() {
   var tbody = document.querySelector('#venues-table tbody');
   if (!tbody) return;
   tbody.innerHTML = venues.map(function(v) {
-    var host = v.profiles ? (v.profiles.first_name + ' ' + v.profiles.last_name) : '—';
+    var host = v.profiles ? (v.profiles.first_name + ' ' + v.profiles.last_name) : (v.host_name || v.host_email || '—');
     var planBadge = 'badge-' + (v.plan || 'basic').toLowerCase();
-    var statusBadge = v.status === 'live' ? 'badge-live' : 'badge-draft';
+    var statusBadge = v.is_live ? 'badge-live' : 'badge-draft';
     return '<tr>' +
-      '<td class="cell-name">' + (v.title || '—') + '</td>' +
+      '<td class="cell-name">' + (v.name || '—') + '</td>' +
       '<td style="color:var(--text-muted)">' + host + '</td>' +
       '<td>' + (v.type || '—') + '</td>' +
       '<td>' + (v.district || '—') + '</td>' +
       '<td><span class="badge ' + planBadge + '">' + (v.plan || 'Basic') + '</span></td>' +
       '<td>' + (v.page_hits || 0) + '</td>' +
-      '<td><span class="badge ' + statusBadge + '">' + (v.status === 'live' ? 'Live' : 'Draft') + '</span></td>' +
-      '<td><button class="action-btn" onclick=\"showToast(\\"Edit...\\")">Edit</button>' +
-      '<button class="action-btn" onclick="showToast(this.dataset.msg)" data-msg="Status toggled">Toggle</button></td>' +
+      '<td><span class="badge ' + statusBadge + '">' + (v.is_live ? 'Live' : 'Draft') + '</span></td>' +
+      '<td><button class="action-btn" onclick="showToast(\'Live-mode editing not built yet\')">Edit</button>' +
+      '<button class="action-btn" onclick="showToast(\'Live-mode editing not built yet\')">Toggle</button></td>' +
       '</tr>';
   }).join('');
 }
