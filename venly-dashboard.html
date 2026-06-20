@@ -1130,7 +1130,7 @@ function renderFeatures() {
   // Features
   const grid = document.getElementById('features-grid');
   const featTitle = grid.closest('.modal-section').querySelector('.modal-section-title');
-  featTitle.innerHTML = `Amenities & features <span style="font-size:12px;font-weight:400;color:var(--text-muted);margin-left:8px" id="feat-counter">${selectedFeatures.length} / ${caps.features} selected</span>`;
+  featTitle.innerHTML = `Features <span style="font-size:12px;font-weight:400;color:var(--text-muted);margin-left:8px" id="feat-counter">${selectedFeatures.length} / ${caps.features} selected</span>`;
   grid.innerHTML = allFeatures.map(f => {
     const isSelected = selectedFeatures.includes(f);
     const atCap = selectedFeatures.length >= caps.features && !isSelected;
