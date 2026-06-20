@@ -92,6 +92,29 @@ nav {
 .search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--text-muted); pointer-events: none; }
 .search-input:focus { outline: none; border-color: var(--red); }
 
+/* Venues filter bar */
+.venues-filter-bar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--bg);
+}
+.venues-filter-select {
+  padding: 7px 28px 7px 12px; border: 1px solid var(--border); border-radius: 20px;
+  font-size: 12px; font-weight: 500; font-family: 'Inter', sans-serif; color: var(--text);
+  background-color: var(--white); cursor: pointer; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath fill='%236b6b6b' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+  transition: border-color 0.15s;
+}
+.venues-filter-select:focus { outline: none; border-color: var(--red); }
+.venues-filter-select.is-active { border-color: var(--red); background-color: var(--red-light); color: var(--red); font-weight: 600; }
+.venues-filter-clear {
+  font-size: 12px; font-weight: 600; color: var(--text-muted); background: none; border: none;
+  cursor: pointer; padding: 4px 6px; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 4px;
+}
+.venues-filter-clear:hover { color: var(--red); }
+.venues-filter-clear svg { width: 12px; height: 12px; }
+.venues-filter-divider { width: 1px; height: 20px; background: var(--border); margin: 0 2px; }
+
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 thead th { background: var(--bg); padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
 tbody tr { transition: background 0.1s; }
@@ -749,10 +772,39 @@ tbody tr:last-child td { border-bottom: none; }
           <div class="table-search">
             <div class="search-wrap">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-              <input class="search-input" placeholder="Search venues..." oninput="filterTable(this,'venues-table')" />
+              <input class="search-input" id="venues-search-input" placeholder="Search venues..." oninput="applyVenueFilters()" />
             </div>
           </div>
         </div>
+
+        <div class="venues-filter-bar">
+          <select class="venues-filter-select" id="vf-status" onchange="applyVenueFilters()">
+            <option value="live">Status: Live only</option>
+            <option value="all">Status: All</option>
+            <option value="draft">Status: Draft / pending</option>
+            <option value="cancelled">Status: Cancelled</option>
+          </select>
+          <select class="venues-filter-select" id="vf-type" onchange="onVenueTypeFilterChange()">
+            <option value="">Space type: All</option>
+            <option value="Event space">Event space</option>
+            <option value="Meeting space">Meeting space</option>
+            <option value="Shoot Location">Shoot Location</option>
+          </select>
+          <select class="venues-filter-select" id="vf-region" onchange="onVenueRegionFilterChange()"></select>
+          <select class="venues-filter-select" id="vf-event" onchange="applyVenueFilters()"></select>
+          <select class="venues-filter-select" id="vf-plan" onchange="applyVenueFilters()">
+            <option value="">Plan: All</option>
+            <option value="Basic">Basic</option>
+            <option value="Standard">Standard</option>
+            <option value="Premium">Premium</option>
+          </select>
+          <div class="venues-filter-divider"></div>
+          <button class="venues-filter-clear" onclick="clearVenueFilters()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Clear filters
+          </button>
+        </div>
+
         <table id="venues-table">
           <thead><tr><th>Venue name</th><th>Host</th><th>Type</th><th>Region</th><th>Plan</th><th>Page hits</th><th>Status</th><th></th></tr></thead>
           <tbody id="venues-tbody"></tbody>
@@ -2510,12 +2562,22 @@ function toggleVenueEventType(name) {
   renderVenueEventTypes();
 }
 
-function buildVenuesTable() {
-  var venues = getAllVenues();
+// Renders whichever list of venues is passed in (already filtered/searched)
+function renderVenuesTable(venues) {
   var tbody = document.getElementById('venues-tbody');
   var title = document.getElementById('venues-table-title');
-  if (title) title.textContent = 'All venues (' + venues.length + ')';
+  var allCount = getAllVenues().length;
+  if (title) {
+    title.textContent = venues.length === allCount
+      ? 'All venues (' + allCount + ')'
+      : venues.length + ' of ' + allCount + ' venues';
+  }
   if (!tbody) return;
+
+  if (venues.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:32px 0">No venues match these filters</td></tr>';
+    return;
+  }
 
   tbody.innerHTML = venues.map(function(v) {
     var linkNote = v.hostUserId
@@ -2533,6 +2595,114 @@ function buildVenuesTable() {
       '<button class="action-btn danger" onclick="deleteVenueWithConfirm(\'' + v.id + '\')">Delete</button></td>' +
       '</tr>';
   }).join('');
+}
+
+// Classifies a venue's status into one of the filter bucket values
+function getVenueStatusBucket(v) {
+  if (v.subscriptionStatus === 'cancelled' && !v.isLive) return 'cancelled';
+  if (v.isLive) return 'live';
+  return 'draft'; // covers pending setup and plain drafts
+}
+
+function populateVenueFilterDropdowns() {
+  var filters = getFilters();
+
+  var regionSelect = document.getElementById('vf-region');
+  if (regionSelect) {
+    var currentRegion = regionSelect.value;
+    regionSelect.innerHTML = '<option value="">Region: All</option>' +
+      filters.regions.map(function(r) { return '<option value="' + escapeHtml(r) + '">' + escapeHtml(r) + '</option>'; }).join('');
+    if (filters.regions.indexOf(currentRegion) > -1) regionSelect.value = currentRegion;
+  }
+
+  populateVenueEventTypeFilter();
+}
+
+// Event type options narrow to match whichever space type filter is active —
+// same idea as the Find a Space chips. If "Space type: All" is selected,
+// show every event type across all three space types.
+function populateVenueEventTypeFilter() {
+  var eventSelect = document.getElementById('vf-event');
+  if (!eventSelect) return;
+  var currentVal = eventSelect.value;
+  var typeFilter = document.getElementById('vf-type').value;
+
+  var options;
+  if (typeFilter && VENUE_EVENT_TYPES_BY_SPACE[typeFilter]) {
+    options = VENUE_EVENT_TYPES_BY_SPACE[typeFilter];
+  } else {
+    options = Object.keys(VENUE_EVENT_TYPES_BY_SPACE).reduce(function(acc, key) {
+      return acc.concat(VENUE_EVENT_TYPES_BY_SPACE[key]);
+    }, []);
+  }
+
+  eventSelect.innerHTML = '<option value="">Event type: All</option>' +
+    options.map(function(et) { return '<option value="' + escapeHtml(et) + '">' + escapeHtml(et) + '</option>'; }).join('');
+  if (options.indexOf(currentVal) > -1) eventSelect.value = currentVal;
+}
+
+function onVenueRegionFilterChange() {
+  applyVenueFilters();
+}
+
+// When the space type filter changes, the event type options need to refresh
+// to match (e.g. switching to "Meeting space" should only show meeting-room
+// event types), then filtering re-runs with the now-correct dropdown state.
+function onVenueTypeFilterChange() {
+  populateVenueEventTypeFilter();
+  applyVenueFilters();
+}
+
+function applyVenueFilters() {
+  var venues = getAllVenues();
+  var search = (document.getElementById('venues-search-input').value || '').toLowerCase();
+  var statusFilter = document.getElementById('vf-status').value;
+  var typeFilter = document.getElementById('vf-type').value;
+  var regionFilter = document.getElementById('vf-region').value;
+  var eventFilter = document.getElementById('vf-event').value;
+  var planFilter = document.getElementById('vf-plan').value;
+
+  var filtered = venues.filter(function(v) {
+    var matchSearch = !search ||
+      (v.name || '').toLowerCase().includes(search) ||
+      (v.hostName || '').toLowerCase().includes(search) ||
+      (v.hostEmail || '').toLowerCase().includes(search);
+
+    var bucket = getVenueStatusBucket(v);
+    var matchStatus = statusFilter === 'all' || bucket === statusFilter;
+
+    var matchType = !typeFilter || v.type === typeFilter;
+    var matchRegion = !regionFilter || v.region === regionFilter;
+    var matchEvent = !eventFilter || (v.eventTypes && v.eventTypes.includes(eventFilter));
+    var matchPlan = !planFilter || v.plan === planFilter;
+
+    return matchSearch && matchStatus && matchType && matchRegion && matchEvent && matchPlan;
+  });
+
+  // Highlight any dropdown that's actively filtering, so it's obvious at a glance
+  ['vf-status', 'vf-type', 'vf-region', 'vf-event', 'vf-plan'].forEach(function(id) {
+    var el = document.getElementById(id);
+    var isDefault = id === 'vf-status' ? el.value === 'live' : !el.value;
+    el.classList.toggle('is-active', !isDefault);
+  });
+
+  renderVenuesTable(filtered);
+}
+
+function clearVenueFilters() {
+  document.getElementById('venues-search-input').value = '';
+  document.getElementById('vf-status').value = 'live';
+  document.getElementById('vf-type').value = '';
+  document.getElementById('vf-region').value = '';
+  document.getElementById('vf-plan').value = '';
+  populateVenueEventTypeFilter();
+  document.getElementById('vf-event').value = '';
+  applyVenueFilters();
+}
+
+function buildVenuesTable() {
+  populateVenueFilterDropdowns();
+  applyVenueFilters();
 }
 
 // ── Region/district dropdowns inside the venue editor (reuses Filters data) ──
