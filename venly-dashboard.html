@@ -637,13 +637,10 @@ tbody tr:last-child td { border-bottom: none; }
 <script>
 
 // ---- LISTINGS DATA ----
-let listings = [
-  { name: "Brads – Shoot Location", type: "Shoot Location", hits: 8, plan: "Premium", status: "draft" },
-  { name: "Brads – Meeting Space", type: "Meeting space", hits: 6, plan: "Premium", status: "draft" },
-  { name: "Brads Warehouse", type: "Event space", hits: 10, plan: "Premium", status: "draft" },
-  { name: "Okahu – Meeting Space", type: "Meeting space", hits: 10, plan: "Premium", status: "draft" },
-  { name: "Okahu – Shoot Location", type: "Shoot Location", hits: 6, plan: "Premium", status: "draft" },
-];
+// Starts empty — loadUserListingsDemo() (called on page load, see bottom of
+// this script) populates this from the real shared venue data, matched to
+// whoever's actually logged in. No more hardcoded placeholder listings.
+let listings = [];
 
 // allFeatures and eventTypes used to be hardcoded — they now read live from
 // the same shared filters the admin's Filters page manages, via the
@@ -675,6 +672,7 @@ function getEventTypes() {
 let currentStep = 1;
 let activePlan = 'Premium';
 let activeType = 'Event Space';
+let currentEditingListingId = null; // set when editing an existing listing, null when creating a new one
 let currentUploadSlot = 0;
 
 const planPrices = {
@@ -909,11 +907,44 @@ function deleteListing(i) {
 }
 
 function openEditListing(i) {
-  activePlan = listings[i].plan;
-  activeType = listings[i].type;
+  var listing = listings[i];
+  var venue = (typeof getAllVenues === 'function')
+    ? getAllVenues().find(function(v) { return v.id === listing.id; })
+    : null;
+
+  currentEditingListingId = listing.id || null;
+  activePlan = listing.plan;
+  activeType = listing.type;
   openModal();
-  document.getElementById('v-title').value = listings[i].name;
-  document.getElementById('v-type').value = listings[i].type;
+
+  // openModal() already resets photos/features/event types to empty and
+  // populates region options — now load the real saved values on top.
+  document.getElementById('v-title').value = (venue && venue.name) || listing.name || '';
+  document.getElementById('v-type').value = listing.type;
+  document.getElementById('v-address').value = (venue && venue.address) || '';
+  document.getElementById('v-desc').value = (venue && venue.description) || '';
+  document.getElementById('v-capacity').value = (venue && venue.capacity) || '';
+  document.getElementById('v-website').value = (venue && venue.website) || '';
+  document.getElementById('v-price').value = (venue && venue.priceFrom) || '';
+  document.getElementById('v-price-to').value = (venue && venue.priceTo) || '';
+  document.getElementById('h-name').value = (venue && venue.hostName) || '';
+  document.getElementById('h-phone').value = (venue && venue.hostPhone) || '';
+  document.getElementById('h-enquiry-email').value = (venue && venue.enquiryEmail) || '';
+  updateHostEnquiryNote();
+
+  if (venue) {
+    document.getElementById('v-region').value = venue.region || '';
+    populateDistrictOptions();
+    document.getElementById('v-district').value = venue.district || '';
+
+    photoDataUrls = (venue.photos && venue.photos.length) ? venue.photos.slice() : [];
+    coverPhotoIndex = 0; // photos[0] is always saved as the cover photo
+    selectedFeatures = (venue.features && venue.features.length) ? venue.features.slice() : [];
+    selectedEventTypes = (venue.eventTypes && venue.eventTypes.length) ? venue.eventTypes.slice() : [];
+  }
+
+  renderPhotoGrid();
+  renderFeatures();
 }
 
 // ---- MODAL ----
@@ -941,6 +972,7 @@ function closeModal() {
   selectedEventTypes = [];
   photoDataUrls = [];
   coverPhotoIndex = 0;
+  currentEditingListingId = null;
 }
 
 function updateStepUI() {
@@ -997,28 +1029,122 @@ function updateHostEnquiryNote() {
   }
 }
 
-function saveDraft() {
-  const title = document.getElementById('v-title').value.trim() || 'Untitled listing';
-  const type = document.getElementById('v-type').value || activeType;
-  listings.push({ name: title, type: type, hits: 0, plan: activePlan, status: 'draft' });
-  buildTable();
+// Shared by both "Save as draft" and "Pay & publish" — the only difference
+// between them is whether isLive ends up true or false. This writes a real
+// record to the same venly_venues storage the admin reads/writes, in the
+// exact same shape, so it shows up in the admin's Venues table and (once
+// live) on the public venue page.
+async function saveListing(isLive) {
+  var title = document.getElementById('v-title').value.trim();
+  if (!title) { showToast('Please give your space a title before saving'); return; }
+
+  // LIVE MODE: write to Supabase instead of localStorage
+  if (typeof SUPABASE_READY !== 'undefined' && SUPABASE_READY) {
+    var saved = await saveListingToSupabase({
+      title: title,
+      type: document.getElementById('v-type').value || activeType,
+      region: document.getElementById('v-region').value,
+      district: document.getElementById('v-district').value,
+      description: document.getElementById('v-desc').value.trim(),
+      capacity: document.getElementById('v-capacity').value.trim(),
+      website: document.getElementById('v-website').value.trim(),
+      hostName: document.getElementById('h-name').value.trim(),
+      hostPhone: document.getElementById('h-phone').value.trim(),
+      status: isLive ? 'live' : 'draft',
+    });
+    if (!saved) { showToast('Could not save — please try again'); return; }
+    await loadUserListings();
+    closeModal();
+    showToast(isLive ? '🎉 Your listing is now live!' : '✓ Saved as draft — you can publish it anytime');
+    switchToPanel('listings');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-btn')[1].classList.add('active');
+    return;
+  }
+
+  // DEMO MODE: write to the shared venly_venues localStorage store
+  var user = (typeof getCurrentUser === 'function') ? await getCurrentUser() : null;
+  if (!user) {
+    var stored = JSON.parse(localStorage.getItem('venly_current_user') || 'null');
+    user = stored;
+  }
+  if (!user) { showToast('Please log in to save a listing'); return; }
+
+  if (typeof getAllVenues !== 'function' || typeof saveAllVenues !== 'function') {
+    showToast('Could not save — please refresh and try again');
+    return;
+  }
+
+  var hostEmailField = document.getElementById('h-enquiry-email').value.trim();
+  var venues = getAllVenues();
+
+  var venueData = {
+    name: title,
+    address: document.getElementById('v-address').value.trim(),
+    type: document.getElementById('v-type').value || activeType,
+    plan: activePlan,
+    region: document.getElementById('v-region').value,
+    district: document.getElementById('v-district').value,
+    description: document.getElementById('v-desc').value.trim(),
+    capacity: document.getElementById('v-capacity').value.trim(),
+    website: document.getElementById('v-website').value.trim(),
+    priceFrom: document.getElementById('v-price').value.trim(),
+    priceTo: document.getElementById('v-price-to').value.trim(),
+    hostUserId: user.id,
+    hostEmail: user.email,
+    hostName: document.getElementById('h-name').value.trim() || user.name || user.email,
+    hostPhone: document.getElementById('h-phone').value.trim(),
+    enquiryEmail: hostEmailField,
+    effectiveEnquiryEmail: hostEmailField || user.email,
+    isLive: !!isLive,
+    photos: getOrderedPhotos(),
+    features: selectedFeatures.slice(),
+    eventTypes: selectedEventTypes.slice(),
+  };
+
+  if (currentEditingListingId) {
+    var idx = venues.findIndex(function(v) { return v.id === currentEditingListingId; });
+    if (idx > -1) {
+      venueData.id = venues[idx].id;
+      venueData.hits = venues[idx].hits || 0;
+      venueData.createdBy = venues[idx].createdBy || 'host';
+      var prevStatus = venues[idx].subscriptionStatus;
+      venueData.subscriptionStatus = isLive ? (prevStatus === 'active' ? 'active' : 'overridden') : prevStatus;
+      venues[idx] = venueData;
+    } else {
+      venueData.id = currentEditingListingId;
+      venueData.hits = 0;
+      venueData.createdBy = 'host';
+      venueData.subscriptionStatus = isLive ? 'active' : 'none';
+      venues.unshift(venueData);
+    }
+  } else {
+    venueData.id = 'venue-' + Date.now();
+    venueData.hits = 0;
+    venueData.createdBy = 'host';
+    venueData.subscriptionStatus = isLive ? 'active' : 'none';
+    venues.unshift(venueData);
+  }
+
+  if (!saveAllVenues(venues)) return;
+
+  loadUserListingsDemo();
   closeModal();
-  showToast('✓ Saved as draft — you can publish it anytime');
+  showToast(isLive ? '🎉 Your listing is now live!' : '✓ Saved as draft — you can publish it anytime');
   switchToPanel('listings');
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-btn')[1].classList.add('active');
 }
 
+function saveDraft() {
+  saveListing(false);
+}
+
 function handlePayment() {
-  const title = document.getElementById('v-title').value.trim() || 'Untitled listing';
-  const type = document.getElementById('v-type').value || activeType;
-  listings.push({ name: title, type: type, hits: 0, plan: activePlan, status: 'live' });
-  buildTable();
-  closeModal();
-  showToast('🎉 Your listing is now live!');
-  switchToPanel('listings');
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-btn')[1].classList.add('active');
+  // NOTE: this does not yet process any real payment — no Stripe checkout
+  // is wired up. It marks the listing live immediately. Real payment
+  // processing needs to be added before this goes live for real money.
+  saveListing(true);
 }
 
 // ---- FEATURES ----
@@ -1274,9 +1400,11 @@ async function loadUserListings() {
 function loadUserListingsDemo() {
   const user = JSON.parse(localStorage.getItem('venly_current_user') || 'null');
   if (!user || !user.email) return;
+  if (typeof getAllVenues !== 'function') return; // venly-config.js not loaded
 
-  const allVenues = JSON.parse(localStorage.getItem('venly_venues') || 'null');
-  if (!allVenues) return; // admin hasn't created the store yet — keep the hardcoded demo listings
+  // getAllVenues() is shared with the admin — same seed data, same stored
+  // overrides — so "my listings" here always matches what the admin sees.
+  const allVenues = getAllVenues();
 
   // Match by the stable account id first — this is what actually survives a
   // host using a different display name per listing, or any small mismatch
@@ -1301,7 +1429,9 @@ function loadUserListingsDemo() {
   buildTable();
 }
 
-async function saveListing(listingData) {
+// LIVE MODE: inserts a venue row into Supabase. Called from saveListing()
+// below when SUPABASE_READY is true, instead of writing to localStorage.
+async function saveListingToSupabase(listingData) {
   if (!SUPABASE_READY) return null;
   const user = await getCurrentUser();
   if (!user) return null;

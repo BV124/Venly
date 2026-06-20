@@ -247,23 +247,23 @@ textarea { resize: none; min-height: 90px; }
   <span class="breadcrumb-sep">›</span>
   <a href="venly-find-a-space.html">Find a Space</a>
   <span class="breadcrumb-sep">›</span>
-  <span class="breadcrumb-current">Brads Warehouse</span>
+  <span class="breadcrumb-current" id="breadcrumb-current">Loading…</span>
 </div>
 
 <!-- PHOTO GALLERY -->
-<div class="gallery">
-  <div class="gallery-main" onclick="openLightbox(0)">
-    <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&q=80" alt="Brads Warehouse main" />
+<div class="gallery" id="gallery">
+  <div class="gallery-main" id="gallery-main-slot" onclick="openLightbox(0)">
+    <img id="gallery-main-img" src="" alt="" />
     <div class="gallery-overlay"></div>
   </div>
-  <div class="gallery-thumb" onclick="openLightbox(1)">
-    <img src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80" alt="Brads Warehouse interior" />
+  <div class="gallery-thumb" id="gallery-thumb-1" onclick="openLightbox(1)">
+    <img id="gallery-thumb-1-img" src="" alt="" />
     <div class="gallery-overlay"></div>
   </div>
-  <div class="gallery-thumb" onclick="openLightbox(2)">
-    <img src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&q=80" alt="Brads Warehouse setup" />
+  <div class="gallery-thumb" id="gallery-thumb-2" onclick="openLightbox(2)">
+    <img id="gallery-thumb-2-img" src="" alt="" />
     <div class="gallery-overlay"></div>
-    <div class="gallery-count">+4 photos</div>
+    <div class="gallery-count" id="gallery-count">+0 photos</div>
   </div>
 </div>
 
@@ -274,13 +274,13 @@ textarea { resize: none; min-height: 90px; }
   <div>
     <div class="venue-section">
       <div class="venue-title-row">
-        <h1 class="venue-title">Brads Warehouse</h1>
+        <h1 class="venue-title" id="venue-title">Loading…</h1>
         <button class="fav-btn" id="fav-btn" onclick="toggleFav()" aria-label="Save to favourites">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>
         </button>
       </div>
 
-      <div class="meta-pills">
+      <div class="meta-pills" id="meta-pills">
         <span class="meta-pill highlight">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
           Premium listing
@@ -306,55 +306,29 @@ textarea { resize: none; min-height: 90px; }
 
     <div class="venue-section">
       <div class="venue-section-title">About this space</div>
-      <div class="venue-desc" id="venue-desc">
-        Brads Warehouse is a stunning industrial-chic event space nestled in the heart of Auckland City. With its exposed brick walls, soaring ceilings, and warm Edison lighting, this versatile venue transforms effortlessly from an intimate gathering to a full-scale production.
-        <span id="desc-more" style="display:none"> Whether you're hosting a product launch, corporate gala, wedding reception, or immersive art event — Brads Warehouse delivers an atmosphere that's impossible to replicate. The space features a full commercial kitchen, a dedicated bar area, stage facilities, and loading dock access for larger productions. Our team works closely with every host to ensure your event runs flawlessly from start to finish.</span>
-      </div>
-      <button class="read-more-btn" id="read-more-btn" onclick="toggleDesc()">Read more ↓</button>
+      <div class="venue-desc" id="venue-desc">Loading…</div>
     </div>
 
-    <div class="venue-section">
+    <div class="venue-section" id="amenities-section">
       <div class="venue-section-title">Venue amenities</div>
-      <div class="amenities-grid">
-        <div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0114.08 0"/><path d="M1.42 9a16 16 0 0121.16 0"/><path d="M8.53 16.11a6 6 0 016.95 0"/><line x1="12" y1="20" x2="12" y2="20"/></svg>WiFi</div>
-        <div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>AV Equipment</div>
-        <div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>Projector & Screen</div>
-        <div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>Bar / Drinks</div>
-        <div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 8h1a4 4 0 010 8h-1"/><path d="M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>Kitchen / Catering</div>
-        <div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Air Conditioning</div>
-        <div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Private Entrance</div>
-        <div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>Loading Dock</div>
-        <div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>Parking Available</div>
-        <div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Stage / Performance</div>
-        <div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Security</div>
-        <div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/></svg>Natural Light</div>
-      </div>
+      <div class="amenities-grid" id="amenities-grid"></div>
     </div>
 
-    <div class="venue-section">
+    <div class="venue-section" id="suitable-for-section">
       <div class="venue-section-title">Suitable for</div>
-      <div class="event-types">
-        <span class="event-chip">Wedding</span>
-        <span class="event-chip">21st Party</span>
-        <span class="event-chip">Corporate Event</span>
-        <span class="event-chip">Product Launch</span>
-        <span class="event-chip">Gala / Awards</span>
-        <span class="event-chip">Market / Expo</span>
-        <span class="event-chip">Live Performance</span>
-        <span class="event-chip">Private Party</span>
-      </div>
+      <div class="event-types" id="event-types-list"></div>
     </div>
 
     <div class="venue-section">
       <div class="venue-section-title">Host</div>
       <div class="host-card">
-        <div class="host-avatar">BV</div>
+        <div class="host-avatar" id="host-avatar">?</div>
         <div class="host-info">
-          <div class="host-name">Braedyn Veysi <span class="host-badge">✓ Verified</span></div>
-          <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Member since January 2025 · 5 listings</div>
+          <div class="host-name" id="host-name">Loading…</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px" id="host-joined-meta"></div>
           <div class="host-meta">
-            <div class="host-meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.12 1.18 2 2 0 012.1 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>027 425 4550</div>
-            <div class="host-meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>braedyn@venly.co.nz</div>
+            <div class="host-meta-row" id="host-phone-row" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.12 1.18 2 2 0 012.1 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg><span id="host-phone-val"></span></div>
+            <div class="host-meta-row" id="host-email-row" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><span id="host-email-val"></span></div>
           </div>
         </div>
       </div>
@@ -365,9 +339,9 @@ textarea { resize: none; min-height: 90px; }
   <div class="enquiry-sticky">
     <div class="enquiry-card">
       <div id="enquiry-form">
-        <div class="enquiry-price">
-          <div class="enquiry-price-label">Starting from</div>
-          <div class="enquiry-price-val">$350 <span>/ hr</span></div>
+        <div class="enquiry-price" id="enquiry-price-wrap">
+          <div class="enquiry-price-label" id="enquiry-price-label">Starting from</div>
+          <div class="enquiry-price-val" id="enquiry-price-val">—</div>
         </div>
         <div class="enquiry-divider"></div>
 
@@ -416,7 +390,7 @@ textarea { resize: none; min-height: 90px; }
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
         <h3>Enquiry sent!</h3>
-        <p>Braedyn will be in touch within 24 hours. Check your email for a confirmation.</p>
+        <p id="enquiry-success-text">The host will be in touch within 24 hours. Check your email for a confirmation.</p>
         <button class="read-more-btn" style="margin-top:16px" onclick="resetEnquiry()">Send another</button>
       </div>
     </div>
@@ -487,14 +461,174 @@ textarea { resize: none; min-height: 90px; }
 <div class="toast" id="toast"></div>
 
 <script>
-const photos = [
-  'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1400&q=85',
-  'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=1400&q=85',
-  'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=1400&q=85',
-  'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=85',
-  'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=1400&q=85',
-];
+// photos/currentPhoto stay as the gallery's working state — populated from
+// the real venue's saved photos once loadVenue() runs, instead of a fixed list.
+let photos = [];
 let currentPhoto = 0;
+let loadedVenue = null;
+
+var FALLBACK_PHOTOS = [
+  'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1400&q=85',
+  'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=85',
+  'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=1400&q=85',
+];
+
+function escapeHtmlVenue(str) {
+  var div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
+// Finds the venue to show, by id first (canonical), falling back to a
+// name match for older links that only pass ?name=.
+function findVenueFromUrl() {
+  if (typeof getAllVenues !== 'function') return null;
+  var params = new URLSearchParams(window.location.search);
+  var id = params.get('id');
+  var name = params.get('name');
+  var all = getAllVenues();
+
+  if (id) {
+    var byId = all.find(function(v) { return String(v.id) === String(id); });
+    if (byId) return byId;
+  }
+  if (name) {
+    var byName = all.find(function(v) { return v.name === name; });
+    if (byName) return byName;
+  }
+  return null;
+}
+
+function loadVenue() {
+  loadedVenue = findVenueFromUrl();
+
+  if (!loadedVenue) {
+    // No matching venue — show a clear not-found state rather than fake content
+    document.getElementById('venue-title').textContent = 'Venue not found';
+    document.getElementById('breadcrumb-current').textContent = 'Not found';
+    document.getElementById('venue-desc').textContent = 'This listing may have been removed or the link is incorrect. Try browsing all spaces instead.';
+    document.getElementById('meta-pills').innerHTML = '';
+    document.getElementById('amenities-section').style.display = 'none';
+    document.getElementById('suitable-for-section').style.display = 'none';
+    document.getElementById('enquiry-price-wrap').style.display = 'none';
+    document.getElementById('enquiry-form').innerHTML = '<a href="venly-find-a-space.html" class="btn-enquire" style="text-decoration:none;display:flex;align-items:center;justify-content:center">Browse all spaces</a>';
+    photos = FALLBACK_PHOTOS;
+    renderGallery();
+    return;
+  }
+
+  var v = loadedVenue;
+  document.title = 'Venly – ' + v.name;
+  document.getElementById('venue-title').textContent = v.name || 'Untitled venue';
+  document.getElementById('breadcrumb-current').textContent = v.name || 'Untitled venue';
+  document.getElementById('venue-desc').textContent = v.description || 'No description provided yet.';
+
+  // Meta pills: plan, space type, location, capacity, price
+  var pillsHtml = '';
+  if (v.plan === 'Premium') {
+    pillsHtml += '<span class="meta-pill highlight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Premium listing</span>';
+  }
+  pillsHtml += '<span class="meta-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>' + escapeHtmlVenue(v.type || 'Space') + '</span>';
+  var locationLabel = [v.district, v.region].filter(Boolean).join(', ');
+  if (locationLabel) {
+    pillsHtml += '<span class="meta-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>' + escapeHtmlVenue(locationLabel) + '</span>';
+  }
+  if (v.capacity) {
+    pillsHtml += '<span class="meta-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Capacity ' + escapeHtmlVenue(v.capacity) + '</span>';
+  }
+  if (v.priceFrom) {
+    pillsHtml += '<span class="meta-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>From $' + escapeHtmlVenue(v.priceFrom) + '/hr</span>';
+  }
+  document.getElementById('meta-pills').innerHTML = pillsHtml;
+
+  // Amenities — generic checkmark icon since features are now admin-editable
+  // and open-ended, rather than a fixed icon-per-feature map that would go
+  // stale every time a new feature is added via the Filters page.
+  var amenitiesSection = document.getElementById('amenities-section');
+  if (v.features && v.features.length) {
+    amenitiesSection.style.display = '';
+    document.getElementById('amenities-grid').innerHTML = v.features.map(function(f) {
+      return '<div class="amenity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>' + escapeHtmlVenue(f) + '</div>';
+    }).join('');
+  } else {
+    amenitiesSection.style.display = 'none';
+  }
+
+  // Suitable for (event types)
+  var suitableSection = document.getElementById('suitable-for-section');
+  if (v.eventTypes && v.eventTypes.length) {
+    suitableSection.style.display = '';
+    document.getElementById('event-types-list').innerHTML = v.eventTypes.map(function(et) {
+      return '<span class="event-chip">' + escapeHtmlVenue(et) + '</span>';
+    }).join('');
+  } else {
+    suitableSection.style.display = 'none';
+  }
+
+  // Host card
+  var hostName = v.hostName || 'Host';
+  var initials = hostName.split(' ').map(function(n) { return n[0]; }).join('').slice(0, 2).toUpperCase();
+  document.getElementById('host-avatar').textContent = initials || '?';
+  document.getElementById('host-name').textContent = hostName;
+  document.getElementById('host-joined-meta').textContent = (v.hostUserId ? 'Verified host' : 'Host');
+  if (v.hostPhone) {
+    document.getElementById('host-phone-row').style.display = 'flex';
+    document.getElementById('host-phone-val').textContent = v.hostPhone;
+  }
+  var hostContactEmail = v.effectiveEnquiryEmail || v.hostEmail;
+  if (hostContactEmail) {
+    document.getElementById('host-email-row').style.display = 'flex';
+    document.getElementById('host-email-val').textContent = hostContactEmail;
+  }
+
+  // Enquiry price box — hide entirely if no price was set
+  if (v.priceFrom) {
+    document.getElementById('enquiry-price-wrap').style.display = '';
+    var priceVal = v.priceTo && v.priceTo !== v.priceFrom
+      ? '$' + v.priceFrom + '–$' + v.priceTo
+      : '$' + v.priceFrom;
+    document.getElementById('enquiry-price-val').innerHTML = priceVal + ' <span>/ hr</span>';
+  } else {
+    document.getElementById('enquiry-price-wrap').style.display = 'none';
+  }
+
+  document.getElementById('enquiry-success-text').textContent =
+    (v.hostName ? v.hostName.split(' ')[0] : 'The host') + ' will be in touch within 24 hours. Check your email for a confirmation.';
+
+  // Photos for the gallery + lightbox
+  photos = (v.photos && v.photos.length) ? v.photos.slice() : FALLBACK_PHOTOS;
+  renderGallery();
+}
+
+// Renders the 3-tile gallery preview from whatever's in `photos`
+function renderGallery() {
+  var mainImg = document.getElementById('gallery-main-img');
+  var thumb1Img = document.getElementById('gallery-thumb-1-img');
+  var thumb2Img = document.getElementById('gallery-thumb-2-img');
+  var countBadge = document.getElementById('gallery-count');
+
+  mainImg.src = photos[0] || '';
+  mainImg.alt = (loadedVenue ? loadedVenue.name : 'Venue') + ' photo 1';
+
+  if (photos.length > 1) {
+    document.getElementById('gallery-thumb-1').style.display = '';
+    thumb1Img.src = photos[1];
+  } else {
+    document.getElementById('gallery-thumb-1').style.display = 'none';
+  }
+
+  if (photos.length > 2) {
+    document.getElementById('gallery-thumb-2').style.display = '';
+    thumb2Img.src = photos[2];
+    var remaining = photos.length - 2;
+    countBadge.textContent = remaining > 0 ? '+' + remaining + ' photo' + (remaining === 1 ? '' : 's') : '';
+    countBadge.style.display = remaining > 0 ? '' : 'none';
+  } else {
+    document.getElementById('gallery-thumb-2').style.display = 'none';
+  }
+}
+
+loadVenue();
 
 function openLightbox(idx) {
   currentPhoto = idx;
@@ -545,18 +679,6 @@ function toggleCardFav(btn) {
   }
 }
 
-function toggleDesc() {
-  var more = document.getElementById('desc-more');
-  var btn = document.getElementById('read-more-btn');
-  if (more.style.display === 'none') {
-    more.style.display = 'inline';
-    btn.textContent = 'Read less ↑';
-  } else {
-    more.style.display = 'none';
-    btn.textContent = 'Read more ↓';
-  }
-}
-
 async function submitEnquiry() {
   var name = document.getElementById('eq-name').value.trim();
   var email = document.getElementById('eq-email').value.trim();
@@ -567,12 +689,9 @@ async function submitEnquiry() {
   if (!msg) { showToast('Please add a message for the host'); return; }
 
   if (SUPABASE_READY) {
-    // Get venue ID from URL param or page data
-    var params = new URLSearchParams(window.location.search);
-    var venueId = params.get('id');
-    if (venueId) {
+    if (loadedVenue) {
       await sb.from('enquiries').insert({
-        venue_id: venueId,
+        venue_id: loadedVenue.id,
         name: name,
         email: email,
         phone: phone,
@@ -580,6 +699,22 @@ async function submitEnquiry() {
         status: 'open'
       });
     }
+  } else if (loadedVenue) {
+    // DEMO MODE: save the enquiry to localStorage so it's not silently lost
+    var enquiries = JSON.parse(localStorage.getItem('venly_enquiries') || '[]');
+    enquiries.unshift({
+      id: 'enq-' + Date.now(),
+      venueId: loadedVenue.id,
+      venueName: loadedVenue.name,
+      hostEmail: loadedVenue.effectiveEnquiryEmail || loadedVenue.hostEmail,
+      name: name,
+      email: email,
+      phone: phone,
+      message: msg,
+      status: 'open',
+      createdAt: new Date().toISOString(),
+    });
+    localStorage.setItem('venly_enquiries', JSON.stringify(enquiries));
   }
 
   // Show success regardless (demo or live)

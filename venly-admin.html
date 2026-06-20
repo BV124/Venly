@@ -2300,31 +2300,9 @@ function renderDistrictsForRegion() {
 // ---- VENUE MANAGEMENT ----
 
 // Seed venues — matches what was previously hardcoded in the table
-var SEED_VENUES = [
-  { id: 'v-seed-0', name: 'Brads – Shoot Location', type: 'Shoot Location', region: 'Auckland', district: 'Auckland City', plan: 'Premium', hits: 8, hostUserId: 1, hostEmail: 'braedyn@venly.co.nz', hostName: 'Braedyn Veysi', description: '', isLive: false, subscriptionStatus: 'none', createdBy: 'host' },
-  { id: 'v-seed-1', name: 'Brads – Meeting Space', type: 'Meeting space', region: 'Auckland', district: 'Auckland City', plan: 'Premium', hits: 6, hostUserId: 1, hostEmail: 'braedyn@venly.co.nz', hostName: 'Braedyn Veysi', description: '', isLive: true, subscriptionStatus: 'active', createdBy: 'host' },
-  { id: 'v-seed-2', name: 'Brads Warehouse', type: 'Event space', region: 'Auckland', district: 'Auckland City', plan: 'Standard', hits: 10, hostUserId: 1, hostEmail: 'braedyn@venly.co.nz', hostName: 'Braedyn Veysi', description: '', isLive: true, subscriptionStatus: 'active', createdBy: 'host' },
-  { id: 'v-seed-3', name: 'Okahu – Meeting Space', type: 'Meeting space', region: 'Auckland', district: 'Auckland City', plan: 'Premium', hits: 10, hostUserId: 1, hostEmail: 'braedyn@venly.co.nz', hostName: 'Braedyn Veysi', description: '', isLive: true, subscriptionStatus: 'active', createdBy: 'host' },
-  { id: 'v-seed-4', name: 'Okahu – Shoot Location', type: 'Shoot Location', region: 'Auckland', district: 'Auckland City', plan: 'Premium', hits: 6, hostUserId: 1, hostEmail: 'braedyn@venly.co.nz', hostName: 'Braedyn Veysi', description: '', isLive: false, subscriptionStatus: 'none', createdBy: 'host' },
-  { id: 'v-seed-5', name: 'Okahu', type: 'Event space', region: 'Auckland', district: 'Auckland City', plan: 'Basic', hits: 4, hostUserId: 1, hostEmail: 'braedyn@venly.co.nz', hostName: 'Braedyn Veysi', description: '', isLive: true, subscriptionStatus: 'active', createdBy: 'host' },
-  { id: 'v-seed-6', name: 'North Shore Event Space', type: 'Event space', region: 'Auckland', district: 'North Shore', plan: 'Standard', hits: 22, hostUserId: 2, hostEmail: 'alex@northshore.co.nz', hostName: 'Alex Turner', description: '', isLive: true, subscriptionStatus: 'active', createdBy: 'host' },
-  { id: 'v-seed-7', name: 'City Meeting Room', type: 'Meeting space', region: 'Auckland', district: 'Auckland City', plan: 'Basic', hits: 3, hostUserId: 3, hostEmail: 'maria@studio.co.nz', hostName: 'Maria Chen', description: '', isLive: false, subscriptionStatus: 'none', createdBy: 'host' },
-];
-
-function getAllVenues() {
-  var fromStorage = JSON.parse(localStorage.getItem('venly_venues') || 'null');
-  return fromStorage || SEED_VENUES;
-}
-
-function saveAllVenues(venues) {
-  try {
-    localStorage.setItem('venly_venues', JSON.stringify(venues));
-    return true;
-  } catch (e) {
-    showToast('Could not save — storage is full');
-    return false;
-  }
-}
+// SEED_VENUES, getAllVenues() and saveAllVenues() now live in venly-config.js
+// as VENLY_SEED_VENUES / getAllVenues() / saveAllVenues() — shared with the
+// host dashboard so both read and write the exact same venue records.
 
 // Works out the badge shown in the Status column, combining live-state and subscription
 function getVenueStatusBadge(v) {
