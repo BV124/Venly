@@ -202,6 +202,28 @@ tbody tr:last-child td { border-bottom: none; }
 }
 .crm-filter-select.is-active { border-color: var(--red); background-color: var(--red-light); color: var(--red); font-weight: 600; }
 .crm-list-count { font-size: 11px; color: var(--text-muted); padding: 10px 14px 0; flex-shrink: 0; }
+
+.crm-due-summary { display: flex; gap: 6px; padding: 10px 14px 0; flex-shrink: 0; }
+.crm-due-summary button {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 7px 4px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+  background: var(--bg); cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s;
+}
+.crm-due-summary button:hover { border-color: var(--red); }
+.crm-due-summary .num { font-size: 15px; font-weight: 800; color: var(--text); line-height: 1; }
+.crm-due-summary .lbl { font-size: 9px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.02em; }
+.crm-due-summary button.has-overdue .num { color: var(--red); }
+.crm-due-summary button.is-active { border-color: var(--red); background: var(--red-light); }
+
+.crm-due-badge {
+  display: inline-flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 700;
+  padding: 2px 6px; border-radius: 10px; text-transform: uppercase; white-space: nowrap;
+}
+.crm-due-badge svg { width: 9px; height: 9px; flex-shrink: 0; }
+.crm-due-badge.overdue { background: #fdecec; color: var(--red); }
+.crm-due-badge.today { background: #fdf0e8; color: #c2632a; }
+.crm-due-badge.soon { background: #e8f4fd; color: #1a6fa8; }
+.crm-due-badge.future { background: var(--bg); color: var(--text-muted); }
 .crm-list-scroll { flex: 1; overflow-y: auto; padding: 8px; }
 .crm-add-btn {
   width: 100%; padding: 9px; border-radius: var(--radius-sm); border: 1.5px dashed var(--border);
@@ -1497,7 +1519,15 @@ tbody tr:last-child td { border-bottom: none; }
               <option value="Shoot Location">Shoot Location</option>
             </select>
           </div>
+          <select class="crm-filter-select" id="crm-filter-due" onchange="renderCrmList()" style="width:100%;margin-top:6px">
+            <option value="">Due date: All</option>
+            <option value="overdue">Overdue</option>
+            <option value="today">Due today</option>
+            <option value="week">Due this week</option>
+            <option value="none">No due date</option>
+          </select>
         </div>
+        <div id="crm-due-summary" class="crm-due-summary"></div>
         <div class="crm-list-count" id="crm-list-count">0 venues</div>
         <div class="crm-list-scroll">
           <button class="crm-add-btn" onclick="createCrmRecord()">+ Add venue</button>
@@ -3396,11 +3426,58 @@ async function initCrmAccess() {
 }
 
 // ── Left panel: searchable/filterable list ──────────────────
+// Classifies a due date into a bucket for filtering/badging. Dates are
+// compared at the day level (not time-of-day) so "due today" matches
+// regardless of what time it currently is.
+function getCrmDueBucket(dueDate) {
+  if (!dueDate) return 'none';
+  var today = new Date(); today.setHours(0, 0, 0, 0);
+  var due = new Date(dueDate + 'T00:00:00');
+  var diffDays = Math.round((due - today) / 86400000);
+
+  if (diffDays < 0) return 'overdue';
+  if (diffDays === 0) return 'today';
+  if (diffDays <= 7) return 'soon';
+  return 'future';
+}
+
+function formatCrmDueLabel(dueDate, bucket) {
+  if (bucket === 'overdue') {
+    var daysLate = Math.round((new Date().setHours(0,0,0,0) - new Date(dueDate + 'T00:00:00')) / 86400000);
+    return daysLate + 'd overdue';
+  }
+  if (bucket === 'today') return 'Due today';
+  if (bucket === 'soon') {
+    var daysAway = Math.round((new Date(dueDate + 'T00:00:00') - new Date().setHours(0,0,0,0)) / 86400000);
+    return 'Due in ' + daysAway + 'd';
+  }
+  return 'Due ' + dueDate;
+}
+
+var CRM_DUE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>';
+
 function renderCrmList() {
   var records = getAllCrmRecords();
   var search = (document.getElementById('crm-search').value || '').toLowerCase();
   var statusFilter = document.getElementById('crm-filter-status').value;
   var categoryFilter = document.getElementById('crm-filter-category').value;
+  var dueFilter = document.getElementById('crm-filter-due').value;
+
+  // Counts across ALL records (ignoring search/status/category) so the
+  // summary buttons always show the true overdue/due-soon totals, the
+  // same way the venues table's status counts work elsewhere in the admin.
+  var dueCounts = { overdue: 0, today: 0, week: 0 };
+  records.forEach(function(r) {
+    var bucket = getCrmDueBucket(r.dueDate);
+    if (bucket === 'overdue') dueCounts.overdue++;
+    else if (bucket === 'today') dueCounts.today++;
+    else if (bucket === 'soon') dueCounts.week++;
+  });
+
+  document.getElementById('crm-due-summary').innerHTML =
+    '<button class="' + (dueCounts.overdue > 0 ? 'has-overdue' : '') + (dueFilter === 'overdue' ? ' is-active' : '') + '" onclick="setCrmDueFilter(\'overdue\')"><span class="num">' + dueCounts.overdue + '</span><span class="lbl">Overdue</span></button>' +
+    '<button class="' + (dueFilter === 'today' ? 'is-active' : '') + '" onclick="setCrmDueFilter(\'today\')"><span class="num">' + dueCounts.today + '</span><span class="lbl">Today</span></button>' +
+    '<button class="' + (dueFilter === 'week' ? 'is-active' : '') + '" onclick="setCrmDueFilter(\'week\')"><span class="num">' + dueCounts.week + '</span><span class="lbl">This week</span></button>';
 
   var filtered = records.filter(function(r) {
     var matchSearch = !search ||
@@ -3409,12 +3486,30 @@ function renderCrmList() {
       (r.email || '').toLowerCase().includes(search);
     var matchStatus = !statusFilter || r.status === statusFilter;
     var matchCategory = !categoryFilter || r.category === categoryFilter;
-    return matchSearch && matchStatus && matchCategory;
+
+    var dueBucket = getCrmDueBucket(r.dueDate);
+    var matchDue = !dueFilter
+      || (dueFilter === 'overdue' && dueBucket === 'overdue')
+      || (dueFilter === 'today' && dueBucket === 'today')
+      || (dueFilter === 'week' && (dueBucket === 'today' || dueBucket === 'soon'))
+      || (dueFilter === 'none' && dueBucket === 'none');
+
+    return matchSearch && matchStatus && matchCategory && matchDue;
+  });
+
+  // Show the most urgent (overdue, then soonest due) first, so the list
+  // itself is naturally a to-do list rather than needing to be re-sorted.
+  filtered.sort(function(a, b) {
+    if (!a.dueDate && !b.dueDate) return 0;
+    if (!a.dueDate) return 1;
+    if (!b.dueDate) return -1;
+    return new Date(a.dueDate) - new Date(b.dueDate);
   });
 
   // Highlight active filter dropdowns
   document.getElementById('crm-filter-status').classList.toggle('is-active', !!statusFilter);
   document.getElementById('crm-filter-category').classList.toggle('is-active', !!categoryFilter);
+  document.getElementById('crm-filter-due').classList.toggle('is-active', !!dueFilter);
 
   document.getElementById('crm-list-count').textContent =
     filtered.length + (filtered.length === 1 ? ' venue' : ' venues') + (filtered.length !== records.length ? ' of ' + records.length : '');
@@ -3432,6 +3527,13 @@ function renderCrmList() {
     var missingFlag = !hasStatusOrAction
       ? '<span class="crm-missing-flag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>Needs next step</span>'
       : '';
+
+    var dueBucket = getCrmDueBucket(r.dueDate);
+    var dueBadgeClass = dueBucket === 'overdue' ? 'overdue' : dueBucket === 'today' ? 'today' : dueBucket === 'soon' ? 'soon' : 'future';
+    var dueBadge = (r.dueDate && dueBucket !== 'future')
+      ? '<span class="crm-due-badge ' + dueBadgeClass + '">' + CRM_DUE_ICON + formatCrmDueLabel(r.dueDate, dueBucket) + '</span>'
+      : (r.dueDate ? '<span class="crm-due-badge future">' + CRM_DUE_ICON + formatCrmDueLabel(r.dueDate, dueBucket) + '</span>' : '');
+
     return '<div class="crm-row' + (r.id === crmSelectedId ? ' active' : '') + '" onclick="selectCrmRecord(\'' + r.id + '\')">' +
       '<div class="crm-row-top">' +
         '<span class="crm-row-name">' + escapeHtml(r.venueName || 'Untitled') + '</span>' +
@@ -3439,10 +3541,17 @@ function renderCrmList() {
       '<div class="crm-row-meta">' + escapeHtml(r.contactName || 'No contact') + (r.category ? ' \u00b7 ' + escapeHtml(r.category) : '') + '</div>' +
       '<div class="crm-row-bottom">' +
         '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:' + colors.bg + ';color:' + colors.text + ';border:1px solid ' + colors.border + '">' + escapeHtml(r.status || 'No status') + '</span>' +
+        dueBadge +
         missingFlag +
       '</div>' +
     '</div>';
   }).join('');
+}
+
+function setCrmDueFilter(value) {
+  var select = document.getElementById('crm-filter-due');
+  select.value = select.value === value ? '' : value; // clicking an active summary button toggles it off
+  renderCrmList();
 }
 
 function createCrmRecord() {
