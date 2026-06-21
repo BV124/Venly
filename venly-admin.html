@@ -3371,6 +3371,11 @@ async function initCrmAccess() {
   var allowed = true;
 
   if (typeof SUPABASE_READY !== 'undefined' && SUPABASE_READY) {
+    // LIVE MODE: this is the real security boundary — only accounts with
+    // role = 'admin' in Supabase can see or touch CRM data (also enforced
+    // again at the database level via Row Level Security, see
+    // venly-add-crm.sql, since the database is what actually protects the
+    // data — this check just avoids rendering the UI for the wrong role).
     var user = await getCurrentUser();
     if (!user) { allowed = false; }
     else {
@@ -3378,10 +3383,11 @@ async function initCrmAccess() {
       allowed = !!(data && data.role === 'admin');
     }
   } else {
-    // DEMO MODE: the seed admin account (Braedyn) is treated as admin;
-    // anyone else logged in (or signed out) doesn't see the CRM.
-    var demoUser = JSON.parse(localStorage.getItem('venly_current_user') || 'null');
-    allowed = !!(demoUser && demoUser.email === 'braedyn@venly.co.nz');
+    // DEMO MODE: there's no real login gate on the admin panel itself yet
+    // (anyone who opens venly-admin.html sees it), so the CRM follows that
+    // same assumption rather than blocking just the people testing it —
+    // reaching this page at all is treated as having admin access.
+    allowed = true;
   }
 
   document.getElementById('crm-shell').style.display = allowed ? 'grid' : 'none';
