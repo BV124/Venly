@@ -1525,6 +1525,7 @@ tbody tr:last-child td { border-bottom: none; }
               <option value="overdue">Overdue</option>
               <option value="today">Due today</option>
               <option value="week">Due this week</option>
+              <option value="later">Later (1 week+)</option>
               <option value="none">No due date</option>
             </select>
             <button class="venues-filter-clear" onclick="resetCrmFilters()" title="Reset all filters" style="flex-shrink:0">
@@ -3498,6 +3499,7 @@ function renderCrmList() {
       || (dueFilter === 'overdue' && dueBucket === 'overdue')
       || (dueFilter === 'today' && dueBucket === 'today')
       || (dueFilter === 'week' && (dueBucket === 'today' || dueBucket === 'soon'))
+      || (dueFilter === 'later' && dueBucket === 'future')
       || (dueFilter === 'none' && dueBucket === 'none');
 
     return matchSearch && matchStatus && matchCategory && matchDue;
@@ -3539,8 +3541,9 @@ function renderCrmList() {
       : '';
 
     var dueBucket = getCrmDueBucket(r.dueDate);
-    var dueBadgeClass = dueBucket === 'overdue' ? 'overdue' : dueBucket === 'today' ? 'today' : 'soon';
-    var dueBadge = (dueBucket === 'overdue' || dueBucket === 'today' || dueBucket === 'soon')
+    var dueBadgeClass = dueBucket === 'overdue' ? 'overdue' : dueBucket === 'today' ? 'today' : dueBucket === 'soon' ? 'soon' : 'future';
+    var showDueBadge = (dueBucket === 'overdue' || dueBucket === 'today' || dueBucket === 'soon') || (dueFilter === 'later' && dueBucket === 'future');
+    var dueBadge = showDueBadge
       ? '<span class="crm-due-badge ' + dueBadgeClass + '">' + CRM_DUE_ICON + formatCrmDueLabel(r.dueDate, dueBucket) + '</span>'
       : '';
 
