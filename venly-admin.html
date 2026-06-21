@@ -170,16 +170,169 @@ tbody tr:last-child td { border-bottom: none; }
 .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
 
 /* ---- CRM ---- */
-.crm-pipeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-.pipeline-col { background: var(--bg); border-radius: var(--radius); padding: 14px; }
-.pipeline-col-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.pipeline-col-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
-.pipeline-count { background: var(--white); border: 1px solid var(--border); border-radius: 20px; font-size: 11px; font-weight: 600; padding: 1px 8px; color: var(--text); }
-.crm-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 8px; cursor: pointer; transition: all 0.15s; }
-.crm-card:hover { border-color: var(--red); box-shadow: 0 2px 8px rgba(224,58,47,0.1); }
-.crm-card-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
-.crm-card-meta { font-size: 11px; color: var(--text-muted); }
-.crm-card-tag { display: inline-block; margin-top: 6px; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; }
+/* ── CRM — 3 panel layout ─────────────────────────────────── */
+.crm-shell {
+  display: grid;
+  grid-template-columns: 300px 1fr 300px;
+  gap: 0;
+  height: calc(100vh - var(--nav-h) - 56px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--white);
+}
+
+/* LEFT — venue list */
+.crm-list-panel { border-right: 1px solid var(--border); display: flex; flex-direction: column; min-width: 0; }
+.crm-list-header { padding: 14px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.crm-list-search { position: relative; margin-bottom: 10px; }
+.crm-list-search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--text-muted); }
+.crm-list-search input {
+  width: 100%; padding: 8px 10px 8px 32px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 13px; font-family: \'Inter\', sans-serif; background: var(--bg);
+}
+.crm-list-search input:focus { outline: none; border-color: var(--red); background: var(--white); }
+.crm-filter-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.crm-filter-select {
+  flex: 1; min-width: 0; padding: 6px 22px 6px 8px; border: 1px solid var(--border); border-radius: 20px;
+  font-size: 11px; font-weight: 500; font-family: \'Inter\', sans-serif; color: var(--text);
+  background-color: var(--white); cursor: pointer; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'7\' viewBox=\'0 0 10 7\'%3E%3Cpath fill=\'%236b6b6b\' d=\'M1 1l4 4 4-4\'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 8px center;
+}
+.crm-filter-select.is-active { border-color: var(--red); background-color: var(--red-light); color: var(--red); font-weight: 600; }
+.crm-list-count { font-size: 11px; color: var(--text-muted); padding: 10px 14px 0; flex-shrink: 0; }
+.crm-list-scroll { flex: 1; overflow-y: auto; padding: 8px; }
+.crm-add-btn {
+  width: 100%; padding: 9px; border-radius: var(--radius-sm); border: 1.5px dashed var(--border);
+  background: transparent; color: var(--text-muted); font-size: 12px; font-weight: 600;
+  cursor: pointer; font-family: \'Inter\', sans-serif; transition: all 0.15s; margin-bottom: 8px;
+}
+.crm-add-btn:hover { border-color: var(--red); color: var(--red); border-style: solid; }
+
+.crm-row {
+  padding: 10px 10px; border-radius: var(--radius-sm); cursor: pointer; margin-bottom: 2px;
+  border: 1px solid transparent; transition: all 0.12s; position: relative;
+}
+.crm-row:hover { background: var(--bg); }
+.crm-row.active { background: var(--red-light); border-color: #f5c4bf; }
+.crm-row-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 3px; }
+.crm-row-name { font-size: 13px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.crm-row-meta { font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.crm-row-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 5px; }
+.crm-missing-flag {
+  display: inline-flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 700;
+  color: #c2632a; background: #fdf0e8; padding: 2px 6px; border-radius: 10px; text-transform: uppercase;
+}
+.crm-missing-flag svg { width: 9px; height: 9px; }
+
+.crm-empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; text-align: center; padding: 32px; color: var(--text-muted);
+}
+.crm-empty-state svg { width: 36px; height: 36px; color: #ddd; margin-bottom: 10px; }
+
+/* MIDDLE — venue detail */
+.crm-detail-panel { display: flex; flex-direction: column; min-width: 0; overflow-y: auto; }
+.crm-detail-empty { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); font-size: 13px; flex-direction: column; gap: 10px; }
+.crm-detail-empty svg { width: 40px; height: 40px; color: #ddd; }
+.crm-detail-header { padding: 18px 20px; border-bottom: 1px solid var(--border); }
+.crm-detail-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.crm-detail-name-input {
+  font-size: 18px; font-weight: 700; border: none; outline: none; padding: 2px 4px; margin: -2px -4px;
+  border-radius: 6px; width: 100%; font-family: \'Inter\', sans-serif; color: var(--text); background: transparent;
+}
+.crm-detail-name-input:focus { background: var(--bg); }
+.crm-detail-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.crm-status-select {
+  padding: 6px 26px 6px 12px; border-radius: 20px; border: 1.5px solid var(--border); font-size: 12px;
+  font-weight: 700; font-family: \'Inter\', sans-serif; cursor: pointer; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'7\' viewBox=\'0 0 10 7\'%3E%3Cpath fill=\'%23fff\' d=\'M1 1l4 4 4-4\'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+}
+.crm-detail-body { padding: 18px 20px; flex: 1; }
+.crm-field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+.crm-field { display: flex; flex-direction: column; gap: 4px; }
+.crm-field.full { grid-column: span 2; }
+.crm-field label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
+.crm-field input, .crm-field select, .crm-field textarea {
+  padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 13px; font-family: \'Inter\', sans-serif; color: var(--text); background: var(--white);
+}
+.crm-field input:focus, .crm-field select:focus, .crm-field textarea:focus { outline: none; border-color: var(--red); }
+.crm-field textarea { resize: vertical; min-height: 50px; }
+
+.crm-tags-wrap { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.crm-tag-chip {
+  display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px;
+  background: var(--bg); border: 1px solid var(--border); font-size: 11px; font-weight: 600; color: var(--text);
+}
+.crm-tag-chip button { background: none; border: none; cursor: pointer; color: var(--text-muted); display: flex; padding: 0; }
+.crm-tag-chip button:hover { color: var(--red); }
+.crm-tag-add-btn {
+  font-size: 11px; font-weight: 600; color: var(--red); background: var(--red-light); border: 1px dashed #f5c4bf;
+  border-radius: 20px; padding: 4px 10px; cursor: pointer; font-family: \'Inter\', sans-serif;
+}
+
+.crm-next-action-card {
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 12px 14px; margin-bottom: 18px; display: flex; align-items: center; gap: 10px;
+}
+.crm-next-action-card.overdue { background: #fdecec; border-color: #f5c4bf; }
+.crm-next-action-card svg { width: 16px; height: 16px; color: var(--text-muted); flex-shrink: 0; }
+.crm-next-action-card.overdue svg { color: var(--red); }
+.crm-next-action-text { font-size: 12px; flex: 1; }
+.crm-next-action-text strong { display: block; font-size: 13px; color: var(--text); margin-bottom: 1px; }
+.crm-warning-banner {
+  display: flex; align-items: center; gap: 8px; background: #fdf0e8; border: 1px solid #f5cfa8;
+  border-radius: var(--radius-sm); padding: 10px 14px; font-size: 12px; color: #a0522d; margin-bottom: 16px;
+}
+.crm-warning-banner svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+/* RIGHT — activity timeline */
+.crm-timeline-panel { display: flex; flex-direction: column; min-width: 0; }
+.crm-timeline-header { padding: 14px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.crm-timeline-header h4 { font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+.crm-quick-add { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.crm-quick-add button {
+  display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 4px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--white);
+  cursor: pointer; font-size: 9px; font-weight: 600; color: var(--text-muted); transition: all 0.15s;
+  font-family: \'Inter\', sans-serif;
+}
+.crm-quick-add button:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
+.crm-quick-add button svg { width: 15px; height: 15px; }
+.crm-timeline-scroll { flex: 1; overflow-y: auto; padding: 14px; }
+.crm-timeline-empty { text-align: center; color: var(--text-muted); font-size: 12px; padding: 24px 8px; }
+
+.crm-timeline-item { display: flex; gap: 10px; margin-bottom: 16px; position: relative; }
+.crm-timeline-item:not(:last-child)::before {
+  content: \'\'; position: absolute; left: 13px; top: 28px; bottom: -16px; width: 1px; background: var(--border);
+}
+.crm-timeline-icon {
+  width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; background: var(--bg); border: 1px solid var(--border); color: var(--text-muted); z-index: 1;
+}
+.crm-timeline-icon svg { width: 13px; height: 13px; }
+.crm-timeline-icon.note { background: #f0f0ff; border-color: #d0ccff; color: #5a4fcf; }
+.crm-timeline-icon.email { background: #e8f4fd; border-color: #b3d9f5; color: #1a6fa8; }
+.crm-timeline-icon.call { background: #e8f8ee; border-color: #b8e8c8; color: #1a8a4a; }
+.crm-timeline-icon.meeting { background: #fdf0e8; border-color: #f5cfa8; color: #c2632a; }
+.crm-timeline-icon.system { background: var(--bg); border-color: var(--border); color: var(--text-muted); }
+.crm-timeline-content { flex: 1; min-width: 0; padding-top: 2px; }
+.crm-timeline-text { font-size: 12px; color: var(--text); line-height: 1.5; word-wrap: break-word; }
+.crm-timeline-time { font-size: 10px; color: var(--text-muted); margin-top: 3px; }
+.crm-timeline-input-wrap { padding: 10px 14px; border-top: 1px solid var(--border); flex-shrink: 0; }
+.crm-timeline-input-wrap textarea {
+  width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px;
+  font-size: 12px; font-family: \'Inter\', sans-serif; resize: none; min-height: 50px;
+}
+.crm-timeline-input-wrap textarea:focus { outline: none; border-color: var(--red); }
+.crm-timeline-input-actions { display: flex; justify-content: flex-end; margin-top: 6px; }
+
+@media (max-width: 1100px) {
+  .crm-shell { grid-template-columns: 240px 1fr 260px; }
+}
 
 /* ---- FILTERS ---- */
 .filter-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
@@ -565,7 +718,7 @@ tbody tr:last-child td { border-bottom: none; }
   .main { margin-left: 180px; padding: 20px 20px 60px; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .two-col, .analytics-grid { grid-template-columns: 1fr; }
-  .crm-pipeline { grid-template-columns: repeat(2, 1fr); }
+  .crm-shell { grid-template-columns: 220px 1fr 220px; }
   .filter-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 700px) {
@@ -596,8 +749,9 @@ tbody tr:last-child td { border-bottom: none; }
   /* Tables */
   .table-card-header { flex-direction: column; gap: 10px; align-items: flex-start; }
   .search-input { width: 100%; }
-  /* CRM */
-  .crm-pipeline { grid-template-columns: 1fr; }
+  /* CRM — stack panels vertically on narrow screens */
+  .crm-shell { grid-template-columns: 1fr; height: auto; }
+  .crm-list-panel, .crm-detail-panel, .crm-timeline-panel { border-right: none; border-bottom: 1px solid var(--border); max-height: 420px; }
   /* Filters */
   .filter-grid { grid-template-columns: 1fr; }
   /* Charts */
@@ -1307,31 +1461,91 @@ tbody tr:last-child td { border-bottom: none; }
   <!-- ===== CRM ===== -->
   <div id="section-crm" class="page-section">
     <div class="section-header">
-      <div><div class="section-title">CRM</div><div class="section-subtitle">Track leads, prospects and host relationships.</div></div>
-      <button class="btn-sm btn-red" onclick="openModal('crm')">+ Add contact</button>
+      <div><div class="section-title">CRM</div><div class="section-subtitle">Track outreach to venues, hosts and prospects — one record, one timeline, always a next step.</div></div>
     </div>
-    <div class="crm-pipeline">
-      <div class="pipeline-col">
-        <div class="pipeline-col-header"><span class="pipeline-col-title">Lead</span><span class="pipeline-count">3</span></div>
-        <div class="crm-card"><div class="crm-card-name">Sophie Williams</div><div class="crm-card-meta">Ponsonby warehouse · Event space</div><span class="crm-card-tag" style="background:#fff8ec;color:#a06000;border:1px solid #fde7a0">New inquiry</span></div>
-        <div class="crm-card"><div class="crm-card-name">Daniel Park</div><div class="crm-card-meta">CBD boardroom · Meeting space</div><span class="crm-card-tag" style="background:#fff8ec;color:#a06000;border:1px solid #fde7a0">Cold outreach</span></div>
-        <div class="crm-card"><div class="crm-card-name">Emma Clarke</div><div class="crm-card-meta">Takapuna shoot studio</div><span class="crm-card-tag" style="background:#fff8ec;color:#a06000;border:1px solid #fde7a0">Referral</span></div>
+
+    <div id="crm-access-denied" style="display:none; padding:60px 20px; text-align:center; color:var(--text-muted)">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom:12px;color:#ddd"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">You don't have access to the CRM</div>
+      <div style="font-size:13px">This area is restricted to admin accounts.</div>
+    </div>
+
+    <div class="crm-shell" id="crm-shell">
+
+      <!-- LEFT: searchable/filterable list -->
+      <div class="crm-list-panel">
+        <div class="crm-list-header">
+          <div class="crm-list-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="text" id="crm-search" placeholder="Search venues, contacts..." oninput="renderCrmList()" />
+          </div>
+          <div class="crm-filter-row">
+            <select class="crm-filter-select" id="crm-filter-status" onchange="renderCrmList()">
+              <option value="">Status: All</option>
+              <option value="New">New</option>
+              <option value="Contacted">Contacted</option>
+              <option value="Interested">Interested</option>
+              <option value="Listed">Listed</option>
+              <option value="Not Now">Not Now</option>
+              <option value="Lost">Lost</option>
+              <option value="Do Not Contact">Do Not Contact</option>
+            </select>
+            <select class="crm-filter-select" id="crm-filter-category" onchange="renderCrmList()">
+              <option value="">Category: All</option>
+              <option value="Event space">Event space</option>
+              <option value="Meeting space">Meeting space</option>
+              <option value="Shoot Location">Shoot Location</option>
+            </select>
+          </div>
+        </div>
+        <div class="crm-list-count" id="crm-list-count">0 venues</div>
+        <div class="crm-list-scroll">
+          <button class="crm-add-btn" onclick="createCrmRecord()">+ Add venue</button>
+          <div id="crm-list-rows"></div>
+        </div>
       </div>
-      <div class="pipeline-col">
-        <div class="pipeline-col-header"><span class="pipeline-col-title">Contacted</span><span class="pipeline-count">2</span></div>
-        <div class="crm-card"><div class="crm-card-name">Sarah Robertson</div><div class="crm-card-meta">Ponsonby warehouse · Event space</div><span class="crm-card-tag" style="background:#e8f4fd;color:#1a6fa8;border:1px solid #b3d9f5">Email sent</span></div>
-        <div class="crm-card"><div class="crm-card-name">Mike Zhao</div><div class="crm-card-meta">Newmarket studio · Shoot</div><span class="crm-card-tag" style="background:#e8f4fd;color:#1a6fa8;border:1px solid #b3d9f5">Call booked</span></div>
+
+      <!-- MIDDLE: selected venue's details -->
+      <div class="crm-detail-panel" id="crm-detail-panel">
+        <div class="crm-detail-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          Select a venue from the list, or add a new one
+        </div>
       </div>
-      <div class="pipeline-col">
-        <div class="pipeline-col-header"><span class="pipeline-col-title">Listing</span><span class="pipeline-count">2</span></div>
-        <div class="crm-card"><div class="crm-card-name">Alex Turner</div><div class="crm-card-meta">North Shore Event Space</div><span class="crm-card-tag" style="background:#e8f8ee;color:#1a8a4a;border:1px solid #b8e8c8">Live</span></div>
-        <div class="crm-card"><div class="crm-card-name">Maria Chen</div><div class="crm-card-meta">City Meeting Room</div><span class="crm-card-tag" style="background:#fff8ec;color:#a06000;border:1px solid #fde7a0">Draft</span></div>
+
+      <!-- RIGHT: activity timeline -->
+      <div class="crm-timeline-panel" id="crm-timeline-panel" style="display:none">
+        <div class="crm-timeline-header">
+          <h4>Activity</h4>
+          <div class="crm-quick-add">
+            <button onclick="openCrmActivityInput('note')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4z"/></svg>
+              Note
+            </button>
+            <button onclick="openCrmActivityInput('email')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              Email
+            </button>
+            <button onclick="openCrmActivityInput('call')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.12 1.18 2 2 0 012.1 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+              Call
+            </button>
+            <button onclick="openCrmActivityInput('meeting')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              Meeting
+            </button>
+          </div>
+        </div>
+        <div class="crm-timeline-scroll" id="crm-timeline-scroll"></div>
+        <div class="crm-timeline-input-wrap" id="crm-timeline-input-wrap" style="display:none">
+          <textarea id="crm-activity-text" placeholder="What happened?"></textarea>
+          <div class="crm-timeline-input-actions">
+            <button class="btn-sm" style="background:var(--bg);color:var(--text);margin-right:6px" onclick="closeCrmActivityInput()">Cancel</button>
+            <button class="btn-sm btn-red" onclick="saveCrmActivity()">Add</button>
+          </div>
+        </div>
       </div>
-      <div class="pipeline-col">
-        <div class="pipeline-col-header"><span class="pipeline-col-title">Paying</span><span class="pipeline-count">2</span></div>
-        <div class="crm-card"><div class="crm-card-name">Braedyn Veysi</div><div class="crm-card-meta">5 venues · Premium</div><span class="crm-card-tag" style="background:#e8f8ee;color:#1a8a4a;border:1px solid #b8e8c8">$395/mo</span></div>
-        <div class="crm-card"><div class="crm-card-name">Alex Turner</div><div class="crm-card-meta">1 venue · Standard</div><span class="crm-card-tag" style="background:#e8f8ee;color:#1a8a4a;border:1px solid #b8e8c8">$59/mo</span></div>
-      </div>
+
     </div>
   </div>
 
@@ -3055,11 +3269,430 @@ function deleteVenueWithConfirm(venueId) {
 
 
 
+// ============================================================
+// CRM
+// One record per venue/prospect. Every record always carries a
+// status AND/OR a next action — enforced on save, flagged in the
+// list if somehow missing (e.g. older imported data).
+// ============================================================
+
+var CRM_STATUSES = ['New', 'Contacted', 'Interested', 'Listed', 'Not Now', 'Lost', 'Do Not Contact'];
+var CRM_LOST_REASONS = ['Timing', 'Existing platform', 'No response', 'Too expensive', 'Other'];
+var CRM_CATEGORIES = ['Event space', 'Meeting space', 'Shoot Location'];
+
+var CRM_STATUS_COLORS = {
+  'New':            { bg: '#e8f4fd', text: '#1a6fa8', border: '#b3d9f5' },
+  'Contacted':      { bg: '#f0f0ff', text: '#5a4fcf', border: '#d0ccff' },
+  'Interested':     { bg: '#fdf0e8', text: '#c2632a', border: '#f5cfa8' },
+  'Listed':         { bg: '#e8f8ee', text: '#1a8a4a', border: '#b8e8c8' },
+  'Not Now':        { bg: 'var(--bg)', text: 'var(--text-muted)', border: 'var(--border)' },
+  'Lost':           { bg: '#fdecec', text: '#c2332a', border: '#f5c4bf' },
+  'Do Not Contact': { bg: '#1a1a1a', text: '#fff', border: '#1a1a1a' },
+};
+
+var SEED_CRM_RECORDS = [
+  {
+    id: 'crm-seed-0', venueName: 'Sophie\u2019s Ponsonby Warehouse', website: '', category: 'Event space',
+    address: 'Ponsonby, Auckland', contactName: 'Sophie Williams', email: 'sophie@example.com', phone: '021 555 0101',
+    status: 'New', tags: ['Referral'], lostReason: '', nextAction: 'Send intro email', dueDate: nextBusinessDay(0),
+    timeline: [ crmSystemEntry('Added to CRM') ],
+  },
+  {
+    id: 'crm-seed-1', venueName: 'Daniel\u2019s CBD Boardroom', website: '', category: 'Meeting space',
+    address: 'Auckland CBD', contactName: 'Daniel Park', email: 'daniel@example.com', phone: '021 555 0102',
+    status: 'Contacted', tags: ['Cold outreach'], lostReason: '', nextAction: 'Follow up call', dueDate: nextBusinessDay(2),
+    timeline: [ crmSystemEntry('Added to CRM'), { id: 'a1', type: 'email', text: 'Sent intro email about listing on Venly.', createdAt: daysAgoIso(3) } ],
+  },
+  {
+    id: 'crm-seed-2', venueName: 'Emma\u2019s Takapuna Studio', website: '', category: 'Shoot Location',
+    address: 'Takapuna, Auckland', contactName: 'Emma Clarke', email: 'emma@example.com', phone: '021 555 0103',
+    status: 'Interested', tags: ['Referral'], lostReason: '', nextAction: 'Send pricing info', dueDate: nextBusinessDay(1),
+    timeline: [ crmSystemEntry('Added to CRM'), { id: 'a2', type: 'call', text: 'Had a quick call \u2014 keen to list once she has photos sorted.', createdAt: daysAgoIso(1) } ],
+  },
+  {
+    id: 'crm-seed-3', venueName: 'North Shore Event Space', website: '', category: 'Event space',
+    address: 'North Shore, Auckland', contactName: 'Alex Turner', email: 'alex@northshore.co.nz', phone: '021 345 6789',
+    status: 'Listed', tags: [], lostReason: '', nextAction: '', dueDate: '',
+    timeline: [ crmSystemEntry('Added to CRM'), crmSystemEntry('Listing went live') ],
+  },
+  {
+    id: 'crm-seed-4', venueName: 'Mike\u2019s Newmarket Studio', website: '', category: 'Shoot Location',
+    address: 'Newmarket, Auckland', contactName: 'Mike Zhao', email: 'mike@example.com', phone: '021 555 0105',
+    status: 'Not Now', tags: [], lostReason: '', nextAction: 'Check back next quarter', dueDate: nextBusinessDay(60),
+    timeline: [ crmSystemEntry('Added to CRM'), { id: 'a3', type: 'note', text: 'Not ready yet \u2014 renovating the space until spring.', createdAt: daysAgoIso(5) } ],
+  },
+  {
+    id: 'crm-seed-5', venueName: 'Riverside Function Centre', website: '', category: 'Event space',
+    address: 'Hamilton', contactName: 'Pita Ngata', email: 'pita@example.com', phone: '021 555 0106',
+    status: 'Lost', tags: [], lostReason: 'Existing platform', nextAction: 'Revisit in 6 months', dueDate: nextBusinessDay(180),
+    timeline: [ crmSystemEntry('Added to CRM'), { id: 'a4', type: 'email', text: 'They\u2019re already committed to a competitor for this year.', createdAt: daysAgoIso(10) }, crmSystemEntry('Marked as Lost \u2014 Existing platform') ],
+  },
+];
+
+function daysAgoIso(days) {
+  var d = new Date();
+  d.setDate(d.getDate() - days);
+  return d.toISOString();
+}
+function nextBusinessDay(daysFromNow) {
+  var d = new Date();
+  d.setDate(d.getDate() + daysFromNow);
+  return d.toISOString().slice(0, 10);
+}
+function crmSystemEntry(text) {
+  return { id: 'sys-' + Math.random().toString(36).slice(2), type: 'system', text: text, createdAt: new Date().toISOString() };
+}
+
+function getAllCrmRecords() {
+  var fromStorage = JSON.parse(localStorage.getItem('venly_crm') || 'null');
+  return fromStorage || SEED_CRM_RECORDS;
+}
+
+function saveAllCrmRecords(records) {
+  try {
+    localStorage.setItem('venly_crm', JSON.stringify(records));
+    return true;
+  } catch (e) {
+    showToast('Could not save \u2014 storage is full');
+    return false;
+  }
+}
+
+var crmSelectedId = null;
+var crmActivityType = null;
+
+// ── Role gate ────────────────────────────────────────────────
+// CRM data is sensitive (contact details, deal notes) so it's only shown
+// to admin accounts. The real security boundary is the Supabase RLS
+// policy on crm_records (see venly-database-setup.sql) — this client-side
+// check just avoids rendering the UI at all for the wrong role, it isn't
+// what actually protects the data once Supabase is live.
+async function initCrmAccess() {
+  var allowed = true;
+
+  if (typeof SUPABASE_READY !== 'undefined' && SUPABASE_READY) {
+    var user = await getCurrentUser();
+    if (!user) { allowed = false; }
+    else {
+      var { data } = await sb.from('profiles').select('role').eq('id', user.id).single();
+      allowed = !!(data && data.role === 'admin');
+    }
+  } else {
+    // DEMO MODE: the seed admin account (Braedyn) is treated as admin;
+    // anyone else logged in (or signed out) doesn't see the CRM.
+    var demoUser = JSON.parse(localStorage.getItem('venly_current_user') || 'null');
+    allowed = !!(demoUser && demoUser.email === 'braedyn@venly.co.nz');
+  }
+
+  document.getElementById('crm-shell').style.display = allowed ? 'grid' : 'none';
+  document.getElementById('crm-access-denied').style.display = allowed ? 'none' : 'block';
+  if (allowed) renderCrmList();
+}
+
+// ── Left panel: searchable/filterable list ──────────────────
+function renderCrmList() {
+  var records = getAllCrmRecords();
+  var search = (document.getElementById('crm-search').value || '').toLowerCase();
+  var statusFilter = document.getElementById('crm-filter-status').value;
+  var categoryFilter = document.getElementById('crm-filter-category').value;
+
+  var filtered = records.filter(function(r) {
+    var matchSearch = !search ||
+      (r.venueName || '').toLowerCase().includes(search) ||
+      (r.contactName || '').toLowerCase().includes(search) ||
+      (r.email || '').toLowerCase().includes(search);
+    var matchStatus = !statusFilter || r.status === statusFilter;
+    var matchCategory = !categoryFilter || r.category === categoryFilter;
+    return matchSearch && matchStatus && matchCategory;
+  });
+
+  // Highlight active filter dropdowns
+  document.getElementById('crm-filter-status').classList.toggle('is-active', !!statusFilter);
+  document.getElementById('crm-filter-category').classList.toggle('is-active', !!categoryFilter);
+
+  document.getElementById('crm-list-count').textContent =
+    filtered.length + (filtered.length === 1 ? ' venue' : ' venues') + (filtered.length !== records.length ? ' of ' + records.length : '');
+
+  var rowsEl = document.getElementById('crm-list-rows');
+
+  if (filtered.length === 0) {
+    rowsEl.innerHTML = '<div class="crm-empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>No venues match</div>';
+    return;
+  }
+
+  rowsEl.innerHTML = filtered.map(function(r) {
+    var colors = CRM_STATUS_COLORS[r.status] || CRM_STATUS_COLORS['New'];
+    var hasStatusOrAction = !!(r.status) || !!(r.nextAction && r.nextAction.trim());
+    var missingFlag = !hasStatusOrAction
+      ? '<span class="crm-missing-flag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>Needs next step</span>'
+      : '';
+    return '<div class="crm-row' + (r.id === crmSelectedId ? ' active' : '') + '" onclick="selectCrmRecord(\'' + r.id + '\')">' +
+      '<div class="crm-row-top">' +
+        '<span class="crm-row-name">' + escapeHtml(r.venueName || 'Untitled') + '</span>' +
+      '</div>' +
+      '<div class="crm-row-meta">' + escapeHtml(r.contactName || 'No contact') + (r.category ? ' \u00b7 ' + escapeHtml(r.category) : '') + '</div>' +
+      '<div class="crm-row-bottom">' +
+        '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:' + colors.bg + ';color:' + colors.text + ';border:1px solid ' + colors.border + '">' + escapeHtml(r.status || 'No status') + '</span>' +
+        missingFlag +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function createCrmRecord() {
+  var records = getAllCrmRecords();
+  var newRecord = {
+    id: 'crm-' + Date.now(),
+    venueName: 'New venue',
+    website: '', category: 'Event space', address: '',
+    contactName: '', email: '', phone: '',
+    status: 'New', tags: [], lostReason: '',
+    nextAction: '', dueDate: '',
+    timeline: [ crmSystemEntry('Added to CRM') ],
+  };
+  records.unshift(newRecord);
+  saveAllCrmRecords(records);
+  renderCrmList();
+  selectCrmRecord(newRecord.id);
+}
+
+function deleteCrmRecordWithConfirm() {
+  if (!crmSelectedId) return;
+  var records = getAllCrmRecords();
+  var record = records.find(function(r) { return r.id === crmSelectedId; });
+  if (!record) return;
+
+  document.getElementById('confirm-delete-title').textContent = 'Delete "' + record.venueName + '"?';
+  document.getElementById('confirm-delete-desc').textContent = 'This permanently removes the record and its entire activity history. This can\'t be undone.';
+  var confirmBtn = document.getElementById('confirm-delete-btn');
+  confirmBtn.textContent = 'Delete';
+  confirmBtn.onclick = function() {
+    var updated = getAllCrmRecords().filter(function(r) { return r.id !== crmSelectedId; });
+    saveAllCrmRecords(updated);
+    crmSelectedId = null;
+    renderCrmList();
+    renderCrmDetailEmpty();
+    closeConfirmDelete();
+    confirmBtn.textContent = 'Remove';
+    showToast('Venue removed from CRM');
+  };
+  document.getElementById('confirm-delete-modal').classList.remove('hidden');
+}
+
+// ── Middle panel: selected venue's details ──────────────────
+function selectCrmRecord(id) {
+  crmSelectedId = id;
+  renderCrmList(); // refresh active highlight
+  renderCrmDetail();
+  renderCrmTimeline();
+}
+
+function getCrmRecord(id) {
+  return getAllCrmRecords().find(function(r) { return r.id === id; });
+}
+
+function renderCrmDetailEmpty() {
+  document.getElementById('crm-detail-panel').innerHTML =
+    '<div class="crm-detail-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Select a venue from the list, or add a new one</div>';
+  document.getElementById('crm-timeline-panel').style.display = 'none';
+}
+
+function renderCrmDetail() {
+  var r = getCrmRecord(crmSelectedId);
+  if (!r) { renderCrmDetailEmpty(); return; }
+
+  document.getElementById('crm-timeline-panel').style.display = 'flex';
+
+  var hasStatusOrAction = !!(r.status) || !!(r.nextAction && r.nextAction.trim());
+  var warningHtml = !hasStatusOrAction
+    ? '<div class="crm-warning-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>This venue has no status and no next action \u2014 set at least one so it doesn\'t get lost.</div>'
+    : '';
+
+  var isOverdue = r.dueDate && new Date(r.dueDate) < new Date(new Date().toDateString());
+  var nextActionHtml = (r.nextAction && r.nextAction.trim())
+    ? '<div class="crm-next-action-card' + (isOverdue ? ' overdue' : '') + '">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>' +
+        '<div class="crm-next-action-text"><strong>' + escapeHtml(r.nextAction) + '</strong>' + (r.dueDate ? (isOverdue ? 'Overdue \u2014 was due ' : 'Due ') + escapeHtml(r.dueDate) : 'No due date set') + '</div>' +
+      '</div>'
+    : '';
+
+  var statusOptionsHtml = CRM_STATUSES.map(function(s) {
+    return '<option value="' + s + '"' + (r.status === s ? ' selected' : '') + '>' + s + '</option>';
+  }).join('');
+
+  var lostReasonFieldHtml = (r.status === 'Lost') ? (
+    '<div class="crm-field full">' +
+      '<label>Lost reason</label>' +
+      '<select onchange="saveCrmField(\'lostReason\', this.value)">' +
+        '<option value="">Select a reason\u2026</option>' +
+        CRM_LOST_REASONS.map(function(lr) { return '<option value="' + lr + '"' + (r.lostReason === lr ? ' selected' : '') + '>' + lr + '</option>'; }).join('') +
+      '</select>' +
+    '</div>'
+  ) : '';
+
+  var categoryOptionsHtml = CRM_CATEGORIES.map(function(c) {
+    return '<option value="' + c + '"' + (r.category === c ? ' selected' : '') + '>' + c + '</option>';
+  }).join('');
+
+  var tagsHtml = (r.tags || []).map(function(t, i) {
+    return '<span class="crm-tag-chip">' + escapeHtml(t) + '<button onclick="removeCrmTag(' + i + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="10" height="10"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></span>';
+  }).join('');
+
+  var colors = CRM_STATUS_COLORS[r.status] || CRM_STATUS_COLORS['New'];
+
+  document.getElementById('crm-detail-panel').innerHTML =
+    '<div class="crm-detail-header">' +
+      '<div class="crm-detail-title-row">' +
+        '<input type="text" class="crm-detail-name-input" value="' + escapeHtml(r.venueName || '') + '" placeholder="Venue name" onblur="saveCrmField(\'venueName\', this.value)" />' +
+        '<div class="crm-detail-actions">' +
+          '<select class="crm-status-select" style="background-color:' + colors.bg + ';color:' + colors.text + ';border-color:' + colors.border + '" onchange="saveCrmField(\'status\', this.value); renderCrmDetail();">' + statusOptionsHtml + '</select>' +
+          '<button class="action-btn danger" onclick="deleteCrmRecordWithConfirm()" title="Delete"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="crm-detail-body">' +
+      warningHtml +
+      nextActionHtml +
+      '<div class="crm-field-grid">' +
+        '<div class="crm-field"><label>Category</label><select onchange="saveCrmField(\'category\', this.value)">' + categoryOptionsHtml + '</select></div>' +
+        '<div class="crm-field"><label>Website</label><input type="text" value="' + escapeHtml(r.website || '') + '" placeholder="https://\u2026" onblur="saveCrmField(\'website\', this.value)" /></div>' +
+        '<div class="crm-field full"><label>Address</label><input type="text" value="' + escapeHtml(r.address || '') + '" placeholder="123 Queen St, Auckland" onblur="saveCrmField(\'address\', this.value)" /></div>' +
+        '<div class="crm-field"><label>Contact name</label><input type="text" value="' + escapeHtml(r.contactName || '') + '" placeholder="Jane Smith" onblur="saveCrmField(\'contactName\', this.value)" /></div>' +
+        '<div class="crm-field"><label>Phone</label><input type="tel" value="' + escapeHtml(r.phone || '') + '" placeholder="021 000 0000" onblur="saveCrmField(\'phone\', this.value)" /></div>' +
+        '<div class="crm-field full"><label>Email</label><input type="email" value="' + escapeHtml(r.email || '') + '" placeholder="jane@example.com" onblur="saveCrmField(\'email\', this.value)" /></div>' +
+        lostReasonFieldHtml +
+        '<div class="crm-field"><label>Next action</label><input type="text" value="' + escapeHtml(r.nextAction || '') + '" placeholder="e.g. Send pricing info" onblur="saveCrmField(\'nextAction\', this.value)" /></div>' +
+        '<div class="crm-field"><label>Due date</label><input type="date" value="' + escapeHtml(r.dueDate || '') + '" onblur="saveCrmField(\'dueDate\', this.value)" /></div>' +
+        '<div class="crm-field full"><label>Tags</label><div class="crm-tags-wrap">' + tagsHtml + '<button class="crm-tag-add-btn" onclick="addCrmTag()">+ Add tag</button></div></div>' +
+      '</div>' +
+    '</div>';
+}
+
+function saveCrmField(field, value) {
+  var records = getAllCrmRecords();
+  var r = records.find(function(x) { return x.id === crmSelectedId; });
+  if (!r) return;
+  var oldValue = r[field];
+  if (oldValue === value) return; // nothing actually changed
+  r[field] = value;
+
+  // Log meaningful field changes to the timeline automatically
+  var fieldLabels = { venueName: 'Venue name', status: 'Status', category: 'Category', website: 'Website',
+    address: 'Address', contactName: 'Contact name', phone: 'Phone', email: 'Email', lostReason: 'Lost reason',
+    nextAction: 'Next action', dueDate: 'Due date' };
+  if (fieldLabels[field] && value) {
+    r.timeline = r.timeline || [];
+    if (field === 'status' && value === 'Lost') {
+      r.timeline.push(crmSystemEntry('Marked as Lost'));
+    } else if (field === 'status') {
+      r.timeline.push(crmSystemEntry('Status changed to ' + value));
+    } else {
+      r.timeline.push(crmSystemEntry(fieldLabels[field] + ' updated to "' + value + '"'));
+    }
+  }
+
+  saveAllCrmRecords(records);
+  renderCrmList(); // keep the left list's status pill / missing-flag in sync
+  renderCrmTimeline();
+}
+
+function addCrmTag() {
+  var tag = prompt('Add a tag (e.g. "Referral", "Cold outreach"):');
+  if (!tag || !tag.trim()) return;
+  var records = getAllCrmRecords();
+  var r = records.find(function(x) { return x.id === crmSelectedId; });
+  if (!r) return;
+  r.tags = r.tags || [];
+  r.tags.push(tag.trim());
+  saveAllCrmRecords(records);
+  renderCrmDetail();
+}
+
+function removeCrmTag(idx) {
+  var records = getAllCrmRecords();
+  var r = records.find(function(x) { return x.id === crmSelectedId; });
+  if (!r) return;
+  r.tags.splice(idx, 1);
+  saveAllCrmRecords(records);
+  renderCrmDetail();
+}
+
+// ── Right panel: activity timeline ──────────────────────────
+var CRM_ACTIVITY_ICONS = {
+  note: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4z"/></svg>',
+  email: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
+  call: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.12 1.18 2 2 0 012.1 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>',
+  meeting: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+  system: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>',
+};
+
+function renderCrmTimeline() {
+  var r = getCrmRecord(crmSelectedId);
+  var scrollEl = document.getElementById('crm-timeline-scroll');
+  if (!r) { scrollEl.innerHTML = ''; return; }
+
+  var entries = (r.timeline || []).slice().sort(function(a, b) { return new Date(b.createdAt) - new Date(a.createdAt); });
+
+  if (entries.length === 0) {
+    scrollEl.innerHTML = '<div class="crm-timeline-empty">No activity yet \u2014 add a note, log a call, or send an email above.</div>';
+    return;
+  }
+
+  scrollEl.innerHTML = entries.map(function(e) {
+    return '<div class="crm-timeline-item">' +
+      '<div class="crm-timeline-icon ' + e.type + '">' + (CRM_ACTIVITY_ICONS[e.type] || CRM_ACTIVITY_ICONS.system) + '</div>' +
+      '<div class="crm-timeline-content">' +
+        '<div class="crm-timeline-text">' + escapeHtml(e.text) + '</div>' +
+        '<div class="crm-timeline-time">' + timeSince(e.createdAt) + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function openCrmActivityInput(type) {
+  if (!crmSelectedId) { showToast('Select a venue first'); return; }
+  crmActivityType = type;
+  document.getElementById('crm-timeline-input-wrap').style.display = 'block';
+  var textarea = document.getElementById('crm-activity-text');
+  textarea.value = '';
+  textarea.placeholder = {
+    note: 'What\u2019s the note?',
+    email: 'What did the email say?',
+    call: 'How did the call go?',
+    meeting: 'What was discussed at the meeting?',
+  }[type] || 'What happened?';
+  textarea.focus();
+}
+
+function closeCrmActivityInput() {
+  document.getElementById('crm-timeline-input-wrap').style.display = 'none';
+  crmActivityType = null;
+}
+
+function saveCrmActivity() {
+  var text = document.getElementById('crm-activity-text').value.trim();
+  if (!text) { showToast('Add some details first'); return; }
+  if (!crmSelectedId || !crmActivityType) return;
+
+  var records = getAllCrmRecords();
+  var r = records.find(function(x) { return x.id === crmSelectedId; });
+  if (!r) return;
+
+  r.timeline = r.timeline || [];
+  r.timeline.push({ id: 'a-' + Date.now(), type: crmActivityType, text: text, createdAt: new Date().toISOString() });
+  saveAllCrmRecords(records);
+
+  closeCrmActivityInput();
+  renderCrmTimeline();
+  showToast('Activity logged');
+}
+
 buildUsersTable();
 buildRecentSignups();
 buildBlogTable();
 renderAllFilters();
 buildVenuesTable();
+initCrmAccess();
 
 if (typeof loadSupabaseUsers === 'function') {
   loadSupabaseUsers();
