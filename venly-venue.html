@@ -518,6 +518,13 @@ function loadVenue() {
   }
 
   var v = loadedVenue;
+
+  // Count this page load as a view — including reloads, which are treated
+  // as genuine new views the same as any first-time visit.
+  if (typeof incrementVenueViews === 'function') {
+    incrementVenueViews(v.id);
+  }
+
   document.title = 'Venly – ' + v.name;
   document.getElementById('venue-title').textContent = v.name || 'Untitled venue';
   document.getElementById('breadcrumb-current').textContent = v.name || 'Untitled venue';

@@ -227,3 +227,36 @@ function saveAllVenues(venues) {
     return false;
   }
 }
+
+// Bumps a venue's page view count by 1. Called once per successful page
+// load of venly-venue.html for a real venue — including reloads, since
+// each reload is treated as a genuine new view, same as any other page
+// view counter would.
+//
+// LIVE MODE calls the increment_page_hits Postgres function (see
+// venly-database-setup.sql) via an RPC call rather than doing a normal
+// read-then-write update. That matters: if two people load the same
+// venue page at almost the same moment, a plain "read the count, add 1,
+// write it back" can lose one of the views (both read the same starting
+// number before either write finishes). The database function increments
+// the row atomically in a single step, so concurrent views are never lost.
+async function incrementVenueViews(venueId) {
+  if (!venueId) return;
+
+  if (typeof SUPABASE_READY !== 'undefined' && SUPABASE_READY) {
+    try {
+      await sb.rpc('increment_page_hits', { venue_id_input: venueId });
+    } catch (e) {
+      console.error('incrementVenueViews (live) failed:', e);
+    }
+    return;
+  }
+
+  // DEMO MODE: localStorage doesn't have the same concurrency risk since
+  // each browser tab is its own isolated copy, so a simple read/write is fine.
+  var venues = getAllVenues();
+  var venue = venues.find(function(v) { return String(v.id) === String(venueId); });
+  if (!venue) return;
+  venue.hits = (venue.hits || 0) + 1;
+  saveAllVenues(venues);
+}
