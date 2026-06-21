@@ -3497,14 +3497,18 @@ function renderCrmList() {
     return matchSearch && matchStatus && matchCategory && matchDue;
   });
 
-  // Show the most urgent (overdue, then soonest due) first, so the list
-  // itself is naturally a to-do list rather than needing to be re-sorted.
-  filtered.sort(function(a, b) {
-    if (!a.dueDate && !b.dueDate) return 0;
-    if (!a.dueDate) return 1;
-    if (!b.dueDate) return -1;
-    return new Date(a.dueDate) - new Date(b.dueDate);
-  });
+  // Only re-sort by urgency when the person has actually asked to see a
+  // due-date view (via the filter or a summary button) — otherwise leave
+  // the list in its normal order so browsing everything else doesn't feel
+  // like it's being reshuffled around venues that aren't due for anything.
+  if (dueFilter) {
+    filtered.sort(function(a, b) {
+      if (!a.dueDate && !b.dueDate) return 0;
+      if (!a.dueDate) return 1;
+      if (!b.dueDate) return -1;
+      return new Date(a.dueDate) - new Date(b.dueDate);
+    });
+  }
 
   // Highlight active filter dropdowns
   document.getElementById('crm-filter-status').classList.toggle('is-active', !!statusFilter);
@@ -3529,10 +3533,10 @@ function renderCrmList() {
       : '';
 
     var dueBucket = getCrmDueBucket(r.dueDate);
-    var dueBadgeClass = dueBucket === 'overdue' ? 'overdue' : dueBucket === 'today' ? 'today' : dueBucket === 'soon' ? 'soon' : 'future';
-    var dueBadge = (r.dueDate && dueBucket !== 'future')
+    var dueBadgeClass = dueBucket === 'overdue' ? 'overdue' : dueBucket === 'today' ? 'today' : 'soon';
+    var dueBadge = (dueBucket === 'overdue' || dueBucket === 'today' || dueBucket === 'soon')
       ? '<span class="crm-due-badge ' + dueBadgeClass + '">' + CRM_DUE_ICON + formatCrmDueLabel(r.dueDate, dueBucket) + '</span>'
-      : (r.dueDate ? '<span class="crm-due-badge future">' + CRM_DUE_ICON + formatCrmDueLabel(r.dueDate, dueBucket) + '</span>' : '');
+      : '';
 
     return '<div class="crm-row' + (r.id === crmSelectedId ? ' active' : '') + '" onclick="selectCrmRecord(\'' + r.id + '\')">' +
       '<div class="crm-row-top">' +
