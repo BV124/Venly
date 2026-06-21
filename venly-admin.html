@@ -2531,15 +2531,31 @@ function toggleVenueEventType(name) {
   renderVenueEventTypes();
 }
 
-// Renders whichever list of venues is passed in (already filtered/searched)
-function renderVenuesTable(venues) {
+// Renders whichever list of venues is passed in (already filtered/searched).
+// statusTotal is how many venues exist for the currently selected status
+// (ignoring other filters) — used as the denominator so the count reads
+// "5 of 8 live venues" rather than always comparing against every venue
+// regardless of status.
+function renderVenuesTable(venues, statusTotal, statusFilter) {
   var tbody = document.getElementById('venues-tbody');
   var title = document.getElementById('venues-table-title');
   var allCount = getAllVenues().length;
+
   if (title) {
-    title.textContent = venues.length === allCount
-      ? 'All venues (' + allCount + ')'
-      : venues.length + ' of ' + allCount + ' venues';
+    if (statusTotal === undefined) statusTotal = allCount; // fallback for any other caller
+    var statusLabels = { live: 'live', draft: 'draft / pending', cancelled: 'cancelled' };
+    var statusWord = statusLabels[statusFilter] || null;
+    var venueWord = function(n) { return n === 1 ? 'venue' : 'venues'; };
+
+    if (venues.length === statusTotal) {
+      title.textContent = statusWord
+        ? 'All ' + statusTotal + ' ' + statusWord + ' ' + venueWord(statusTotal)
+        : 'All ' + venueWord(allCount) + ' (' + allCount + ')';
+    } else {
+      title.textContent = statusWord
+        ? venues.length + ' of ' + statusTotal + ' ' + statusWord + ' ' + venueWord(statusTotal)
+        : venues.length + ' of ' + statusTotal + ' ' + venueWord(statusTotal);
+    }
   }
   if (!tbody) return;
 
@@ -2632,6 +2648,14 @@ function applyVenueFilters() {
   var eventFilter = document.getElementById('vf-event').value;
   var planFilter = document.getElementById('vf-plan').value;
 
+  // How many venues exist in total for the selected status, ignoring every
+  // other filter — this is the denominator shown next to the result count,
+  // e.g. "5 of 8 live venues" rather than always comparing against the
+  // grand total of every venue regardless of status.
+  var statusTotal = statusFilter === 'all'
+    ? venues.length
+    : venues.filter(function(v) { return getVenueStatusBucket(v) === statusFilter; }).length;
+
   var filtered = venues.filter(function(v) {
     var matchSearch = !search ||
       (v.name || '').toLowerCase().includes(search) ||
@@ -2656,7 +2680,7 @@ function applyVenueFilters() {
     el.classList.toggle('is-active', !isDefault);
   });
 
-  renderVenuesTable(filtered);
+  renderVenuesTable(filtered, statusTotal, statusFilter);
 }
 
 function clearVenueFilters() {
