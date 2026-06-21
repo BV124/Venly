@@ -1519,13 +1519,19 @@ tbody tr:last-child td { border-bottom: none; }
               <option value="Shoot Location">Shoot Location</option>
             </select>
           </div>
-          <select class="crm-filter-select" id="crm-filter-due" onchange="renderCrmList()" style="width:100%;margin-top:6px">
-            <option value="">Due date: All</option>
-            <option value="overdue">Overdue</option>
-            <option value="today">Due today</option>
-            <option value="week">Due this week</option>
-            <option value="none">No due date</option>
-          </select>
+          <div class="crm-filter-row" style="margin-top:6px">
+            <select class="crm-filter-select" id="crm-filter-due" onchange="renderCrmList()">
+              <option value="">Due date: All</option>
+              <option value="overdue">Overdue</option>
+              <option value="today">Due today</option>
+              <option value="week">Due this week</option>
+              <option value="none">No due date</option>
+            </select>
+            <button class="venues-filter-clear" onclick="resetCrmFilters()" title="Reset all filters" style="flex-shrink:0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              Reset
+            </button>
+          </div>
         </div>
         <div id="crm-due-summary" class="crm-due-summary"></div>
         <div class="crm-list-count" id="crm-list-count">0 venues</div>
@@ -3555,6 +3561,14 @@ function renderCrmList() {
 function setCrmDueFilter(value) {
   var select = document.getElementById('crm-filter-due');
   select.value = select.value === value ? '' : value; // clicking an active summary button toggles it off
+  renderCrmList();
+}
+
+function resetCrmFilters() {
+  document.getElementById('crm-search').value = '';
+  document.getElementById('crm-filter-status').value = '';
+  document.getElementById('crm-filter-category').value = '';
+  document.getElementById('crm-filter-due').value = '';
   renderCrmList();
 }
 
