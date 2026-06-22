@@ -411,280 +411,191 @@ section { padding: 80px 48px; }
   <div class="hero-content">
     <h1>Find your space<br>with <span>Venly.</span></h1>
     <div class="hero-card">
-<div class="search-bar">
-      <select id="hero-space">
-        <option value="" disabled selected>Choose a space</option>
-        <option>Event space</option>
-        <option>Meeting space</option>
-        <option>Shoot Location</option>
-      </select>
-      <div class="search-divider"></div>
-      <select id="hero-region">
-        <option value="" disabled selected>Select a region</option>
-      </select>
-      <button class="btn btn-primary" onclick="doSearch()">Search</button>
-    </div>
-    
-    </div>
+      <div class="search-bar">
+        <select id="hero-space">
+          <option value="" disabled selected>Choose a space</option>
+          <option>Event space</option>
+          <option>Meeting space</option>
+          <option>Shoot Location</option>
+        </select>
+        <div class="search-divider"></div>
+        <select id="hero-region">
+          <option value="" disabled selected>Select a region</option>
+        </select>
+        <button class="btn btn-primary" onclick="doSearch()">Search</button>
       </div>
+    </div>
   </div>
 </section>
 
 <!-- RECENTLY ADDED -->
-<section style="padding:60px 0 80px;background:var(--white);overflow:hidden">
-  <div style="padding:0 48px;margin-bottom:32px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px">
-    <div>
-      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--red);margin-bottom:10px">New on Venly</div>
-      <h2 class="section-title" style="text-align:left;margin-bottom:6px">Recently Added Spaces</h2>
-      <p style="font-size:15px;color:var(--text-muted)">Fresh spaces, ready to book</p>
+<section class="just-added">
+  <div class="ja-wrap">
+    <div class="ja-header">
+      <div>
+        <div class="ja-eyebrow"><span class="ja-pulse"></span>New on Venly</div>
+        <h2 class="ja-title">Just added</h2>
+        <p class="ja-sub">The newest spaces, straight from the hosts who just listed them.</p>
+      </div>
+      <a href="venly-find-a-space.html" class="ja-viewall">
+        View all spaces
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
     </div>
-    <a href="venly-find-a-space.html" style="display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--red);text-decoration:none">
-      View all spaces
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-    </a>
-  </div>
 
-  <!-- Auto-scroll carousel -->
-  <div class="carousel-outer" style="position:relative">
-    <div class="carousel-track" id="spaces-track" style="display:flex;gap:20px;width:max-content;animation:scrollTrack 35s linear infinite;padding:8px 48px">
+    <div class="ja-grid">
+      <!-- FEATURED -->
+      <a href="venly-venue.html" class="ja-feature">
+        <div class="ja-feature-img">
+          <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1000&q=80" alt="Brads Warehouse" loading="lazy" />
+          <span class="ja-feature-badge"><span class="ja-pulse white"></span>Added today</span>
+        </div>
+        <div class="ja-feature-body">
+          <div class="ja-feature-top">
+            <span class="ja-feature-type">Event Space</span>
+            <span class="ja-feature-loc">Auckland City</span>
+          </div>
+          <h3 class="ja-feature-name">Brads Warehouse</h3>
+          <p class="ja-feature-desc">Industrial-chic and full of natural light — exposed brick, soaring ceilings, room for up to 506 guests.</p>
+          <div class="ja-feature-foot">
+            <span class="ja-feature-price">From $500<span>/hr</span></span>
+            <span class="ja-feature-cta">View space <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+          </div>
+        </div>
+      </a>
 
-      <!-- Cards — duplicated for seamless loop -->
-      <!-- SET 1 -->
-      <div class="space-card" onclick="window.location.href='venly-venue.html'" style="cursor:pointer;flex:0 0 380px">
-        <div class="card-img">
-          <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&q=80" alt="Brads – Shoot Location" loading="lazy" />
-          <span class="badge-type">Shoot Location</span>
-          <span class="badge-premium">Premium</span>
-        </div>
-        <div class="card-body">
-          <div class="card-body-top">
-            <span class="card-name">Brads – Shoot Location</span>
-            <button class="fav-btn" onclick="toggleFav(this); event.stopPropagation();" aria-label="Save to favourites">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>
-            </button>
+      <!-- COMPACT RECENTS -->
+      <div class="ja-recent-list">
+        <a href="venly-venue.html" class="ja-recent-row">
+          <div class="ja-recent-img"><img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&q=80" alt="Brads – Shoot Location" loading="lazy" /></div>
+          <div class="ja-recent-body">
+            <span class="ja-recent-name">Brads – Shoot Location</span>
+            <span class="ja-recent-meta">Shoot Location · Auckland City</span>
           </div>
-          <div class="card-meta">
-            <span>Auckland City</span>
-            <span>Capacity 1–100</span>
+          <span class="ja-recent-time">2h ago</span>
+        </a>
+        <a href="venly-venue.html" class="ja-recent-row">
+          <div class="ja-recent-img"><img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=300&q=80" alt="Okahu – Meeting Space" loading="lazy" /></div>
+          <div class="ja-recent-body">
+            <span class="ja-recent-name">Okahu – Meeting Space</span>
+            <span class="ja-recent-meta">Meeting Space · Auckland City</span>
           </div>
-        </div>
+          <span class="ja-recent-time">Yesterday</span>
+        </a>
+        <a href="venly-venue.html" class="ja-recent-row">
+          <div class="ja-recent-img"><img src="https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=300&q=80" alt="Okahu" loading="lazy" /></div>
+          <div class="ja-recent-body">
+            <span class="ja-recent-name">Okahu</span>
+            <span class="ja-recent-meta">Event Space · Auckland City</span>
+          </div>
+          <span class="ja-recent-time">2 days ago</span>
+        </a>
+        <a href="venly-venue.html" class="ja-recent-row">
+          <div class="ja-recent-img"><img src="https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=300&q=80" alt="North Shore Event Space" loading="lazy" /></div>
+          <div class="ja-recent-body">
+            <span class="ja-recent-name">North Shore Event Space</span>
+            <span class="ja-recent-meta">Event Space · North Shore</span>
+          </div>
+          <span class="ja-recent-time">3 days ago</span>
+        </a>
+        <a href="venly-venue.html" class="ja-recent-row">
+          <div class="ja-recent-img"><img src="https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=300&q=80" alt="Studio One" loading="lazy" /></div>
+          <div class="ja-recent-body">
+            <span class="ja-recent-name">Studio One</span>
+            <span class="ja-recent-meta">Shoot Location · Ponsonby</span>
+          </div>
+          <span class="ja-recent-time">4 days ago</span>
+        </a>
       </div>
-      <div class="space-card" onclick="window.location.href='venly-venue.html'" style="cursor:pointer;flex:0 0 380px">
-        <div class="card-img">
-          <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=500&q=80" alt="Brads Warehouse" loading="lazy" />
-          <span class="badge-type">Event Space</span>
-          <span class="badge-premium">Premium</span>
-        </div>
-        <div class="card-body">
-          <div class="card-body-top">
-            <span class="card-name">Brads Warehouse</span>
-            <button class="fav-btn" onclick="toggleFav(this); event.stopPropagation();" aria-label="Save to favourites">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>
-            </button>
-          </div>
-          <div class="card-meta">
-            <span>Auckland City</span>
-            <span>Capacity 20–506</span>
-          </div>
-        </div>
-      </div>
-      <div class="space-card" onclick="window.location.href='venly-venue.html'" style="cursor:pointer;flex:0 0 380px">
-        <div class="card-img">
-          <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=500&q=80" alt="Okahu – Meeting Space" loading="lazy" />
-          <span class="badge-type">Meeting Space</span>
-          
-        </div>
-        <div class="card-body">
-          <div class="card-body-top">
-            <span class="card-name">Okahu – Meeting Space</span>
-            <button class="fav-btn" onclick="toggleFav(this); event.stopPropagation();" aria-label="Save to favourites">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>
-            </button>
-          </div>
-          <div class="card-meta">
-            <span>Auckland City</span>
-            <span>Capacity 1–100</span>
-          </div>
-        </div>
-      </div>
-      <div class="space-card" onclick="window.location.href='venly-venue.html'" style="cursor:pointer;flex:0 0 380px">
-        <div class="card-img">
-          <img src="https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=500&q=80" alt="Okahu" loading="lazy" />
-          <span class="badge-type">Event Space</span>
-          <span class="badge-premium">Premium</span>
-        </div>
-        <div class="card-body">
-          <div class="card-body-top">
-            <span class="card-name">Okahu</span>
-            <button class="fav-btn" onclick="toggleFav(this); event.stopPropagation();" aria-label="Save to favourites">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>
-            </button>
-          </div>
-          <div class="card-meta">
-            <span>Auckland City</span>
-            <span>Capacity 1–350</span>
-          </div>
-        </div>
-      </div>
-      <div class="space-card" onclick="window.location.href='venly-venue.html'" style="cursor:pointer;flex:0 0 380px">
-        <div class="card-img">
-          <img src="https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=500&q=80" alt="North Shore Event Space" loading="lazy" />
-          <span class="badge-type">Event Space</span>
-          
-        </div>
-        <div class="card-body">
-          <div class="card-body-top">
-            <span class="card-name">North Shore Event Space</span>
-            <button class="fav-btn" onclick="toggleFav(this); event.stopPropagation();" aria-label="Save to favourites">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>
-            </button>
-          </div>
-          <div class="card-meta">
-            <span>North Shore</span>
-            <span>Capacity 40–500</span>
-          </div>
-        </div>
-      </div>
-      <div class="space-card" onclick="window.location.href='venly-venue.html'" style="cursor:pointer;flex:0 0 380px">
-        <div class="card-img">
-          <img src="https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=500&q=80" alt="Studio One" loading="lazy" />
-          <span class="badge-type">Shoot Location</span>
-          
-        </div>
-        <div class="card-body">
-          <div class="card-body-top">
-            <span class="card-name">Studio One</span>
-            <button class="fav-btn" onclick="toggleFav(this); event.stopPropagation();" aria-label="Save to favourites">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>
-            </button>
-          </div>
-          <div class="card-meta">
-            <span>Ponsonby</span>
-            <span>Capacity 1–30</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- SET 2 — duplicate for seamless loop -->
-      <div class="space-card" onclick="window.location.href='venly-venue.html'" style="cursor:pointer;flex:0 0 380px">
-        <div class="card-img">
-          <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&q=80" alt="Brads – Shoot Location" loading="lazy" />
-          <span class="badge-type">Shoot Location</span>
-          <span class="badge-premium">Premium</span>
-        </div>
-        <div class="card-body">
-          <div class="card-body-top">
-            <span class="card-name">Brads – Shoot Location</span>
-            <button class="fav-btn" onclick="toggleFav(this); event.stopPropagation();" aria-label="Save to favourites">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>
-            </button>
-          </div>
-          <div class="card-meta">
-            <span>Auckland City</span>
-            <span>Capacity 1–100</span>
-          </div>
-        </div>
-      </div>
-      <div class="space-card" onclick="window.location.href='venly-venue.html'" style="cursor:pointer;flex:0 0 380px">
-        <div class="card-img">
-          <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=500&q=80" alt="Brads Warehouse" loading="lazy" />
-          <span class="badge-type">Event Space</span>
-          <span class="badge-premium">Premium</span>
-        </div>
-        <div class="card-body">
-          <div class="card-body-top">
-            <span class="card-name">Brads Warehouse</span>
-            <button class="fav-btn" onclick="toggleFav(this); event.stopPropagation();" aria-label="Save to favourites">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>
-            </button>
-          </div>
-          <div class="card-meta">
-            <span>Auckland City</span>
-            <span>Capacity 20–506</span>
-          </div>
-        </div>
-      </div>
-      <div class="space-card" onclick="window.location.href='venly-venue.html'" style="cursor:pointer;flex:0 0 380px">
-        <div class="card-img">
-          <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=500&q=80" alt="Okahu – Meeting Space" loading="lazy" />
-          <span class="badge-type">Meeting Space</span>
-          
-        </div>
-        <div class="card-body">
-          <div class="card-body-top">
-            <span class="card-name">Okahu – Meeting Space</span>
-            <button class="fav-btn" onclick="toggleFav(this); event.stopPropagation();" aria-label="Save to favourites">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>
-            </button>
-          </div>
-          <div class="card-meta">
-            <span>Auckland City</span>
-            <span>Capacity 1–100</span>
-          </div>
-        </div>
-      </div>
-      <div class="space-card" onclick="window.location.href='venly-venue.html'" style="cursor:pointer;flex:0 0 380px">
-        <div class="card-img">
-          <img src="https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=500&q=80" alt="Okahu" loading="lazy" />
-          <span class="badge-type">Event Space</span>
-          <span class="badge-premium">Premium</span>
-        </div>
-        <div class="card-body">
-          <div class="card-body-top">
-            <span class="card-name">Okahu</span>
-            <button class="fav-btn" onclick="toggleFav(this); event.stopPropagation();" aria-label="Save to favourites">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>
-            </button>
-          </div>
-          <div class="card-meta">
-            <span>Auckland City</span>
-            <span>Capacity 1–350</span>
-          </div>
-        </div>
-      </div>
-      <div class="space-card" onclick="window.location.href='venly-venue.html'" style="cursor:pointer;flex:0 0 380px">
-        <div class="card-img">
-          <img src="https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=500&q=80" alt="North Shore Event Space" loading="lazy" />
-          <span class="badge-type">Event Space</span>
-          
-        </div>
-        <div class="card-body">
-          <div class="card-body-top">
-            <span class="card-name">North Shore Event Space</span>
-            <button class="fav-btn" onclick="toggleFav(this); event.stopPropagation();" aria-label="Save to favourites">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>
-            </button>
-          </div>
-          <div class="card-meta">
-            <span>North Shore</span>
-            <span>Capacity 40–500</span>
-          </div>
-        </div>
-      </div>
-      <div class="space-card" onclick="window.location.href='venly-venue.html'" style="cursor:pointer;flex:0 0 380px">
-        <div class="card-img">
-          <img src="https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=500&q=80" alt="Studio One" loading="lazy" />
-          <span class="badge-type">Shoot Location</span>
-          
-        </div>
-        <div class="card-body">
-          <div class="card-body-top">
-            <span class="card-name">Studio One</span>
-            <button class="fav-btn" onclick="toggleFav(this); event.stopPropagation();" aria-label="Save to favourites">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>
-            </button>
-          </div>
-          <div class="card-meta">
-            <span>Ponsonby</span>
-            <span>Capacity 1–30</span>
-          </div>
-        </div>
-      </div>
-
     </div>
   </div>
-
 </section>
+
+<style>
+.just-added { padding: 72px 0 88px; background: var(--white); overflow: hidden; }
+.ja-wrap { max-width: 1240px; margin: 0 auto; padding: 0 48px; }
+
+.ja-header { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 36px; }
+.ja-eyebrow { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--red); margin-bottom: 12px; }
+.ja-pulse { position: relative; width: 7px; height: 7px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
+.ja-pulse::before { content: ''; position: absolute; inset: -5px; border-radius: 50%; background: var(--red); opacity: 0.4; animation: jaPulse 2s ease-out infinite; }
+.ja-pulse.white { background: #fff; }
+.ja-pulse.white::before { background: #fff; }
+@keyframes jaPulse { 0% { transform: scale(0.6); opacity: 0.5; } 70%, 100% { transform: scale(2.2); opacity: 0; } }
+.ja-title { font-size: clamp(28px, 3.4vw, 38px); font-weight: 800; letter-spacing: -0.5px; color: var(--text); margin-bottom: 8px; }
+.ja-sub { font-size: 15px; color: var(--text-muted); max-width: 420px; }
+.ja-viewall { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--red); text-decoration: none; white-space: nowrap; transition: gap 0.15s; }
+.ja-viewall:hover { gap: 10px; }
+
+.ja-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px; align-items: stretch; }
+
+/* FEATURED CARD */
+.ja-feature { display: flex; flex-direction: column; text-decoration: none; color: inherit; border-radius: 20px; overflow: hidden; border: 1px solid var(--border); background: var(--white); transition: transform 0.25s ease, box-shadow 0.25s ease; opacity: 0; transform: translateY(16px); }
+.ja-feature.is-visible { opacity: 1; transform: translateY(0); }
+.ja-feature:hover { transform: translateY(-4px); box-shadow: 0 20px 48px rgba(0,0,0,0.12); }
+.ja-feature-img { position: relative; height: 340px; overflow: hidden; background: #ddd; flex-shrink: 0; }
+.ja-feature-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+.ja-feature:hover .ja-feature-img img { transform: scale(1.05); }
+.ja-feature-badge { position: absolute; top: 16px; left: 16px; display: flex; align-items: center; gap: 7px; background: var(--red); color: #fff; font-size: 11px; font-weight: 700; padding: 6px 12px 6px 10px; border-radius: 20px; letter-spacing: 0.02em; box-shadow: 0 4px 14px rgba(224,58,47,0.35); }
+.ja-feature-body { padding: 24px 26px 26px; flex: 1; display: flex; flex-direction: column; }
+.ja-feature-top { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.ja-feature-type { font-size: 11px; font-weight: 700; color: var(--red); background: var(--red-light); padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.03em; }
+.ja-feature-loc { font-size: 12px; color: var(--text-muted); }
+.ja-feature-name { font-size: 23px; font-weight: 800; letter-spacing: -0.3px; color: var(--text); margin-bottom: 10px; }
+.ja-feature-desc { font-size: 14px; color: var(--text-muted); line-height: 1.65; flex: 1; margin-bottom: 20px; }
+.ja-feature-foot { display: flex; align-items: center; justify-content: space-between; padding-top: 18px; border-top: 1px solid var(--border); }
+.ja-feature-price { font-size: 19px; font-weight: 800; color: var(--text); }
+.ja-feature-price span { font-size: 12px; font-weight: 500; color: var(--text-muted); }
+.ja-feature-cta { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--red); transition: gap 0.15s; }
+.ja-feature:hover .ja-feature-cta { gap: 10px; }
+
+/* COMPACT RECENT LIST */
+.ja-recent-list { display: flex; flex-direction: column; gap: 10px; }
+.ja-recent-row { display: flex; align-items: center; gap: 14px; padding: 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--white); text-decoration: none; color: inherit; transition: all 0.2s ease; opacity: 0; transform: translateX(14px); }
+.ja-recent-row.is-visible { opacity: 1; transform: translateX(0); }
+.ja-recent-row:hover { border-color: var(--red); background: var(--red-light); transform: translateX(2px); }
+.ja-recent-img { width: 58px; height: 58px; border-radius: 10px; overflow: hidden; flex-shrink: 0; background: #ddd; }
+.ja-recent-img img { width: 100%; height: 100%; object-fit: cover; }
+.ja-recent-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ja-recent-name { font-size: 14px; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ja-recent-meta { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ja-recent-time { font-size: 11px; font-weight: 600; color: var(--text-muted); flex-shrink: 0; white-space: nowrap; }
+
+@media (max-width: 900px) {
+  .ja-grid { grid-template-columns: 1fr; }
+  .ja-feature-img { height: 260px; }
+}
+@media (max-width: 560px) {
+  .just-added { padding: 56px 0 64px; }
+  .ja-wrap { padding: 0 20px; }
+  .ja-recent-img { width: 50px; height: 50px; }
+  .ja-recent-time { display: none; }
+}
+</style>
+
+<script>
+// Scroll-triggered reveal for the Just Added section — a single, restrained
+// fade/rise rather than scattered effects on every element.
+(function() {
+  var targets = document.querySelectorAll('.ja-feature, .ja-recent-row');
+  if (!targets.length || typeof IntersectionObserver === 'undefined') {
+    targets.forEach(function(el) { el.classList.add('is-visible'); });
+    return;
+  }
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry, i) {
+      if (entry.isIntersecting) {
+        var el = entry.target;
+        var delay = el.classList.contains('ja-recent-row') ? Array.from(targets).indexOf(el) * 70 : 0;
+        setTimeout(function() { el.classList.add('is-visible'); }, delay);
+        observer.unobserve(el);
+      }
+    });
+  }, { threshold: 0.15 });
+  targets.forEach(function(el) { observer.observe(el); });
+})();
+</script>
+
 
 <style>
   @keyframes scrollTrack {
@@ -693,12 +604,11 @@ section { padding: 80px 48px; }
   }
 
   /* Pause on hover */
-  .carousel-outer:hover #spaces-track { animation-play-state: paused; }
   .carousel-outer:hover #premium-track { animation-play-state: paused; }
 
   @media (max-width: 600px) {
-    #spaces-track .space-card { flex: 0 0 260px !important; }
-    #spaces-track .card-img { height: 180px; }
+    #premium-track .space-card { flex: 0 0 260px !important; }
+    #premium-track .card-img { height: 180px; }
   }
 </style>
 
