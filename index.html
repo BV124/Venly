@@ -667,10 +667,13 @@ section { padding: 80px 48px; }
 <!-- SPACES FOR EVERY PURPOSE -->
 <section style="padding:80px 48px;background:#e03a2f;overflow:hidden;position:relative;margin-top:-2px">
 
-  <!-- subtle background texture -->
-  <div style="position:absolute;inset:0;opacity:0.04;background:radial-gradient(circle at 20% 50%,#fff 0%,transparent 60%),radial-gradient(circle at 80% 50%,#fff 0%,transparent 60%)"></div>
+  <!-- fade-in from the white section above, so the red doesn't cut in sharply -->
+  <div style="position:absolute;top:0;left:0;right:0;height:160px;background:linear-gradient(to bottom,#fff 0%,rgba(255,255,255,0) 100%);pointer-events:none;z-index:1"></div>
 
-  <div class="purpose-split" style="max-width:1200px;margin:0 auto;position:relative;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center">
+  <!-- subtle background texture -->
+  <div style="position:absolute;inset:0;opacity:0.04;background:radial-gradient(circle at 20% 50%,#fff 0%,transparent 60%),radial-gradient(circle at 80% 50%,#fff 0%,transparent 60%);z-index:0"></div>
+
+  <div class="purpose-split" style="max-width:1200px;margin:0 auto;position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center">
 
     <!-- LEFT — Editorial text -->
     <div>
