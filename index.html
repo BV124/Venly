@@ -563,8 +563,8 @@ section { padding: 80px 48px; }
 .ja-header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
 .ja-title { font-size: clamp(26px, 3vw, 32px); font-weight: 800; letter-spacing: -0.5px; color: var(--text); opacity: 0; transform: translateY(10px); transition: opacity 0.6s ease, transform 0.6s ease; }
 .ja-title.is-visible { opacity: 1; transform: translateY(0); }
-.ja-title-dot { display: inline-block; color: var(--red); transform: scale(0); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s; }
-.ja-title.is-visible .ja-title-dot { transform: scale(1); }
+.ja-title-dot { display: inline-block; color: var(--red); transform: scale(0); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.ja-title.is-visible .ja-title-dot { transform: scale(1); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s; }
 .ja-viewall { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--red); text-decoration: none; white-space: nowrap; transition: gap 0.15s; }
 .ja-viewall:hover { gap: 10px; }
 
@@ -626,16 +626,14 @@ section { padding: 80px 48px; }
 </style>
 
 <script>
-// Triggers the "Trending venues" heading + dot animation once it scrolls into view
+// Toggles the "Trending venues" heading + dot animation every time it
+// scrolls into or out of view, so it stays "live" rather than firing once.
 (function() {
   var title = document.querySelector('.ja-title');
   if (!title) return;
   var observer = new IntersectionObserver(function(entries) {
     entries.forEach(function(entry) {
-      if (entry.isIntersecting) {
-        title.classList.add('is-visible');
-        observer.disconnect();
-      }
+      title.classList.toggle('is-visible', entry.isIntersecting);
     });
   }, { threshold: 0.5 });
   observer.observe(title);
