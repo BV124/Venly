@@ -573,11 +573,17 @@ section { padding: 80px 48px; }
   gap: 28px;
 }
 
-.ja-tile { display: block; text-decoration: none; color: inherit; }
+.ja-tile {
+  display: block; text-decoration: none; color: inherit;
+  border-radius: var(--radius); overflow: hidden;
+  border: 1px solid var(--border); background: var(--white);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.ja-tile:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
 
 .ja-tile-img {
-  position: relative; width: 100%; aspect-ratio: 4 / 3; border-radius: 16px;
-  overflow: hidden; background: #ddd; margin-bottom: 12px;
+  position: relative; width: 100%; aspect-ratio: 4 / 3;
+  overflow: hidden; background: #ddd;
 }
 .ja-tile-img img {
   width: 100%; height: 100%; object-fit: cover; display: block;
@@ -596,7 +602,7 @@ section { padding: 80px 48px; }
   background: rgba(0,0,0,0.65); color: #fff; font-size: 11px; font-weight: 600;
   padding: 5px 11px; border-radius: 20px; backdrop-filter: blur(3px);
 }
-.ja-tile-info { display: flex; flex-direction: column; gap: 3px; }
+.ja-tile-info { display: flex; flex-direction: column; gap: 5px; padding: 14px 16px 16px; }
 .ja-tile-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
 .ja-tile-name { font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.3; }
 .ja-tile-capacity { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: var(--text-muted); flex-shrink: 0; white-space: nowrap; }
