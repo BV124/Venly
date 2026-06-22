@@ -444,6 +444,7 @@ section { padding: 80px 48px; }
         <div class="ja-tile-img">
           <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&q=80" alt="Brads Warehouse" loading="lazy" />
           <span class="ja-tile-badge">Premium</span>
+          <span class="ja-tile-type-badge">Event Space</span>
         </div>
         <div class="ja-tile-info">
           <div class="ja-tile-row">
@@ -457,6 +458,7 @@ section { padding: 80px 48px; }
         <div class="ja-tile-img">
           <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80" alt="Brads – Shoot Location" loading="lazy" />
           <span class="ja-tile-badge">Premium</span>
+          <span class="ja-tile-type-badge">Shoot Location</span>
         </div>
         <div class="ja-tile-info">
           <div class="ja-tile-row">
@@ -470,6 +472,7 @@ section { padding: 80px 48px; }
         <div class="ja-tile-img">
           <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80" alt="Okahu – Meeting Space" loading="lazy" />
           
+          <span class="ja-tile-type-badge">Meeting Space</span>
         </div>
         <div class="ja-tile-info">
           <div class="ja-tile-row">
@@ -483,6 +486,7 @@ section { padding: 80px 48px; }
         <div class="ja-tile-img">
           <img src="https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=600&q=80" alt="Okahu" loading="lazy" />
           <span class="ja-tile-badge">Premium</span>
+          <span class="ja-tile-type-badge">Event Space</span>
         </div>
         <div class="ja-tile-info">
           <div class="ja-tile-row">
@@ -496,6 +500,7 @@ section { padding: 80px 48px; }
         <div class="ja-tile-img">
           <img src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80" alt="North Shore Event Space" loading="lazy" />
           
+          <span class="ja-tile-type-badge">Event Space</span>
         </div>
         <div class="ja-tile-info">
           <div class="ja-tile-row">
@@ -509,6 +514,7 @@ section { padding: 80px 48px; }
         <div class="ja-tile-img">
           <img src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&q=80" alt="Brads – Meeting Space" loading="lazy" />
           <span class="ja-tile-badge">Premium</span>
+          <span class="ja-tile-type-badge">Meeting Space</span>
         </div>
         <div class="ja-tile-info">
           <div class="ja-tile-row">
@@ -522,6 +528,7 @@ section { padding: 80px 48px; }
         <div class="ja-tile-img">
           <img src="https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=600&q=80" alt="Okahu – Shoot Location" loading="lazy" />
           <span class="ja-tile-badge">Premium</span>
+          <span class="ja-tile-type-badge">Shoot Location</span>
         </div>
         <div class="ja-tile-info">
           <div class="ja-tile-row">
@@ -535,6 +542,7 @@ section { padding: 80px 48px; }
         <div class="ja-tile-img">
           <img src="https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=600&q=80" alt="City Meeting Room" loading="lazy" />
           
+          <span class="ja-tile-type-badge">Meeting Space</span>
         </div>
         <div class="ja-tile-info">
           <div class="ja-tile-row">
@@ -568,7 +576,7 @@ section { padding: 80px 48px; }
 .ja-tile { display: block; text-decoration: none; color: inherit; }
 
 .ja-tile-img {
-  position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: 16px;
+  position: relative; width: 100%; aspect-ratio: 4 / 3; border-radius: 16px;
   overflow: hidden; background: #ddd; margin-bottom: 12px;
 }
 .ja-tile-img img {
@@ -583,7 +591,11 @@ section { padding: 80px 48px; }
   background: #fff; color: var(--text); font-size: 11px; font-weight: 700;
   padding: 5px 11px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
-
+.ja-tile-type-badge {
+  position: absolute; top: 12px; right: 12px;
+  background: rgba(0,0,0,0.65); color: #fff; font-size: 11px; font-weight: 600;
+  padding: 5px 11px; border-radius: 20px; backdrop-filter: blur(3px);
+}
 .ja-tile-info { display: flex; flex-direction: column; gap: 3px; }
 .ja-tile-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
 .ja-tile-name { font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.3; }
