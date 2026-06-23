@@ -598,7 +598,7 @@ section { padding: 80px 48px; }
 </section>
 
 <style>
-.just-added { padding: 72px 0 88px; background: var(--white); }
+.just-added { padding: 72px 0 32px; background: var(--white); }
 .ja-wrap { max-width: 1600px; margin: 0 auto; padding: 0 48px; }
 
 .ja-header { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; margin-bottom: 36px; }
@@ -773,7 +773,7 @@ section { padding: 80px 48px; }
 </section>
 
 <style>
-.hiw { padding: 80px 0 88px; background: var(--white); }
+.hiw { padding: 32px 0 88px; background: var(--white); }
 .hiw-wrap { max-width: 1600px; margin: 0 auto; padding: 0 48px; }
 
 .hiw-header { margin-bottom: 24px; text-align: center; }
@@ -808,7 +808,8 @@ section { padding: 80px 48px; }
 }
 
 .hiw-step {
-  position: relative; z-index: 2;
+  position: relative; z-index: 2; text-align: center;
+  display: flex; flex-direction: column; align-items: center;
   opacity: 0; transform: translateY(14px);
   transition: opacity 0.5s ease, transform 0.5s ease;
 }
