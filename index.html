@@ -556,10 +556,35 @@ section { padding: 80px 48px; }
       </a>
     </div>
   </div>
+
+  <!-- Bridge band — same red as the section below, so the colour change
+       happens here, inside Trending Spaces, while there's still a reason
+       to be looking at it. By the time the red section itself starts,
+       you've already made the jump. -->
+  <a href="venly-find-a-space.html" class="ja-bridge">
+    <span class="ja-bridge-text">Hundreds more spaces, just like these</span>
+    <span class="ja-bridge-cta">Browse all spaces <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+  </a>
 </section>
 
 <style>
-.just-added { padding: 72px 0 88px; background: var(--white); }
+.just-added { padding: 72px 0 88px; background: var(--red-light); }
+
+/* Bridge band — sits flush against the bottom edge of the section (which
+   is already full-bleed), with zero gap before the red section that
+   follows. Same red, so the colour change happens here instead of at a
+   hard, unexplained seam. Negative bottom margin cancels the section's
+   own bottom padding so there's no white strip left below the band. */
+.ja-bridge {
+  display: flex; align-items: center; justify-content: center; gap: 24px;
+  margin: 56px 0 -88px;
+  padding: 22px 48px;
+  background: #e03a2f; text-decoration: none; flex-wrap: wrap;
+  transition: background 0.15s ease;
+}
+.ja-bridge:hover { background: var(--red-dark); }
+.ja-bridge-text { font-size: 15px; font-weight: 600; color: #fff; }
+.ja-bridge-cta { display: inline-flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 700; color: #fff; white-space: nowrap; }
 .ja-wrap { max-width: 1600px; margin: 0 auto; padding: 0 48px; }
 
 .ja-header { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; margin-bottom: 36px; }
@@ -667,13 +692,10 @@ section { padding: 80px 48px; }
 <!-- SPACES FOR EVERY PURPOSE -->
 <section style="padding:80px 48px;background:#e03a2f;overflow:hidden;position:relative;margin-top:-2px">
 
-  <!-- fade-in from the white section above, so the red doesn't cut in sharply -->
-  <div style="position:absolute;top:0;left:0;right:0;height:160px;background:linear-gradient(to bottom,#fff 0%,rgba(255,255,255,0) 100%);pointer-events:none;z-index:1"></div>
-
   <!-- subtle background texture -->
-  <div style="position:absolute;inset:0;opacity:0.04;background:radial-gradient(circle at 20% 50%,#fff 0%,transparent 60%),radial-gradient(circle at 80% 50%,#fff 0%,transparent 60%);z-index:0"></div>
+  <div style="position:absolute;inset:0;opacity:0.04;background:radial-gradient(circle at 20% 50%,#fff 0%,transparent 60%),radial-gradient(circle at 80% 50%,#fff 0%,transparent 60%)"></div>
 
-  <div class="purpose-split" style="max-width:1200px;margin:0 auto;position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center">
+  <div class="purpose-split" style="max-width:1200px;margin:0 auto;position:relative;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center">
 
     <!-- LEFT — Editorial text -->
     <div>
