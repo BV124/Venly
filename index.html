@@ -706,15 +706,18 @@ section { padding: 80px 48px; }
   <div class="hiw-wrap">
     <div class="hiw-header">
       <h2 class="hiw-title">How Venly works<span class="hiw-dot" id="hiw-dot">.</span></h2>
+    </div>
+
+    <div class="hiw-controls">
+      <div class="hiw-tabs" id="hiw-tabs">
+        <button class="hiw-tab active" onclick="switchHiwTab('finder')">Finding a space</button>
+      <button class="hiw-tab" onclick="switchHiwTab('host')">Listing a space</button>
+      </div>
+
       <a href="venly-how-it-works.html" class="hiw-link">
         See the full guide
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </a>
-    </div>
-
-    <div class="hiw-tabs" id="hiw-tabs">
-      <button class="hiw-tab active" onclick="switchHiwTab('finder')">Finding a space</button>
-      <button class="hiw-tab" onclick="switchHiwTab('host')">Listing a space</button>
     </div>
 
     <div class="hiw-steps" id="hiw-panel-finder">
@@ -773,8 +776,9 @@ section { padding: 80px 48px; }
 .hiw { padding: 80px 0 88px; background: var(--white); }
 .hiw-wrap { max-width: 1600px; margin: 0 auto; padding: 0 48px; }
 
-.hiw-header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 32px; }
-.hiw-tabs { display: flex; gap: 8px; margin-bottom: 40px; background: var(--bg); padding: 6px; border-radius: 12px; width: fit-content; }
+.hiw-header { margin-bottom: 28px; }
+.hiw-controls { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 40px; flex-wrap: wrap; }
+.hiw-tabs { display: flex; gap: 8px; background: var(--bg); padding: 6px; border-radius: 12px; width: fit-content; }
 .hiw-tab {
   padding: 10px 28px; border-radius: 8px; font-size: 14px; font-weight: 600;
   cursor: pointer; border: none; font-family: 'Inter', sans-serif; transition: all 0.2s;
@@ -816,11 +820,11 @@ section { padding: 80px 48px; }
 
 .hiw-num {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 38px; height: 38px; border-radius: 50%; background: #e8c5c3;
-  color: rgba(255,255,255,0.7); font-size: 14px; font-weight: 800;
-  margin-bottom: 18px; transition: background 0.4s ease, color 0.4s ease, box-shadow 0.4s ease;
+  width: 38px; height: 38px; border-radius: 50%; background: var(--bg);
+  border: 2px solid var(--border); color: var(--text-muted); font-size: 14px; font-weight: 800;
+  margin-bottom: 18px; transition: background 0.4s ease, color 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
 }
-.hiw-num.lit { background: var(--red); color: #fff; box-shadow: 0 4px 16px rgba(224,58,47,0.4); }
+.hiw-num.lit { background: var(--red); border-color: var(--red); color: #fff; box-shadow: 0 4px 16px rgba(224,58,47,0.4); }
 .hiw-num.pulse { animation: hiwPulse 0.5s ease-out; }
 @keyframes hiwPulse {
   0%   { transform: scale(1); }
@@ -865,7 +869,7 @@ section { padding: 80px 48px; }
     var fill = panel.querySelector('.hiw-track-fill');
     var trackBg = panel.querySelector('.hiw-track-bg');
     var nums = panel.querySelectorAll('.hiw-num');
-    var segMs = 500, pauseMs = 200;
+    var segMs = 850, pauseMs = 350;
     var runTimer = null, isRunning = false;
     var trackLeftPx = 0, trackWidthPx = 0;
 
@@ -923,7 +927,7 @@ section { padding: 80px 48px; }
       positionTrack();
       reset();
       nums[0].classList.add('lit');
-      runTimer = setTimeout(function() { animateTo(1); }, 450);
+      runTimer = setTimeout(function() { animateTo(1); }, 600);
     }
 
     positionTrack();
@@ -944,10 +948,14 @@ section { padding: 80px 48px; }
       btn.classList.toggle('active', (tab === 'finder' && i === 0) || (tab === 'host' && i === 1));
     });
     controllers[currentTab].reset();
+    panels[currentTab].classList.remove('is-visible');
     panels[currentTab].style.display = 'none';
     panels[tab].style.display = '';
     currentTab = tab;
-    if (sectionInView) controllers[tab].run();
+    if (sectionInView) {
+      panels[tab].classList.add('is-visible');
+      controllers[tab].run();
+    }
   };
 
   var observer = new IntersectionObserver(function(entries) {
