@@ -713,23 +713,24 @@ section { padding: 80px 48px; }
     </div>
 
     <div class="hiw-steps" id="hiw-steps">
+      <div class="hiw-track-fill" id="hiw-track-fill"></div>
       <div class="hiw-step">
-        <span class="hiw-num">01</span>
+        <span class="hiw-num" data-step="0">01</span>
         <h3 class="hiw-step-title">Search &amp; filter</h3>
         <p class="hiw-step-desc">Narrow by space type, region, capacity and event — find what you need in seconds.</p>
       </div>
       <div class="hiw-step">
-        <span class="hiw-num">02</span>
+        <span class="hiw-num" data-step="1">02</span>
         <h3 class="hiw-step-title">Browse listings</h3>
         <p class="hiw-step-desc">Photos, pricing, features — everything you need to make a decision in one place.</p>
       </div>
       <div class="hiw-step">
-        <span class="hiw-num">03</span>
+        <span class="hiw-num" data-step="2">03</span>
         <h3 class="hiw-step-title">Enquire directly</h3>
         <p class="hiw-step-desc">Message the host straight away with your details. No middleman, just you and them.</p>
       </div>
       <div class="hiw-step">
-        <span class="hiw-num">04</span>
+        <span class="hiw-num" data-step="3">04</span>
         <h3 class="hiw-step-title">Book your space</h3>
         <p class="hiw-step-desc">Confirm the details, sort payment directly, and you're set. Simple as that.</p>
       </div>
@@ -750,30 +751,41 @@ section { padding: 80px 48px; }
 .hiw-link:hover { gap: 10px; }
 
 .hiw-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; position: relative; }
-/* Connecting line behind the numbers, echoing the dedicated How It Works
-   page's track without copying its full lit-up animation — kept simple
-   and fast to read for a homepage summary. */
+/* Static background track */
 .hiw-steps::before {
-  content: ''; position: absolute; top: 19px; left: 6%; right: 6%; height: 1px;
-  background: var(--border); z-index: 0;
+  content: ''; position: absolute; top: 19px; left: 6%; right: 6%; height: 2px;
+  background: #eee; z-index: 0;
+}
+/* Animated red fill that travels along the track as each step lights up */
+.hiw-track-fill {
+  position: absolute; top: 19px; left: 6%; right: 6%; height: 2px;
+  transform-origin: left center; transform: scaleX(0);
+  background: var(--red); border-radius: 2px; z-index: 1; pointer-events: none;
 }
 
 .hiw-step {
-  position: relative; z-index: 1;
+  position: relative; z-index: 2;
   opacity: 0; transform: translateY(14px);
   transition: opacity 0.5s ease, transform 0.5s ease;
 }
 .hiw-steps.is-visible .hiw-step { opacity: 1; transform: translateY(0); }
-.hiw-steps.is-visible .hiw-step:nth-child(1) { transition-delay: 0.05s; }
-.hiw-steps.is-visible .hiw-step:nth-child(2) { transition-delay: 0.18s; }
-.hiw-steps.is-visible .hiw-step:nth-child(3) { transition-delay: 0.31s; }
-.hiw-steps.is-visible .hiw-step:nth-child(4) { transition-delay: 0.44s; }
+.hiw-steps.is-visible .hiw-step:nth-child(2) { transition-delay: 0.05s; }
+.hiw-steps.is-visible .hiw-step:nth-child(3) { transition-delay: 0.1s; }
+.hiw-steps.is-visible .hiw-step:nth-child(4) { transition-delay: 0.15s; }
+.hiw-steps.is-visible .hiw-step:nth-child(5) { transition-delay: 0.2s; }
 
 .hiw-num {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 38px; height: 38px; border-radius: 50%; background: var(--white);
-  border: 2px solid var(--red); color: var(--red); font-size: 14px; font-weight: 800;
-  margin-bottom: 18px;
+  width: 38px; height: 38px; border-radius: 50%; background: #e8c5c3;
+  color: rgba(255,255,255,0.7); font-size: 14px; font-weight: 800;
+  margin-bottom: 18px; transition: background 0.4s ease, color 0.4s ease, box-shadow 0.4s ease;
+}
+.hiw-num.lit { background: var(--red); color: #fff; box-shadow: 0 4px 16px rgba(224,58,47,0.4); }
+.hiw-num.pulse { animation: hiwPulse 0.5s ease-out; }
+@keyframes hiwPulse {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.15); }
+  100% { transform: scale(1); }
 }
 .hiw-step-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
 .hiw-step-desc { font-size: 13px; color: var(--text-muted); line-height: 1.65; max-width: 240px; }
@@ -781,6 +793,7 @@ section { padding: 80px 48px; }
 @media (max-width: 900px) {
   .hiw-steps { grid-template-columns: 1fr 1fr; gap: 36px 24px; }
   .hiw-steps::before { display: none; }
+  .hiw-track-fill { display: none; }
 }
 @media (max-width: 560px) {
   .hiw-wrap { padding: 0 20px; }
@@ -791,16 +804,73 @@ section { padding: 80px 48px; }
 
 <script>
 // Same "always live" scroll-toggle pattern as Trending Spaces — the
-// heading + dot animate in, then the four steps stagger in behind them,
-// reversing cleanly if you scroll back up past the section.
+// heading + dot animate in, then the connecting line travels across,
+// lighting up each step number in sequence as it arrives — reversing
+// cleanly (and ready to replay) if you scroll back up past the section.
 (function() {
   var title = document.querySelector('.hiw-title');
-  var steps = document.querySelector('.hiw-steps');
-  if (!title) return;
+  var stepsGrid = document.getElementById('hiw-steps');
+  var fill = document.getElementById('hiw-track-fill');
+  if (!title || !stepsGrid || !fill) return;
+
+  var nums = stepsGrid.querySelectorAll('.hiw-num');
+  var segMs = 500;   // time for the line to travel one segment
+  var pauseMs = 200; // pause on each circle before continuing
+  var runTimer = null;
+  var isRunning = false;
+
+  function getScale(num) {
+    var gridRect = stepsGrid.getBoundingClientRect();
+    var trackLeft = gridRect.left + gridRect.width * 0.06;
+    var trackRight = gridRect.right - gridRect.width * 0.06;
+    var trackW = trackRight - trackLeft;
+    if (trackW <= 0) return 0;
+    var nRect = num.getBoundingClientRect();
+    var centerX = nRect.left + nRect.width / 2;
+    return Math.max(0, Math.min(1, (centerX - trackLeft) / trackW));
+  }
+
+  function resetSteps() {
+    clearTimeout(runTimer);
+    isRunning = false;
+    nums.forEach(function(n) { n.classList.remove('lit', 'pulse'); });
+    fill.style.transition = 'none';
+    fill.style.transform = 'scaleX(0)';
+  }
+
+  function animateTo(index) {
+    if (index >= nums.length) { isRunning = false; return; }
+    var num = nums[index];
+    var scale = getScale(num);
+
+    fill.style.transition = 'transform ' + segMs + 'ms cubic-bezier(0.25, 0.1, 0.25, 1)';
+    fill.style.transform = 'scaleX(' + scale + ')';
+
+    runTimer = setTimeout(function() {
+      num.classList.add('lit', 'pulse');
+      setTimeout(function() { num.classList.remove('pulse'); }, 500);
+      runTimer = setTimeout(function() { animateTo(index + 1); }, pauseMs);
+    }, segMs);
+  }
+
+  function runStepAnimation() {
+    if (isRunning || !nums.length) return;
+    isRunning = true;
+    resetSteps();
+    nums[0].classList.add('lit');
+    runTimer = setTimeout(function() { animateTo(1); }, 450);
+  }
+
   var observer = new IntersectionObserver(function(entries) {
     entries.forEach(function(entry) {
       title.classList.toggle('is-visible', entry.isIntersecting);
-      if (steps) steps.classList.toggle('is-visible', entry.isIntersecting);
+      stepsGrid.classList.toggle('is-visible', entry.isIntersecting);
+
+      if (entry.isIntersecting) {
+        runStepAnimation();
+      } else {
+        resetSteps();
+      }
     });
   }, { threshold: 0.4 });
   observer.observe(title);
