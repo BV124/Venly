@@ -713,11 +713,6 @@ section { padding: 80px 48px; }
         <button class="hiw-tab active" onclick="switchHiwTab('finder')">Finding a space</button>
       <button class="hiw-tab" onclick="switchHiwTab('host')">Listing a space</button>
       </div>
-
-      <a href="venly-how-it-works.html" class="hiw-link">
-        See the full guide
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-      </a>
     </div>
 
     <div class="hiw-steps" id="hiw-panel-finder">
@@ -789,8 +784,6 @@ section { padding: 80px 48px; }
 .hiw-title.is-visible { opacity: 1; transform: translateY(0); }
 .hiw-dot { display: inline-block; color: var(--red); transform: scale(0); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
 .hiw-title.is-visible .hiw-dot { transform: scale(1); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s; }
-.hiw-link { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--red); text-decoration: none; white-space: nowrap; transition: gap 0.15s; }
-.hiw-link:hover { gap: 10px; }
 
 .hiw-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; position: relative; }
 /* Static background track and animated red fill — left/right on both are
