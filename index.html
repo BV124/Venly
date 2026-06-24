@@ -1168,21 +1168,50 @@ section { padding: 80px 48px; }
 
 
 <!-- RECENT BLOG POSTS -->
-<section id="home-blog-section" style="padding:80px 48px;background:var(--white)">
-  <div style="max-width:1200px;margin:0 auto">
-    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:36px;flex-wrap:wrap;gap:16px">
-      <div>
-        <h2 class="section-title" style="text-align:left;margin-bottom:6px">From the Blog</h2>
-        <p style="font-size:15px;color:var(--text-muted)">Tips, guides and news from the Venly team</p>
-      </div>
-      <a href="venly-blog.html" style="display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--red);text-decoration:none">
-        View all posts
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-      </a>
+<section class="hb" id="home-blog-section">
+  <div class="hb-wrap">
+    <div class="hb-header">
+      <h2 class="hb-title">From the Blog<span class="hb-dot" id="hb-dot">.</span></h2>
+      <p class="hb-sub">Tips, guides and news from the Venly team</p>
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px" id="home-blog-grid"></div>
   </div>
 </section>
+
+<style>
+.hb { padding: 32px 0 88px; background: var(--white); }
+.hb-wrap { max-width: 1600px; margin: 0 auto; padding: 0 48px; }
+.hb-header { text-align: center; margin-bottom: 44px; }
+.hb-title { font-size: clamp(26px, 3.2vw, 36px); font-weight: 800; letter-spacing: -0.5px; color: var(--text); margin-bottom: 8px; opacity: 0; transform: translateY(10px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.hb-title.is-visible { opacity: 1; transform: translateY(0); }
+.hb-dot { display: inline-block; color: var(--red); transform: scale(0); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.hb-title.is-visible .hb-dot { transform: scale(1); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s; }
+.hb-sub { font-size: 15px; color: var(--text-muted); }
+
+#home-blog-grid .space-card:hover img { transform: scale(1.04); }
+@media (max-width: 860px) { #home-blog-grid { grid-template-columns: 1fr 1fr !important; } }
+@media (max-width: 560px) {
+  .hb { padding: 24px 0 64px; }
+  .hb-wrap { padding: 0 20px; }
+  #home-blog-grid { grid-template-columns: 1fr !important; }
+}
+</style>
+
+<script>
+// Same "always live" scroll-toggle pattern used by every other section's
+// title + dot on this page.
+(function() {
+  var title = document.querySelector('.hb-title');
+  if (!title) return;
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      title.classList.toggle('is-visible', entry.isIntersecting);
+    });
+  }, { threshold: 0.4 });
+  observer.observe(title);
+})();
+</script>
+
 
 <script>
 // ── Homepage "From the Blog" — pulls from the same data the admin blog editor writes to ──
@@ -1246,13 +1275,6 @@ section { padding: 80px 48px; }
   renderHomeBlog();
 })();
 </script>
-
-<style>
-  #home-blog-grid .space-card:hover img { transform: scale(1.04); }
-  @media (max-width: 860px) { #home-blog-grid { grid-template-columns: 1fr 1fr !important; } }
-  @media (max-width: 560px) { #home-blog-grid { grid-template-columns: 1fr !important; } section[style*="80px 48px"] { padding: 48px 20px !important; } }
-</style>
-
 <!-- FOOTER -->
 <div id="venly-footer"></div>
 <script>renderFooter();</script>
