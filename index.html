@@ -701,6 +701,177 @@ section { padding: 80px 48px; }
 </script>
 
 
+<!-- SPACE TYPES SHOWCASE -->
+<section class="sts">
+  <div class="sts-wrap">
+    <div class="sts-header">
+      <h2 class="sts-title">Three spaces, endless possibilities<span class="sts-dot" id="sts-dot">.</span></h2>
+    </div>
+
+    <!-- 01 — EVENT SPACE (image left) -->
+    <div class="sts-row" data-cat="event">
+      <div class="sts-media">
+        <div class="sts-slideshow" data-slideshow="event">
+          <img class="sts-slide active" src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=900&q=80" alt="Brads Warehouse event space" />
+          <img class="sts-slide" src="https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=900&q=80" alt="Okahu event space" />
+          <img class="sts-slide" src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=900&q=80" alt="North Shore event space" />
+        </div>
+        <span class="sts-tag"><span class="sts-tag-dot"></span>Event spaces</span>
+      </div>
+      <div class="sts-copy">
+        <span class="sts-num">01</span>
+        <span class="sts-eyebrow">For getting people together</span>
+        <h3 class="sts-heading">Event spaces</h3>
+        <p class="sts-desc">Weddings, parties, product launches, galas — warehouses with character, rooftop views, and everything in between. If it calls for a crowd and a good time, there's a space here for it.</p>
+        <div class="sts-cta-row">
+          <a href="venly-find-a-space.html?type=Event+space" class="btn btn-primary">Explore</a>
+          <a href="venly-find-a-space.html?type=Event+space" class="sts-link">Browse event spaces <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 02 — MEETING SPACE (image right) -->
+    <div class="sts-row reverse" data-cat="meeting">
+      <div class="sts-media">
+        <div class="sts-slideshow" data-slideshow="meeting">
+          <img class="sts-slide active" src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=900&q=80" alt="Brads meeting space" />
+          <img class="sts-slide" src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=900&q=80" alt="Okahu meeting space" />
+          <img class="sts-slide" src="https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=900&q=80" alt="City meeting room" />
+        </div>
+        <span class="sts-tag"><span class="sts-tag-dot"></span>Meeting spaces</span>
+      </div>
+      <div class="sts-copy">
+        <span class="sts-num">02</span>
+        <span class="sts-eyebrow">For getting things done</span>
+        <h3 class="sts-heading">Meeting spaces</h3>
+        <p class="sts-desc">Boardrooms, training rooms, coworking spots and proper interview rooms — book somewhere that actually looks professional, instead of squeezing into a noisy café table again.</p>
+        <div class="sts-cta-row">
+          <a href="venly-find-a-space.html?type=Meeting+space" class="btn btn-primary">Explore</a>
+          <a href="venly-find-a-space.html?type=Meeting+space" class="sts-link">Browse meeting spaces <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 03 — SHOOT LOCATION (image left) -->
+    <div class="sts-row" data-cat="shoot">
+      <div class="sts-media">
+        <div class="sts-slideshow" data-slideshow="shoot">
+          <img class="sts-slide active" src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=900&q=80" alt="Brads shoot location" />
+          <img class="sts-slide" src="https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=900&q=80" alt="Okahu shoot location" />
+        </div>
+        <span class="sts-tag"><span class="sts-tag-dot"></span>Shoot locations</span>
+      </div>
+      <div class="sts-copy">
+        <span class="sts-num">03</span>
+        <span class="sts-eyebrow">For getting the shot</span>
+        <h3 class="sts-heading">Shoot locations</h3>
+        <p class="sts-desc">Natural light, private entrances, gear-friendly access — built for film, photography, podcasts and content creation. Find the backdrop before you find the headache.</p>
+        <div class="sts-cta-row">
+          <a href="venly-find-a-space.html?type=Shoot+Location" class="btn btn-primary">Explore</a>
+          <a href="venly-find-a-space.html?type=Shoot+Location" class="sts-link">Browse shoot locations <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+.sts { padding: 88px 0; background: var(--white); }
+.sts-wrap { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
+
+.sts-header { text-align: center; margin-bottom: 72px; }
+.sts-title { font-size: clamp(26px, 3.2vw, 36px); font-weight: 800; letter-spacing: -0.5px; color: var(--text); opacity: 0; transform: translateY(10px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.sts-title.is-visible { opacity: 1; transform: translateY(0); }
+.sts-dot { display: inline-block; color: var(--red); transform: scale(0); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.sts-title.is-visible .sts-dot { transform: scale(1); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s; }
+
+.sts-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center;
+  margin-bottom: 96px; opacity: 0; transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.sts-row:last-child { margin-bottom: 0; }
+.sts-row.is-visible { opacity: 1; transform: translateY(0); }
+.sts-row.reverse .sts-media { order: 2; }
+.sts-row.reverse .sts-copy { order: 1; }
+
+.sts-media { position: relative; }
+.sts-slideshow {
+  position: relative; width: 100%; aspect-ratio: 5 / 4.2; border-radius: 24px;
+  overflow: hidden; background: #ddd;
+}
+.sts-slide {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  opacity: 0; transition: opacity 1.2s ease;
+}
+.sts-slide.active { opacity: 1; }
+
+.sts-tag {
+  position: absolute; top: 20px; left: 20px;
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #fff; color: var(--text); font-size: 13px; font-weight: 600;
+  padding: 8px 16px; border-radius: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+.sts-tag-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
+
+.sts-copy { display: flex; flex-direction: column; align-items: flex-start; }
+.sts-num { font-size: 13px; font-weight: 800; color: var(--red); letter-spacing: 0.05em; margin-bottom: 4px; }
+.sts-eyebrow { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 18px; }
+.sts-heading { font-size: clamp(28px, 3vw, 40px); font-weight: 800; letter-spacing: -0.5px; color: var(--text); margin-bottom: 18px; line-height: 1.1; }
+.sts-desc { font-size: 15px; color: var(--text-muted); line-height: 1.75; margin-bottom: 32px; max-width: 440px; }
+
+.sts-cta-row { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.sts-cta-row .btn { border-radius: 100px; padding: 13px 30px; font-size: 15px; text-decoration: none; display: inline-flex; align-items: center; }
+.sts-link { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: var(--text); text-decoration: none; transition: gap 0.15s, color 0.15s; }
+.sts-link:hover { gap: 10px; color: var(--red); }
+
+@media (max-width: 860px) {
+  .sts-row, .sts-row.reverse { grid-template-columns: 1fr; gap: 32px; }
+  .sts-row.reverse .sts-media { order: 1; }
+  .sts-row.reverse .sts-copy { order: 2; }
+  .sts-row { margin-bottom: 64px; }
+}
+@media (max-width: 560px) {
+  .sts { padding: 64px 0; }
+  .sts-wrap { padding: 0 20px; }
+  .sts-header { margin-bottom: 48px; }
+  .sts-slideshow { aspect-ratio: 4 / 3; }
+}
+</style>
+
+<script>
+// Each space-type photo is a small auto-rotating slideshow (crossfade,
+// no controls needed — purely ambient). The section heading + each row
+// fade in as they scroll into view, same "always live" reverse-on-scroll
+// pattern used elsewhere on this page.
+(function() {
+  document.querySelectorAll('.sts-slideshow').forEach(function(slideshow) {
+    var slides = slideshow.querySelectorAll('.sts-slide');
+    if (slides.length < 2) return;
+    var i = 0;
+    setInterval(function() {
+      slides[i].classList.remove('active');
+      i = (i + 1) % slides.length;
+      slides[i].classList.add('active');
+    }, 4000 + Math.random() * 500); // tiny random offset so rows don't all crossfade in perfect unison
+  });
+
+  var title = document.querySelector('.sts-title');
+  var rows = document.querySelectorAll('.sts-row');
+  if (!title) return;
+
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      entry.target.classList.toggle('is-visible', entry.isIntersecting);
+    });
+  }, { threshold: 0.3 });
+
+  observer.observe(title);
+  rows.forEach(function(row) { observer.observe(row); });
+})();
+</script>
+
+
 <!-- SPACES FOR EVERY PURPOSE -->
 <section style="padding:80px 48px;background:#e03a2f;overflow:hidden;position:relative;margin-top:-2px">
 
