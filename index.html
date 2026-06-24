@@ -1175,6 +1175,9 @@ section { padding: 80px 48px; }
       <p class="hb-sub">Tips, guides and news from the Venly team</p>
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px" id="home-blog-grid"></div>
+    <div class="hb-more-wrap">
+      <a href="venly-blog.html" class="btn btn-primary">View more</a>
+    </div>
   </div>
 </section>
 
@@ -1187,6 +1190,8 @@ section { padding: 80px 48px; }
 .hb-dot { display: inline-block; color: var(--red); transform: scale(0); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
 .hb-title.is-visible .hb-dot { transform: scale(1); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s; }
 .hb-sub { font-size: 15px; color: var(--text-muted); }
+.hb-more-wrap { display: flex; justify-content: center; margin-top: 44px; }
+.hb-more-wrap .btn { border-radius: 100px; padding: 13px 32px; font-size: 15px; text-decoration: none; display: inline-flex; align-items: center; }
 
 #home-blog-grid .space-card:hover img { transform: scale(1.04); }
 @media (max-width: 860px) { #home-blog-grid { grid-template-columns: 1fr 1fr !important; } }
