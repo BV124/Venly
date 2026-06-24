@@ -598,7 +598,7 @@ section { padding: 80px 48px; }
 </section>
 
 <style>
-.just-added { padding: 72px 0 88px; background: var(--white); }
+.just-added { padding: 72px 0 40px; background: var(--white); }
 .ja-wrap { max-width: 1600px; margin: 0 auto; padding: 0 48px; }
 
 .ja-header { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; margin-bottom: 36px; }
@@ -717,6 +717,11 @@ section { padding: 80px 48px; }
           <img class="sts-slide" src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=900&q=80" alt="North Shore event space" />
         </div>
         <span class="sts-tag"><span class="sts-tag-dot"></span>Event spaces</span>
+        <div class="sts-dots" data-dots="event">
+          <span class="sts-dot-indicator active"></span>
+          <span class="sts-dot-indicator"></span>
+          <span class="sts-dot-indicator"></span>
+        </div>
       </div>
       <div class="sts-copy">
         <span class="sts-num">01</span>
@@ -739,6 +744,11 @@ section { padding: 80px 48px; }
           <img class="sts-slide" src="https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=900&q=80" alt="City meeting room" />
         </div>
         <span class="sts-tag"><span class="sts-tag-dot"></span>Meeting spaces</span>
+        <div class="sts-dots" data-dots="meeting">
+          <span class="sts-dot-indicator active"></span>
+          <span class="sts-dot-indicator"></span>
+          <span class="sts-dot-indicator"></span>
+        </div>
       </div>
       <div class="sts-copy">
         <span class="sts-num">02</span>
@@ -760,6 +770,10 @@ section { padding: 80px 48px; }
           <img class="sts-slide" src="https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=900&q=80" alt="Okahu shoot location" />
         </div>
         <span class="sts-tag"><span class="sts-tag-dot"></span>Shoot locations</span>
+        <div class="sts-dots" data-dots="shoot">
+          <span class="sts-dot-indicator active"></span>
+          <span class="sts-dot-indicator"></span>
+        </div>
       </div>
       <div class="sts-copy">
         <span class="sts-num">03</span>
@@ -776,8 +790,8 @@ section { padding: 80px 48px; }
 </section>
 
 <style>
-.sts { padding: 88px 0; background: var(--white); }
-.sts-wrap { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
+.sts { padding: 40px 0 88px; background: var(--white); }
+.sts-wrap { max-width: 1600px; margin: 0 auto; padding: 0 48px; }
 
 .sts-header { text-align: center; margin-bottom: 72px; }
 .sts-title { font-size: clamp(26px, 3.2vw, 36px); font-weight: 800; letter-spacing: -0.5px; color: var(--text); opacity: 0; transform: translateY(10px); transition: opacity 0.6s ease, transform 0.6s ease; }
@@ -797,7 +811,7 @@ section { padding: 80px 48px; }
 
 .sts-media { position: relative; }
 .sts-slideshow {
-  position: relative; width: 100%; aspect-ratio: 5 / 4.2; border-radius: 24px;
+  position: relative; width: 100%; aspect-ratio: 16 / 10; border-radius: 24px;
   overflow: hidden; background: #ddd;
 }
 .sts-slide {
@@ -813,6 +827,13 @@ section { padding: 80px 48px; }
   padding: 8px 16px; border-radius: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.12);
 }
 .sts-tag-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
+
+.sts-dots { display: flex; justify-content: center; gap: 8px; margin-top: 16px; }
+.sts-dot-indicator {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--border);
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+.sts-dot-indicator.active { background: #ff7a1a; transform: scale(1.3); }
 
 .sts-copy { display: flex; flex-direction: column; align-items: flex-start; }
 .sts-num { font-size: 13px; font-weight: 800; color: var(--red); letter-spacing: 0.05em; margin-bottom: 4px; }
@@ -848,11 +869,16 @@ section { padding: 80px 48px; }
   document.querySelectorAll('.sts-slideshow').forEach(function(slideshow) {
     var slides = slideshow.querySelectorAll('.sts-slide');
     if (slides.length < 2) return;
+    var category = slideshow.getAttribute('data-slideshow');
+    var dotsWrap = document.querySelector('.sts-dots[data-dots="' + category + '"]');
+    var dots = dotsWrap ? dotsWrap.querySelectorAll('.sts-dot-indicator') : [];
     var i = 0;
     setInterval(function() {
       slides[i].classList.remove('active');
+      if (dots[i]) dots[i].classList.remove('active');
       i = (i + 1) % slides.length;
       slides[i].classList.add('active');
+      if (dots[i]) dots[i].classList.add('active');
     }, 4000 + Math.random() * 500); // tiny random offset so rows don't all crossfade in perfect unison
   });
 
