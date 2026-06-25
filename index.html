@@ -724,8 +724,7 @@ section { padding: 80px 48px; }
         </div>
       </div>
       <div class="sts-copy">
-        <span class="sts-num">01</span>
-        <span class="sts-eyebrow">For getting people together</span>
+        <div class="sts-meta-row"><span class="sts-num">01</span><span class="sts-eyebrow">For getting people together</span></div>
         <h3 class="sts-heading">Event spaces</h3>
         <p class="sts-desc">Weddings, parties, product launches, galas — warehouses with character, rooftop views, and everything in between. If it calls for a crowd and a good time, there's a space here for it.</p>
         <div class="sts-cta-row">
@@ -751,8 +750,7 @@ section { padding: 80px 48px; }
         </div>
       </div>
       <div class="sts-copy">
-        <span class="sts-num">02</span>
-        <span class="sts-eyebrow">For getting things done</span>
+        <div class="sts-meta-row"><span class="sts-num">02</span><span class="sts-eyebrow">For getting things done</span></div>
         <h3 class="sts-heading">Meeting spaces</h3>
         <p class="sts-desc">Boardrooms, training rooms, coworking spots and proper interview rooms — book somewhere that actually looks professional, instead of squeezing into a noisy café table again.</p>
         <div class="sts-cta-row">
@@ -776,8 +774,7 @@ section { padding: 80px 48px; }
         </div>
       </div>
       <div class="sts-copy">
-        <span class="sts-num">03</span>
-        <span class="sts-eyebrow">For getting the shot</span>
+        <div class="sts-meta-row"><span class="sts-num">03</span><span class="sts-eyebrow">For getting the shot</span></div>
         <h3 class="sts-heading">Shoot locations</h3>
         <p class="sts-desc">Natural light, private entrances, gear-friendly access — built for film, photography, podcasts and content creation. Find the backdrop before you find the headache.</p>
         <div class="sts-cta-row">
@@ -791,7 +788,7 @@ section { padding: 80px 48px; }
 
 <style>
 .sts { padding: 40px 0 88px; background: var(--white); }
-.sts-wrap { max-width: 1600px; margin: 0 auto; padding: 0 48px; }
+.sts-wrap { max-width: 1140px; margin: 0 auto; padding: 0 48px; }
 
 .sts-header { text-align: center; margin-bottom: 72px; }
 .sts-title { font-size: clamp(26px, 3.2vw, 36px); font-weight: 800; letter-spacing: -0.5px; color: var(--text); opacity: 0; transform: translateY(10px); transition: opacity 0.6s ease, transform 0.6s ease; }
@@ -800,8 +797,7 @@ section { padding: 80px 48px; }
 .sts-title.is-visible .sts-dot { transform: scale(1); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s; }
 
 .sts-row {
-  display: grid; grid-template-columns: 540px 460px; gap: 80px; align-items: center;
-  justify-content: center;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center;
   margin-bottom: 96px; opacity: 0; transform: translateY(24px);
   transition: opacity 0.6s ease, transform 0.6s ease;
 }
@@ -812,7 +808,7 @@ section { padding: 80px 48px; }
 
 .sts-media { position: relative; }
 .sts-slideshow {
-  position: relative; width: 100%; max-width: 460px; aspect-ratio: 16 / 10; border-radius: 24px;
+  position: relative; width: 100%; aspect-ratio: 4 / 3.4; border-radius: 24px;
   overflow: hidden; background: #ddd;
 }
 .sts-slide {
@@ -837,8 +833,9 @@ section { padding: 80px 48px; }
 .sts-dot-indicator.active { background: #ff7a1a; transform: scale(1.3); }
 
 .sts-copy { display: flex; flex-direction: column; align-items: flex-start; }
-.sts-num { font-size: 13px; font-weight: 800; color: var(--red); letter-spacing: 0.05em; margin-bottom: 4px; }
-.sts-eyebrow { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 18px; }
+.sts-meta-row { display: flex; align-items: center; gap: 10px; padding-top: 18px; border-top: 1px solid var(--border); margin-bottom: 20px; width: 100%; }
+.sts-num { font-size: 13px; font-weight: 800; color: var(--red); letter-spacing: 0.05em; }
+.sts-eyebrow { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); }
 .sts-heading { font-size: clamp(28px, 3vw, 40px); font-weight: 800; letter-spacing: -0.5px; color: var(--text); margin-bottom: 18px; line-height: 1.1; }
 .sts-desc { font-size: 15px; color: var(--text-muted); line-height: 1.75; margin-bottom: 32px; max-width: 440px; }
 
