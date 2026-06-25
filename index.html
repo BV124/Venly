@@ -370,12 +370,61 @@ section { padding: 80px 48px; }
     padding: 7px 12px !important;
     font-size: 12px !important;
   }
+
+  /* HERO — shift focal point left so the Sky Tower stays in frame
+     on tall/narrow viewports instead of being cropped off by
+     background-size: cover centering on the CBD towers. */
+  .hero-bg { background-position: 32% 42% !important; }
+
+  .hero {
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    padding: 100px 20px 40px;
+  }
+
+  .hero-content { margin-top: 0; }
+
+  .hero h1 {
+    font-size: 30px;
+    margin-bottom: 28px;
+    margin-top: 0;
+  }
+
+  /* Stack the search bar instead of squashing 3 items into a row */
+  .hero-card { max-width: 100%; }
+
+  .search-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    padding: 10px;
+  }
+
+  .search-bar select {
+    width: 100%;
+    padding: 14px 28px 14px 10px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+
+  .search-divider { display: none; }
+
+  .search-bar .btn-primary {
+    width: 100%;
+    margin-top: 6px;
+    padding: 13px 0;
+  }
 }
 
 @media (max-width: 480px) {
   /* Hide secondary nav buttons, keep only essential */
   .nav-right .btn-outline { display: none; }
   .nav-right .btn-primary { padding: 7px 14px !important; font-size: 12px !important; }
+
+  .hero { padding: 90px 16px 36px; }
+  .hero h1 { font-size: 26px; }
+  .hero-bg { background-position: 30% 42% !important; }
 }
 
 </style>
