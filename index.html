@@ -743,14 +743,16 @@ section { padding: 80px 48px; }
     box-sizing: border-box;
   }
 
-  /* Filter chips — single column, one visible at a time, cycling.
-     All chips stack in the same spot; JS fades the active one in/out. */
+  /* Filter chips — single column, rotating like a ticker. The active
+     chip sits in place; the outgoing one slides up and fades out while
+     the incoming one slides up from below into its spot. */
   .ja-chips {
     position: relative;
     display: block;
     height: 38px;
     width: 200px;
     margin: 0 auto;
+    overflow: hidden;
   }
   .ja-chip {
     position: absolute;
@@ -758,18 +760,25 @@ section { padding: 80px 48px; }
     width: 100%;
     justify-content: center;
     opacity: 0;
-    transform: none;
-    transition: opacity 0.5s ease;
+    transform: translateY(16px);
+    transition: opacity 0.45s ease, transform 0.45s ease;
     pointer-events: none;
   }
   .ja-chips.is-visible .ja-chip {
-    transform: none;
+    transform: translateY(16px);
     opacity: 0;
   }
   .ja-chips.is-visible .ja-chip.ja-chip-active,
   .ja-chip.ja-chip-active {
     opacity: 1;
+    transform: translateY(0);
     pointer-events: auto;
+  }
+  .ja-chips.is-visible .ja-chip.ja-chip-leaving,
+  .ja-chip.ja-chip-leaving {
+    opacity: 0;
+    transform: translateY(-16px);
+    transition: opacity 0.45s ease, transform 0.45s ease;
   }
 }
 @media (max-width: 480px) {
@@ -804,9 +813,13 @@ section { padding: 80px 48px; }
   var current = 0;
   var cycleTimer = null;
 
-  function showChip(i) {
+  function showChip(i, prev) {
     chips.forEach(function(chip, idx) {
+      chip.classList.remove('ja-chip-leaving');
       chip.classList.toggle('ja-chip-active', idx === i);
+      if (prev !== undefined && idx === prev && idx !== i) {
+        chip.classList.add('ja-chip-leaving');
+      }
     });
   }
 
@@ -814,8 +827,9 @@ section { padding: 80px 48px; }
     if (cycleTimer || window.innerWidth > 700) return;
     showChip(current);
     cycleTimer = setInterval(function() {
+      var prev = current;
       current = (current + 1) % chips.length;
-      showChip(current);
+      showChip(current, prev);
     }, 2600);
   }
 
