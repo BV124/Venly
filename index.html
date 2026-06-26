@@ -724,32 +724,23 @@ section { padding: 80px 48px; }
   .ja-grid { grid-template-columns: repeat(3, 1fr); }
 }
 @media (max-width: 700px) {
-  .ja-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  /* Single column on mobile, like the blog cards — bigger image,
+     easier to actually see the venue instead of a cramped 2-up grid. */
+  .ja-grid { grid-template-columns: 1fr; gap: 20px; }
+  .ja-tile-img { height: 220px; }
 
-  /* On narrow 2-col cards, long type names ("Meeting Space", "Shoot
-     Location") were colliding with the Premium badge and wrapping
-     onto the photo. Cap width and truncate instead. */
+  /* Only show the first 4 venues on mobile to keep the section short */
+  .ja-tile:nth-child(n+5) { display: none; }
+
+  /* Long type names ("Meeting Space", "Shoot Location") were colliding
+     with the Premium badge. Cap width and truncate instead. */
   .badge-type {
     display: block;
     max-width: calc(100% - 76px);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-size: 10px;
-    padding: 4px 8px;
     box-sizing: border-box;
-  }
-  .badge-premium {
-    font-size: 10px;
-    padding: 4px 8px;
-  }
-
-  /* Tile name was wrapping to 2 lines and crowding the heart icon */
-  .ja-tile-name {
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
   }
 
   /* Location + capacity were squeezed side-by-side and wrapping awkwardly */
@@ -767,8 +758,7 @@ section { padding: 80px 48px; }
 }
 @media (max-width: 480px) {
   .ja-wrap { padding: 0 20px; }
-  .ja-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
-  .ja-tile-name { font-size: 13px; }
+  .ja-tile-img { height: 200px; }
 }
 </style>
 
