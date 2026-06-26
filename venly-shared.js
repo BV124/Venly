@@ -116,6 +116,19 @@ function injectMobileNavStyles() {
     @media (max-width: 768px) {
       .mnav-panel { display: block; }
       .nav-right .dnav-account { display: none !important; }
+
+      /* While the dropdown is open, force the nav solid white so the
+         logo + close icon match the panel below — otherwise on pages
+         with a transparent-until-scrolled hero nav, the top of the
+         menu would sit on the see-through hero image. */
+      nav.mnav-open {
+        background: #fff !important;
+        border-bottom-color: var(--border, #e8e8e8) !important;
+        box-shadow: 0 1px 8px rgba(0,0,0,0.08) !important;
+      }
+      nav.mnav-open .logo { color: var(--red, #e03a2f) !important; }
+      nav.mnav-open .mnav-toggle span { background: var(--text, #1a1a1a) !important; }
+
       .nav-right .mnav-toggle,
       .nav-right button.mnav-toggle {
         display: flex !important; flex-direction: column; justify-content: center; gap: 4px;
@@ -171,11 +184,13 @@ function injectMobileNavStyles() {
 function setupMobileNavToggle() {
   var toggle = document.getElementById('mnav-toggle');
   var panel = document.getElementById('mnav-panel');
+  var nav = document.querySelector('nav');
   if (!toggle || !panel) return;
 
   toggle.addEventListener('click', function() {
     var isOpen = panel.classList.toggle('is-open');
     toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    if (nav) nav.classList.toggle('mnav-open', isOpen);
   });
 
   // Close the panel if the viewport grows back to desktop width
@@ -183,6 +198,7 @@ function setupMobileNavToggle() {
     if (window.innerWidth > 768) {
       panel.classList.remove('is-open');
       toggle.setAttribute('aria-expanded', 'false');
+      if (nav) nav.classList.remove('mnav-open');
     }
   });
 }

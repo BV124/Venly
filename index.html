@@ -1459,9 +1459,11 @@ populateHeroRegionOptions();
       outline.onmouseover = function() { this.style.background = 'rgba(255,255,255,0.22)'; };
       outline.onmouseout = function() { this.style.background = 'rgba(255,255,255,0.12)'; };
     }
-    // Hamburger icon white
-    var ham = nav.querySelector('#hamburger svg');
-    if (ham) ham.style.stroke = '#fff';
+    // Hamburger icon white (only when the menu is closed — once open,
+    // the nav forces itself solid and the bars switch back to dark via CSS)
+    nav.querySelectorAll('.mnav-toggle span').forEach(function(span) {
+      span.style.background = '#fff';
+    });
   }
 
   function solid() {
@@ -1483,8 +1485,9 @@ populateHeroRegionOptions();
       outline.onmouseout = null;
     }
     // Hamburger back to dark
-    var ham = nav.querySelector('#hamburger svg');
-    if (ham) ham.style.stroke = '';
+    nav.querySelectorAll('.mnav-toggle span').forEach(function(span) {
+      span.style.background = '';
+    });
   }
 
   // Set initial state
