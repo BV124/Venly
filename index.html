@@ -485,10 +485,16 @@ section { padding: 80px 48px; }
     <div class="ja-header">
       <h2 class="ja-title">Trending Spaces<span class="ja-title-dot" id="ja-dot">.</span></h2>
       <div class="ja-chips" id="ja-chips">
-        <a href="venly-find-a-space.html?event=Wedding" class="ja-chip">Wedding venues</a>
-        <a href="venly-find-a-space.html?region=Auckland" class="ja-chip">Auckland spaces</a>
-        <a href="venly-find-a-space.html?type=Meeting+space" class="ja-chip">Meeting space</a>
-        <a href="venly-find-a-space.html?type=Shoot+Location" class="ja-chip">Shoot locations</a>
+        <div class="ja-chips-track">
+          <a href="venly-find-a-space.html?event=Wedding" class="ja-chip">Wedding venues</a>
+          <a href="venly-find-a-space.html?region=Auckland" class="ja-chip">Auckland spaces</a>
+          <a href="venly-find-a-space.html?type=Meeting+space" class="ja-chip">Meeting space</a>
+          <a href="venly-find-a-space.html?type=Shoot+Location" class="ja-chip">Shoot locations</a>
+          <a href="venly-find-a-space.html?event=Wedding" class="ja-chip" aria-hidden="true" tabindex="-1">Wedding venues</a>
+          <a href="venly-find-a-space.html?region=Auckland" class="ja-chip" aria-hidden="true" tabindex="-1">Auckland spaces</a>
+          <a href="venly-find-a-space.html?type=Meeting+space" class="ja-chip" aria-hidden="true" tabindex="-1">Meeting space</a>
+          <a href="venly-find-a-space.html?type=Shoot+Location" class="ja-chip" aria-hidden="true" tabindex="-1">Shoot locations</a>
+        </div>
       </div>
     </div>
 
@@ -661,6 +667,8 @@ section { padding: 80px 48px; }
 /* Quick-filter chips — small pill buttons that link straight into a
    pre-filtered Find a Space view (real working params: type/region/event). */
 .ja-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.ja-chips-track { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.ja-chip[aria-hidden="true"] { display: none; }
 .ja-chip {
   display: inline-flex; align-items: center; padding: 7px 14px;
   border: 1.5px solid var(--border); border-radius: 20px;
@@ -743,42 +751,44 @@ section { padding: 80px 48px; }
     box-sizing: border-box;
   }
 
-  /* Filter chips — single column, rotating like a ticker. The active
-     chip sits in place; the outgoing one slides up and fades out while
-     the incoming one slides up from below into its spot. */
+  /* Filter chips — horizontal marquee, all chips in a row, scrolling
+     continuously sideways on a seamless loop. */
   .ja-chips {
-    position: relative;
-    display: block;
-    height: 38px;
-    width: 200px;
-    margin: 0 auto;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    width: 100%;
     overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
+  }
+  .ja-chips-track {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    flex-shrink: 0;
+    animation: ja-marquee 16s linear infinite;
+    animation-play-state: paused;
+    padding-right: 8px;
+  }
+  .ja-chips.is-visible .ja-chips-track {
+    animation-play-state: running;
   }
   .ja-chip {
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    width: 100%;
-    justify-content: center;
-    opacity: 0;
-    transform: translateY(16px);
-    transition: opacity 0.45s ease, transform 0.45s ease;
-    pointer-events: none;
+    opacity: 1;
+    transform: none;
+    flex-shrink: 0;
+  }
+  .ja-chip[aria-hidden="true"] {
+    display: inline-flex;
   }
   .ja-chips.is-visible .ja-chip {
-    transform: translateY(16px);
-    opacity: 0;
-  }
-  .ja-chips.is-visible .ja-chip.ja-chip-active,
-  .ja-chip.ja-chip-active {
     opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
+    transform: none;
   }
-  .ja-chips.is-visible .ja-chip.ja-chip-leaving,
-  .ja-chip.ja-chip-leaving {
-    opacity: 0;
-    transform: translateY(-16px);
-    transition: opacity 0.45s ease, transform 0.45s ease;
+  @keyframes ja-marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
   }
 }
 @media (max-width: 480px) {
@@ -802,57 +812,6 @@ section { padding: 80px 48px; }
     });
   }, { threshold: 0.5 });
   observer.observe(title);
-})();
-
-// On mobile, the filter chips stack in one spot and slowly cycle through
-// one at a time instead of wrapping into a 2x2 grid. Only runs while the
-// section is actually in view, and only at mobile widths.
-(function() {
-  var chips = document.querySelectorAll('.ja-chip');
-  if (!chips.length) return;
-  var current = 0;
-  var cycleTimer = null;
-
-  function showChip(i, prev) {
-    chips.forEach(function(chip, idx) {
-      chip.classList.remove('ja-chip-leaving');
-      chip.classList.toggle('ja-chip-active', idx === i);
-      if (prev !== undefined && idx === prev && idx !== i) {
-        chip.classList.add('ja-chip-leaving');
-      }
-    });
-  }
-
-  function startCycle() {
-    if (cycleTimer || window.innerWidth > 700) return;
-    showChip(current);
-    cycleTimer = setInterval(function() {
-      var prev = current;
-      current = (current + 1) % chips.length;
-      showChip(current, prev);
-    }, 2600);
-  }
-
-  function stopCycle() {
-    clearInterval(cycleTimer);
-    cycleTimer = null;
-  }
-
-  showChip(0);
-
-  var section = document.querySelector('.just-added');
-  if (section) {
-    var chipObserver = new IntersectionObserver(function(entries) {
-      entries.forEach(function(entry) {
-        if (entry.isIntersecting) { startCycle(); } else { stopCycle(); }
-      });
-    }, { threshold: 0.2 });
-    chipObserver.observe(section);
-  }
-
-  window.addEventListener('resize', function() {
-    if (window.innerWidth > 700) { stopCycle(); showChip(current); }
-  });
 })();
 </script>
 
