@@ -110,6 +110,7 @@ function renderNav(options) {
 function injectMobileNavStyles() {
   if (document.getElementById('mnav-styles')) return;
   var css = `
+    .dnav-account { display: flex; align-items: center; gap: 12px; }
     .mnav-toggle { display: none; }
     .mnav-panel { display: none; }
     @media (max-width: 768px) {
