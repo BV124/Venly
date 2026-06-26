@@ -43,6 +43,40 @@ function renderNav(options) {
         '<button class="btn btn-primary" onclick="window.location.href=\'venly-auth.html?tab=signup\'">Sign Up</button>' +
       '</div>';
 
+  // ---- Mobile hamburger + dropdown panel ----
+  var mobileLinks = links.map(function(l) {
+    var isActive = active === l.key;
+    return '<a href="' + l.href + '" class="mnav-link"' + (isActive ? ' style="color:var(--red);font-weight:700"' : '') + '>' + l.label + '</a>';
+  }).join('');
+
+  var mobileAuth = loggedIn
+    ? '<div class="mnav-auth">' +
+        '<a href="venly-dashboard.html" class="mnav-link" style="display:flex;align-items:center;gap:10px">' +
+          '<span style="width:28px;height:28px;border-radius:50%;background:var(--red);color:#fff;font-size:11px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">' + initials + '</span>' +
+          'Profile' +
+        '</a>' +
+        (isAdmin ? '<a href="venly-admin.html" class="mnav-link">Admin dashboard</a>' : '') +
+        '<button class="btn btn-outline mnav-btn" onclick="signOut()">Log out</button>' +
+      '</div>'
+    : '<div class="mnav-auth">' +
+        '<button class="btn btn-outline mnav-btn" onclick="window.location.href=\'venly-auth.html\'">Login</button>' +
+        '<button class="btn btn-primary mnav-btn" onclick="window.location.href=\'venly-auth.html?tab=signup\'">Sign Up</button>' +
+      '</div>';
+
+  var mnavToggle =
+    '<button class="mnav-toggle" id="mnav-toggle" aria-label="Menu" aria-expanded="false">' +
+      '<span></span><span></span><span></span>' +
+    '</button>';
+
+  var mnavPanel =
+    '<div class="mnav-panel" id="mnav-panel">' +
+      '<div class="mnav-links">' + mobileLinks + '</div>' +
+      mobileAuth +
+    '</div>';
+
+  // Insert the hamburger button just before nav-right's closing </div>
+  navRight = navRight.replace(/<\/div>$/, mnavToggle + '</div>');
+
   var navHTML = '<nav>' +
     '<div style="display:flex;align-items:center">' +
       '<a class="logo" href="index.html" style="margin-right:48px">Venly.</a>' +
@@ -50,6 +84,7 @@ function renderNav(options) {
       '<ul class="nav-links" style="display:flex;gap:32px;list-style:none;margin:0;padding:0">' + navLinks + '</ul>' +
     '</div>' +
     navRight +
+    mnavPanel +
     '</nav>';
 
   var el = document.getElementById('venly-nav');
@@ -59,6 +94,87 @@ function renderNav(options) {
     // Insert at top of body if no placeholder
     document.body.insertAdjacentHTML('afterbegin', navHTML);
   }
+
+  injectMobileNavStyles();
+  setupMobileNavToggle();
+}
+
+// ============================================================
+// MOBILE NAV — styles + toggle behaviour, injected once so every
+// page gets the hamburger menu without editing each file's <style>.
+// ============================================================
+function injectMobileNavStyles() {
+  if (document.getElementById('mnav-styles')) return;
+  var css = `
+    .mnav-toggle { display: none; }
+    .mnav-panel { display: none; }
+    @media (max-width: 768px) {
+      .mnav-panel { display: block; }
+      .nav-right .mnav-toggle,
+      .nav-right button.mnav-toggle {
+        display: flex !important; flex-direction: column; justify-content: center; gap: 4px;
+        width: 36px; height: 36px; border: none !important; background: transparent !important;
+        cursor: pointer; padding: 0 !important; margin-left: 8px; flex-shrink: 0;
+      }
+      .mnav-toggle span {
+        display: block; width: 100%; height: 2px; background: var(--text, #1a1a1a);
+        border-radius: 2px; transition: transform 0.2s ease, opacity 0.2s ease;
+      }
+      .mnav-toggle[aria-expanded="true"] span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+      .mnav-toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+      .mnav-toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+      .mnav-panel {
+        position: absolute; top: 100%; left: 0; right: 0;
+        background: var(--white, #fff);
+        border-bottom: 1px solid var(--border, #e8e8e8);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+        max-height: 0; overflow: hidden;
+        transition: max-height 0.25s ease;
+      }
+      .mnav-panel.is-open { max-height: 420px; }
+      .mnav-links {
+        display: flex; flex-direction: column;
+        padding: 8px 20px;
+        border-bottom: 1px solid var(--border, #e8e8e8);
+      }
+      .mnav-link {
+        padding: 13px 4px; font-size: 15px; font-weight: 500;
+        color: var(--text, #1a1a1a); text-decoration: none;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+      }
+      .mnav-links .mnav-link:last-child { border-bottom: none; }
+      .mnav-auth {
+        display: flex; flex-direction: column; gap: 10px;
+        padding: 16px 20px 20px;
+      }
+      .mnav-auth .mnav-link { padding: 4px; border-bottom: none; }
+      .mnav-btn { width: 100%; justify-content: center; padding: 11px 0 !important; font-size: 14px !important; }
+    }
+  `;
+  var style = document.createElement('style');
+  style.id = 'mnav-styles';
+  style.textContent = css;
+  document.head.appendChild(style);
+}
+
+function setupMobileNavToggle() {
+  var toggle = document.getElementById('mnav-toggle');
+  var panel = document.getElementById('mnav-panel');
+  if (!toggle || !panel) return;
+
+  toggle.addEventListener('click', function() {
+    var isOpen = panel.classList.toggle('is-open');
+    toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  });
+
+  // Close the panel if the viewport grows back to desktop width
+  window.addEventListener('resize', function() {
+    if (window.innerWidth > 768) {
+      panel.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+  });
 }
 
 // ============================================================
