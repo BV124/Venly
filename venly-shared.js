@@ -130,7 +130,7 @@ function injectMobileNavStyles() {
       .mnav-toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
       .mnav-panel {
-        position: absolute; top: 100%; left: 0; right: 0;
+        position: absolute; top: 57px; left: 0; right: 0;
         background: var(--white, #fff);
         border-bottom: none;
         box-shadow: none;
