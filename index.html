@@ -743,17 +743,33 @@ section { padding: 80px 48px; }
     box-sizing: border-box;
   }
 
-  /* Location + capacity were squeezed side-by-side and wrapping awkwardly */
-  .ja-tile-meta {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
+  /* Filter chips — single column, one visible at a time, cycling.
+     All chips stack in the same spot; JS fades the active one in/out. */
+  .ja-chips {
+    position: relative;
+    display: block;
+    height: 38px;
+    width: 200px;
+    margin: 0 auto;
   }
-  .ja-tile-meta span:first-child {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 100%;
+  .ja-chip {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    width: 100%;
+    justify-content: center;
+    opacity: 0;
+    transform: none;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+  }
+  .ja-chips.is-visible .ja-chip {
+    transform: none;
+    opacity: 0;
+  }
+  .ja-chips.is-visible .ja-chip.ja-chip-active,
+  .ja-chip.ja-chip-active {
+    opacity: 1;
+    pointer-events: auto;
   }
 }
 @media (max-width: 480px) {
@@ -777,6 +793,52 @@ section { padding: 80px 48px; }
     });
   }, { threshold: 0.5 });
   observer.observe(title);
+})();
+
+// On mobile, the filter chips stack in one spot and slowly cycle through
+// one at a time instead of wrapping into a 2x2 grid. Only runs while the
+// section is actually in view, and only at mobile widths.
+(function() {
+  var chips = document.querySelectorAll('.ja-chip');
+  if (!chips.length) return;
+  var current = 0;
+  var cycleTimer = null;
+
+  function showChip(i) {
+    chips.forEach(function(chip, idx) {
+      chip.classList.toggle('ja-chip-active', idx === i);
+    });
+  }
+
+  function startCycle() {
+    if (cycleTimer || window.innerWidth > 700) return;
+    showChip(current);
+    cycleTimer = setInterval(function() {
+      current = (current + 1) % chips.length;
+      showChip(current);
+    }, 2600);
+  }
+
+  function stopCycle() {
+    clearInterval(cycleTimer);
+    cycleTimer = null;
+  }
+
+  showChip(0);
+
+  var section = document.querySelector('.just-added');
+  if (section) {
+    var chipObserver = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) { startCycle(); } else { stopCycle(); }
+      });
+    }, { threshold: 0.2 });
+    chipObserver.observe(section);
+  }
+
+  window.addEventListener('resize', function() {
+    if (window.innerWidth > 700) { stopCycle(); showChip(current); }
+  });
 })();
 </script>
 
