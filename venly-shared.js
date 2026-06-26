@@ -33,14 +33,18 @@ function renderNav(options) {
 
   var navRight = loggedIn
     ? '<div class="nav-right">' +
-        '<span style="font-size:13px;color:var(--text-muted)">Profile</span>' +
-        '<div class="avatar" style="width:34px;height:34px;border-radius:50%;background:var(--red);color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="window.location.href=\'venly-dashboard.html\'">' + initials + '</div>' +
-        (isAdmin ? '<button class="btn btn-primary" onclick="window.location.href=\'venly-admin.html\'" style="font-size:13px;padding:7px 16px">Admin dashboard</button>' : '') +
-        '<button class="btn btn-outline" onclick="signOut()" style="font-size:13px;padding:7px 16px">Log out</button>' +
+        '<div class="dnav-account">' +
+          '<span style="font-size:13px;color:var(--text-muted)">Profile</span>' +
+          '<div class="avatar" style="width:34px;height:34px;border-radius:50%;background:var(--red);color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="window.location.href=\'venly-dashboard.html\'">' + initials + '</div>' +
+          (isAdmin ? '<button class="btn btn-primary" onclick="window.location.href=\'venly-admin.html\'" style="font-size:13px;padding:7px 16px">Admin dashboard</button>' : '') +
+          '<button class="btn btn-outline" onclick="signOut()" style="font-size:13px;padding:7px 16px">Log out</button>' +
+        '</div>' +
       '</div>'
     : '<div class="nav-right">' +
-        '<button class="btn btn-outline" onclick="window.location.href=\'venly-auth.html\'">Login</button>' +
-        '<button class="btn btn-primary" onclick="window.location.href=\'venly-auth.html?tab=signup\'">Sign Up</button>' +
+        '<div class="dnav-account">' +
+          '<button class="btn btn-outline" onclick="window.location.href=\'venly-auth.html\'">Login</button>' +
+          '<button class="btn btn-primary" onclick="window.location.href=\'venly-auth.html?tab=signup\'">Sign Up</button>' +
+        '</div>' +
       '</div>';
 
   // ---- Mobile hamburger + dropdown panel ----
@@ -110,6 +114,7 @@ function injectMobileNavStyles() {
     .mnav-panel { display: none; }
     @media (max-width: 768px) {
       .mnav-panel { display: block; }
+      .nav-right .dnav-account { display: none !important; }
       .nav-right .mnav-toggle,
       .nav-right button.mnav-toggle {
         display: flex !important; flex-direction: column; justify-content: center; gap: 4px;
@@ -127,12 +132,16 @@ function injectMobileNavStyles() {
       .mnav-panel {
         position: absolute; top: 100%; left: 0; right: 0;
         background: var(--white, #fff);
-        border-bottom: 1px solid var(--border, #e8e8e8);
-        box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+        border-bottom: none;
+        box-shadow: none;
         max-height: 0; overflow: hidden;
         transition: max-height 0.25s ease;
       }
-      .mnav-panel.is-open { max-height: 420px; }
+      .mnav-panel.is-open {
+        max-height: 420px;
+        border-bottom: 1px solid var(--border, #e8e8e8);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+      }
       .mnav-links {
         display: flex; flex-direction: column;
         padding: 8px 20px;
