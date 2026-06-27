@@ -65,7 +65,7 @@ nav {
 .search-row {
   position: relative; margin-bottom: 16px;
 }
-.search-row svg {
+.search-row .search-icon {
   position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
   width: 18px; height: 18px; color: var(--text-muted); pointer-events: none;
 }
@@ -573,7 +573,7 @@ nav {
 <div class="filters-wrap">
   <!-- Search -->
   <div class="search-row">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
     <input type="text" id="search-input" placeholder="Search spaces by name or keyword…" oninput="filterCards()" />
     <button class="filters-trigger" id="filters-trigger" onclick="openFilterSheet()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
