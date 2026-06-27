@@ -79,10 +79,34 @@ nav {
 .search-row input:focus { outline: none; border-color: var(--red); box-shadow: 0 0 0 3px rgba(224,58,47,0.08); }
 .search-row input::placeholder { color: var(--text-muted); }
 
+.filters-trigger {
+  display: none;
+  align-items: center; gap: 6px;
+  padding: 13px 16px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--white);
+  font-size: 14px; font-weight: 600; font-family: 'Inter', sans-serif;
+  color: var(--text); cursor: pointer; white-space: nowrap;
+  flex-shrink: 0; position: relative;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.filters-trigger svg { width: 16px; height: 16px; flex-shrink: 0; }
+.filters-trigger.active { border-color: var(--red); background: var(--red-light); color: var(--red); }
+.filters-trigger-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; border-radius: 9px;
+  background: var(--red); color: #fff; font-size: 11px; font-weight: 700;
+  padding: 0 5px;
+}
+
 /* Filter chips row */
 .filter-row {
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
 }
+
+.filter-sheet-backdrop { display: none; }
+.filter-sheet-scroll { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.filter-sheet-header { display: none; }
+.filter-sheet-footer { display: none; }
 
 /* Each filter is a custom dropdown chip */
 .filter-chip {
@@ -370,25 +394,107 @@ nav {
   .cards-grid { grid-template-columns: 1fr; gap: 20px; }
   .results-wrap { padding-left: 20px; padding-right: 20px; }
 
-  /* Tidy filter chips — wrap cleanly, consistent sizing, search bar
-     and chip row both full width so nothing looks lopsided */
+  /* Search bar + Filters trigger sit side by side; the old inline chip
+     row is replaced by a single button that opens a full filter sheet */
   .filters-wrap { padding: 0 20px 24px; }
-  .search-row input { font-size: 14px; }
-  .filter-row { gap: 8px; }
-  .chip-btn {
-    flex: 1 1 auto;
-    justify-content: center;
-    padding: 10px 12px;
-    font-size: 13px;
+  .search-row {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
   }
-  .chip-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .search-row input { font-size: 14px; flex: 1; }
+  .filters-trigger { display: flex; }
+
+  /* Backdrop dims the page behind the open sheet */
+  .filter-sheet-backdrop {
+    display: block;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 200;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+  .filter-sheet-backdrop.open { opacity: 1; pointer-events: auto; }
+
+  /* The filter row itself becomes the sheet's sliding panel */
+  .filter-row {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    z-index: 201;
+    background: var(--white);
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -8px 30px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    flex-wrap: nowrap;
+    gap: 0;
+    max-height: 80vh;
+    padding: 0 20px;
+    transform: translateY(100%);
+    transition: transform 0.25s ease;
+    overflow: hidden;
+  }
+  .filter-row.open { transform: translateY(0); }
+
+  .filter-sheet-scroll {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    flex-wrap: nowrap;
+    gap: 0;
+    overflow-y: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .filter-sheet-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 0 14px;
+    flex-shrink: 0;
+    background: var(--white);
+  }
+  .filter-sheet-title { font-size: 17px; font-weight: 700; color: var(--text); }
+  .filter-sheet-close {
+    display: flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 50%;
+    border: none; background: var(--bg); color: var(--text-muted); cursor: pointer;
+  }
+  .filter-sheet-close svg { width: 16px; height: 16px; }
+
+  /* Each chip becomes a full-width row instead of a floating dropdown button */
+  .filter-chip { width: 100%; }
+  .chip-btn {
+    width: 100%; justify-content: space-between;
+    padding: 14px 4px; border: none; border-bottom: 1px solid var(--border);
+    border-radius: 0; box-shadow: none; background: transparent;
+  }
+  .chip-btn.active { background: transparent; border-bottom-color: var(--border); }
+  .chip-dropdown {
+    display: none; position: static; width: 100%;
+    border: none; box-shadow: none; border-radius: 0;
+    padding: 4px 0 8px; margin: 0;
+  }
+  .filter-chip.open .chip-dropdown { display: block; }
+  .chip-option { padding: 11px 8px; }
+
   .filter-divider { display: none; }
   .clear-filters {
-    width: 100%;
-    justify-content: center;
-    padding: 10px 0;
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
+    width: 100%; justify-content: center;
+    padding: 12px 0; margin-top: 12px;
+    border: 1.5px solid var(--border); border-radius: 10px;
+  }
+
+  .filter-sheet-footer {
+    display: block;
+    flex-shrink: 0;
+    background: var(--white);
+    padding: 12px 0 20px;
+    border-top: 1px solid var(--border);
+  }
+  .filter-sheet-apply {
+    width: 100%; padding: 14px 0; border: none; border-radius: 10px;
+    background: var(--red); color: #fff; font-size: 15px; font-weight: 700;
+    font-family: 'Inter', sans-serif; cursor: pointer;
   }
 
   /* Badge text was colliding with Premium badge in the narrower card */
@@ -437,10 +543,27 @@ nav {
   <div class="search-row">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
     <input type="text" id="search-input" placeholder="Search spaces by name or keyword…" oninput="filterCards()" />
+    <button class="filters-trigger" id="filters-trigger" onclick="openFilterSheet()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
+      Filters
+      <span class="filters-trigger-badge" id="filters-trigger-badge" style="display:none">0</span>
+    </button>
   </div>
 
   <!-- Filter chips -->
-  <div class="filter-row">
+  <!-- Mobile filter sheet backdrop -->
+  <div class="filter-sheet-backdrop" id="filter-sheet-backdrop" onclick="closeFilterSheet()"></div>
+
+  <!-- Filter chips (desktop: inline row. mobile: becomes the sheet content) -->
+  <div class="filter-row" id="filter-row">
+    <div class="filter-sheet-header">
+      <span class="filter-sheet-title">Filters</span>
+      <button class="filter-sheet-close" onclick="closeFilterSheet()" aria-label="Close filters">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="filter-sheet-scroll" id="filter-sheet-scroll">
 
     <!-- Space type -->
     <div class="filter-chip" id="chip-type">
@@ -538,6 +661,12 @@ nav {
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       Clear all
     </button>
+
+    </div>
+
+    <div class="filter-sheet-footer">
+      <button class="filter-sheet-apply" onclick="closeFilterSheet()">Show results</button>
+    </div>
   </div>
 </div>
 
@@ -869,6 +998,33 @@ function toggleChip(id) {
   if (!isOpen) chip.classList.add('open');
 }
 
+// ── Mobile filter sheet ─────────────────────────────────────────────
+function openFilterSheet() {
+  document.getElementById('filter-row').classList.add('open');
+  document.getElementById('filter-sheet-backdrop').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeFilterSheet() {
+  document.getElementById('filter-row').classList.remove('open');
+  document.getElementById('filter-sheet-backdrop').classList.remove('open');
+  document.querySelectorAll('.filter-chip').forEach(function(c) { c.classList.remove('open'); });
+  document.body.style.overflow = '';
+}
+
+// Keeps the mobile "Filters" button's active style + count badge in sync
+// with however many filters are currently set
+function updateFiltersTriggerBadge() {
+  var trigger = document.getElementById('filters-trigger');
+  var badge = document.getElementById('filters-trigger-badge');
+  if (!trigger || !badge) return;
+  var f = currentFilters();
+  var count = ['type', 'region', 'district', 'event'].filter(function(k) { return f[k]; }).length;
+  trigger.classList.toggle('active', count > 0);
+  badge.style.display = count > 0 ? 'inline-flex' : 'none';
+  badge.textContent = count;
+}
+
 function selectChip(chipId, inputId, value, label, optEl) {
   // Update hidden input
   document.getElementById(inputId).value = value;
@@ -988,6 +1144,7 @@ function filterCards() {
 
   updateChipAvailability();
   renderCards(filtered);
+  updateFiltersTriggerBadge();
 }
 
 function clearFilters() {
@@ -1008,6 +1165,7 @@ function clearFilters() {
 
   updateChipAvailability();
   renderCards(spaces);
+  updateFiltersTriggerBadge();
 }
 
 function toggleFav(btn) {
@@ -1056,6 +1214,7 @@ updateChipAvailability();
 renderCards(spaces);
 if (window.location.search) filterCards();
 else updateChipAvailability();
+updateFiltersTriggerBadge();
 
 // Mobile never gets the map split-view — make sure list is active
 if (window.innerWidth <= 768) setView('list');
