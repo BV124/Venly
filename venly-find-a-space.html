@@ -193,6 +193,8 @@ nav {
 }
 #map-split.map-active .cards-grid {
   grid-template-columns: repeat(2, 1fr);
+  max-width: none;
+  margin: 0;
 }
 #map-split.map-active .no-results.is-visible {
   height: 100%;
@@ -283,8 +285,10 @@ nav {
 
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 24px;
+  max-width: 948px;
+  margin: 0 auto;
 }
 
 .space-card {
