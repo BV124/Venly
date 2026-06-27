@@ -591,11 +591,18 @@ const spaces = [
 ];
 
 function renderCards(list) {
+  renderMapPins(list);
+  renderCardGrid(list);
+}
+
+// Builds the actual card grid HTML and updates the results count / empty
+// state. Split out from renderCards() so the map's pan/zoom sync can update
+// the list without also re-fitting the map (which would fight the user's
+// own pan/zoom).
+function renderCardGrid(list) {
   const grid = document.getElementById('cards-grid');
   const count = document.getElementById('results-count');
   const noResults = document.getElementById('no-results');
-
-  renderMapPins(list);
 
   if (list.length === 0) {
     grid.innerHTML = '';
@@ -639,7 +646,13 @@ function setView(view) {
   document.getElementById('btn-view-list').classList.toggle('active', !isMap);
   document.getElementById('btn-view-map').classList.toggle('active', isMap);
 
-  if (isMap) initLeafletMap();
+  if (isMap) {
+    initLeafletMap();
+  } else if (window.__lastFilteredList) {
+    // Switching back to list shows the full filtered set, not whatever
+    // narrower subset the map's pan/zoom was showing
+    renderCardGrid(window.__lastFilteredList);
+  }
 }
 
 // ── Leaflet / OpenStreetMap (free, no API key, no billing) ─────────
@@ -702,16 +715,19 @@ function showAllPinsInView() {
   if (!lMap) return;
   const bounds = lMap.getBounds();
   const f = currentFilters();
+  const search = document.getElementById('search-input').value.toLowerCase();
 
   const visible = spaces.filter(s => {
     if (s.lat === undefined || s.lng === undefined) return false;
     if (!bounds.contains([s.lat, s.lng])) return false;
+    const matchSearch = !search || s.name.toLowerCase().includes(search) || s.type.toLowerCase().includes(search);
     const matchType  = !f.type  || s.type === f.type;
     const matchEvent = !f.event || (s.events && s.events.includes(f.event));
-    return matchType && matchEvent;
+    return matchSearch && matchType && matchEvent;
   });
 
   drawMarkers(visible, { refit: false });
+  renderCardGrid(visible);
 }
 
 function clearMarkers() {
