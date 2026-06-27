@@ -462,26 +462,58 @@ nav {
   .filter-sheet-close svg { width: 16px; height: 16px; }
 
   /* Each chip becomes a full-width row instead of a floating dropdown button */
-  .filter-chip { width: 100%; }
+  .filter-chip {
+    width: 100%;
+    border-bottom: 1px solid var(--border);
+  }
+  .filter-chip:last-of-type { border-bottom: none; }
   .chip-btn {
     width: 100%; justify-content: space-between;
-    padding: 14px 4px; border: none; border-bottom: 1px solid var(--border);
+    padding: 17px 4px; border: none;
     border-radius: 0; box-shadow: none; background: transparent;
+    font-size: 15px;
   }
-  .chip-btn.active { background: transparent; border-bottom-color: var(--border); }
+  .chip-btn.active { background: transparent; }
+  .chip-btn .chip-arrow { transition: transform 0.2s ease; color: var(--text-muted); }
+  .filter-chip.open .chip-btn .chip-arrow { transform: rotate(180deg); }
+  .filter-chip.open .chip-btn { color: var(--red); }
+  .filter-chip.open .chip-btn svg:not(.chip-arrow) { color: var(--red); }
+
   .chip-dropdown {
     display: none; position: static; width: 100%;
     border: none; box-shadow: none; border-radius: 0;
-    padding: 4px 0 8px; margin: 0;
+    padding: 0 0 14px; margin: 0;
   }
   .filter-chip.open .chip-dropdown { display: block; }
-  .chip-option { padding: 11px 8px; }
+
+  .chip-option {
+    padding: 14px 10px;
+    font-size: 15px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .chip-option:hover { background: var(--bg); }
+  .chip-option::after {
+    content: '';
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    flex-shrink: 0;
+  }
+  .chip-option.selected::after {
+    border-color: var(--red);
+    background: var(--red);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3'%3E%3Cpolyline points='5 13 9 17 18 7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: center; background-size: 12px;
+  }
+  .chip-optgroup-label { padding: 10px 10px 4px; }
 
   .filter-divider { display: none; }
   .clear-filters {
     width: 100%; justify-content: center;
-    padding: 12px 0; margin-top: 12px;
+    padding: 14px 0; margin-top: 16px;
     border: 1.5px solid var(--border); border-radius: 10px;
+    font-size: 15px;
   }
 
   .filter-sheet-footer {
@@ -1079,13 +1111,14 @@ function spacesIgnoring(except) {
 function escAttr(str) { return str.replace(/'/g, "\\'"); }
 
 // Rebuild the options inside a chip dropdown based on what's still possible
-function rebuildChipOptions(key, possibleValues, allLabel) {
+function rebuildChipOptions(key, possibleValues, allLabel, clearLabel) {
   const chip = document.getElementById('chip-' + key);
   const dropdown = chip.querySelector('.chip-dropdown');
   const inputId = 'filter-' + key;
   const currentVal = document.getElementById(inputId).value;
+  const clearText = clearLabel || allLabel;
 
-  let html = '<button class="chip-option' + (!currentVal ? ' selected' : '') + '" onclick="selectChip(\'chip-' + key + '\',\'' + inputId + '\',\'\',\'' + allLabel + '\',this)">' + allLabel + '</button>';
+  let html = '<button class="chip-option' + (!currentVal ? ' selected' : '') + '" onclick="selectChip(\'chip-' + key + '\',\'' + inputId + '\',\'\',\'' + allLabel + '\',this)">' + clearText + '</button>';
 
   if (key === 'event') {
     const groups = currentFilters().type ? [currentFilters().type] : Object.keys(EVENTS_BY_TYPE);
@@ -1118,16 +1151,16 @@ function rebuildChipOptions(key, possibleValues, allLabel) {
 // Recompute every chip's available options based on the others' current selections
 function updateChipAvailability() {
   const typePool = spacesIgnoring('type');
-  rebuildChipOptions('type', [...new Set(typePool.map(s => s.type))], 'Space type');
+  rebuildChipOptions('type', [...new Set(typePool.map(s => s.type))], 'Space type', 'All types');
 
   const regionPool = spacesIgnoring('region');
-  rebuildChipOptions('region', [...new Set(regionPool.map(s => s.region))], 'Region');
+  rebuildChipOptions('region', [...new Set(regionPool.map(s => s.region))], 'Region', 'All regions');
 
   const districtPool = spacesIgnoring('district');
-  rebuildChipOptions('district', [...new Set(districtPool.map(s => s.district))], 'District');
+  rebuildChipOptions('district', [...new Set(districtPool.map(s => s.district))], 'District', 'All districts');
 
   const eventPool = spacesIgnoring('event');
-  rebuildChipOptions('event', [...new Set(eventPool.flatMap(s => s.events || []))], 'Event type');
+  rebuildChipOptions('event', [...new Set(eventPool.flatMap(s => s.events || []))], 'Event type', 'All event types');
 }
 
 function filterCards() {
