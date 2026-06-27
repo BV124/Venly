@@ -185,16 +185,17 @@ nav {
   gap: 24px;
   align-items: start;
 }
-#map-split.map-active .cards-grid {
+#map-split.map-active .cards-scroll {
   grid-column: 1; grid-row: 1;
-  grid-template-columns: repeat(2, 1fr);
   height: 640px;
   overflow-y: auto;
   padding-right: 4px;
 }
+#map-split.map-active .cards-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
 #map-split.map-active .no-results.is-visible {
-  grid-column: 1; grid-row: 1;
-  height: 640px;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -261,12 +262,12 @@ nav {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto;
   }
-  #map-split.map-active .cards-grid {
+  #map-split.map-active .cards-scroll {
     grid-column: 1; grid-row: 1;
     height: auto; max-height: 480px;
+    overflow-y: auto;
   }
   #map-split.map-active .no-results.is-visible {
-    grid-column: 1; grid-row: 1;
     height: auto; min-height: 300px;
   }
   #map-split.map-active .map-container {
@@ -361,7 +362,8 @@ nav {
   .view-toggle { display: none; }
   .map-container { display: none !important; }
   #map-split.map-active { grid-template-columns: 1fr; }
-  #map-split.map-active .cards-grid { grid-template-columns: 1fr; height: auto; overflow: visible; }
+  #map-split.map-active .cards-scroll { height: auto; overflow: visible; }
+  #map-split.map-active .cards-grid { grid-template-columns: 1fr; }
   .results-wrap.map-active { max-width: none; padding-left: 20px; padding-right: 20px; }
 
   /* One venue per row, bigger image, easy to scroll through */
@@ -554,11 +556,13 @@ nav {
   </div>
 
   <div class="map-split" id="map-split">
-    <div class="cards-grid" id="cards-grid"></div>
-    <div class="no-results" id="no-results">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-      <h3>No spaces found</h3>
-      <p>Try adjusting your filters or search term</p>
+    <div class="cards-scroll" id="cards-scroll">
+      <div class="cards-grid" id="cards-grid"></div>
+      <div class="no-results" id="no-results">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <h3>No spaces found</h3>
+        <p>Try adjusting your filters or search term</p>
+      </div>
     </div>
     <div class="map-container" id="map-container">
       <div id="leaflet-map"></div>
