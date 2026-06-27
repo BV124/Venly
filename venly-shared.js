@@ -123,8 +123,8 @@ function injectMobileNavStyles() {
          menu would sit on the see-through hero image. */
       nav.mnav-open {
         background: #fff !important;
-        border-bottom-color: var(--border, #e8e8e8) !important;
-        box-shadow: 0 1px 8px rgba(0,0,0,0.08) !important;
+        border-bottom: 1px solid #fff !important;
+        box-shadow: none !important;
       }
       nav.mnav-open .logo { color: var(--red, #e03a2f) !important; }
       nav.mnav-open .mnav-toggle span { background: var(--text, #1a1a1a) !important; }
@@ -144,7 +144,7 @@ function injectMobileNavStyles() {
       .mnav-toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
       .mnav-panel {
-        position: absolute; top: 57px; left: 0; right: 0;
+        position: absolute; top: 56px; left: 0; right: 0;
         background: var(--white, #fff);
         border-bottom: none;
         box-shadow: none;
