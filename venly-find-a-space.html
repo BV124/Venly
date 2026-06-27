@@ -312,7 +312,8 @@ nav {
 .no-results svg { width: 48px; height: 48px; margin-bottom: 16px; color: #ccc; }
 .no-results h3 { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 8px; }
 
-/* Stack filters vertically */
+@media (max-width: 768px) {
+  /* Stack filters vertically */
   .filters-bar { flex-direction: column; align-items: stretch; }
   .search-input-wrap { width: 100%; }
   .filter-select { width: 100%; min-width: unset; }
@@ -342,12 +343,58 @@ nav {
     padding: 7px 12px !important;
     font-size: 12px !important;
   }
+
+  /* List-only on mobile — no point offering a map split-view on a small
+     screen, so hide the toggle entirely and make sure list view is forced */
+  .view-toggle { display: none; }
+  .map-view-wrap { display: none !important; }
+
+  /* One venue per row, bigger image, easy to scroll through */
+  .cards-grid { grid-template-columns: 1fr; gap: 20px; }
+  .card-img { height: 220px; }
+
+  /* Tidy filter chips — wrap cleanly, consistent sizing, search bar
+     and chip row both full width so nothing looks lopsided */
+  .filters-wrap { padding: 0 20px 24px; }
+  .search-row input { font-size: 14px; }
+  .filter-row { gap: 8px; }
+  .chip-btn {
+    flex: 1 1 auto;
+    justify-content: center;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  .chip-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .filter-divider { display: none; }
+  .clear-filters {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 0;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+  }
+
+  /* Badge text was colliding with Premium badge in the narrower card */
+  .badge-type {
+    max-width: calc(100% - 80px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .card-meta span:first-child {
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    margin-right: 8px;
+  }
+  .card-meta span:last-child { flex-shrink: 0; }
 }
 
 @media (max-width: 480px) {
   /* Hide secondary nav buttons, keep only essential */
   .nav-right .btn-outline { display: none; }
   .nav-right .btn-primary { padding: 7px 14px !important; font-size: 12px !important; }
+
+  .chip-btn { font-size: 12px; padding: 9px 10px; }
+  .chip-btn svg:not(.chip-arrow) { display: none; }
 }
 
 </style>
@@ -1002,6 +1049,9 @@ updateChipAvailability();
 renderCards(spaces);
 if (window.location.search) filterCards();
 else updateChipAvailability();
+
+// Mobile never gets the map split-view — make sure list is active
+if (window.innerWidth <= 768) setView('list');
 </script>
 </body>
 </html>
