@@ -192,7 +192,7 @@ nav {
   padding-right: 4px;
 }
 #map-split.map-active .cards-grid {
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, 420px);
   max-width: none;
   margin: 0;
 }
@@ -259,7 +259,7 @@ nav {
 .gmap-tooltip-meta { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
 .gmap-tooltip-link { display: inline-block; font-size: 12px; font-weight: 600; color: var(--red); text-decoration: none; }
 
-@media (max-width: 860px) {
+@media (max-width: 1544px) {
   #map-split.map-active {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto;
@@ -268,6 +268,11 @@ nav {
     grid-column: 1; grid-row: 1;
     height: auto; max-height: 480px;
     overflow-y: auto;
+  }
+  #map-split.map-active .cards-grid {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+    margin: 0 auto;
   }
   #map-split.map-active .no-results.is-visible {
     height: auto; min-height: 300px;
@@ -285,10 +290,15 @@ nav {
 
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, 420px);
   gap: 24px;
-  max-width: 948px;
-  margin: 0 auto;
+  justify-content: center;
+}
+
+/* Below this, two fixed 420px columns (plus gap) no longer fit without
+   horizontal overflow — drop to a single fluid column before that happens. */
+@media (max-width: 900px) {
+  .cards-grid { grid-template-columns: 1fr; max-width: 420px; margin: 0 auto; }
 }
 
 .space-card {
