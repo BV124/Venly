@@ -34,7 +34,7 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
 .page-header { padding: 56px 80px 0; max-width: 1200px; margin: 0 auto; }
 .blog-eyebrow { display: inline-flex; align-items: center; gap: 8px; background: var(--text); color: #fff; font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 20px; margin-bottom: 20px; letter-spacing: 0.02em; }
 .blog-eyebrow::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
-.page-header h1 { font-size: 52px; font-weight: 800; color: var(--text); letter-spacing: -2px; margin-bottom: 12px; line-height: 1.05; }
+.page-header h1 { font-size: clamp(26px, 3vw, 32px); font-weight: 800; color: var(--text); letter-spacing: -0.5px; margin-bottom: 12px; line-height: 1.05; }
 .page-header p { font-size: 15px; color: var(--text-muted); max-width: 440px; line-height: 1.7; margin-bottom: 48px; }
 
 /* FEATURED POST */
@@ -87,12 +87,29 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
 .no-posts svg { width: 40px; height: 40px; margin-bottom: 12px; display: block; margin-left: auto; margin-right: auto; opacity: 0.3; }
 
 /* Category pills scroll */
+@media (max-width: 768px) {
+  /* Reduce the generous desktop side padding so content isn't squeezed */
+  .page-header { padding: 40px 20px 0; }
+  .featured-wrap { padding: 0 20px 40px; }
+  .filters-section { padding: 0 20px 32px; }
+  .blog-grid-wrap { padding: 0 20px 56px; }
+
+  /* Featured post stacks instead of squeezing into a 2-column grid */
+  .featured-card { grid-template-columns: 1fr; }
+  .featured-img { height: 220px; }
+  .featured-body { padding: 28px 24px; }
+  .featured-title { font-size: 22px; }
+  .read-btn { width: 100%; justify-content: center; }
+
+  /* One blog card per row instead of 3 narrow squeezed columns */
+  .blog-grid { grid-template-columns: 1fr; gap: 20px; }
+  .blog-card-img { height: 200px; }
+
   .category-pills { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
   .category-pills::-webkit-scrollbar { display: none; }
   .cat-pill { flex-shrink: 0; font-size: 12px; padding: 6px 14px; }
   .blog-card-title { font-size: 14px; }
   footer { padding: 40px 20px 20px; }
-  
 }
 @media (max-width: 400px) {
   .page-header h1 { font-size: 26px; }
@@ -141,7 +158,7 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
 <!-- PAGE HEADER -->
 <div class="page-header">
   <div class="blog-eyebrow">The Venly blog</div>
-  <h1>Read all about it.</h1>
+  <h1>Read all about it<span style="color:var(--red)">.</span></h1>
   <p>Space tips, hosting guides, and the odd bit of Venly news. Grab a coffee and have a scroll.</p>
 </div>
 
