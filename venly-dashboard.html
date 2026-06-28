@@ -29,9 +29,9 @@ nav { background: var(--white); border-bottom: 1px solid var(--border); display:
 .btn-logout { background: transparent; color: var(--red); border: 1.5px solid var(--red); border-radius: var(--radius-sm); padding: 8px 16px; font-size: 13px; cursor: pointer; font-weight: 500; font-family: 'Inter', sans-serif; }
 
 /* PAGE */
-.page { flex: 1 0 auto; padding: 32px 40px 80px; max-width: 1100px; margin: 0 auto; }
-.page-title { font-size: 24px; font-weight: 600; margin-bottom: 24px; }
-.layout { display: grid; grid-template-columns: 220px 1fr; gap: 24px; align-items: start; }
+.page { flex: 1 0 auto; padding: 32px 40px 80px; max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; width: 100%; box-sizing: border-box; }
+.page-title { font-size: 24px; font-weight: 600; margin-bottom: 24px; flex-shrink: 0; }
+.layout { display: grid; grid-template-columns: 220px 1fr; gap: 24px; align-items: stretch; flex: 1 0 auto; }
 
 /* SIDEBAR */
 .sidebar { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; display: flex; flex-direction: column; gap: 6px; box-shadow: var(--shadow); }
@@ -41,8 +41,8 @@ nav { background: var(--white); border-bottom: 1px solid var(--border); display:
 .tab-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
 
 /* PANEL */
-.panel { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow); display: none; }
-.panel.active { display: block; }
+.panel { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow); display: none; flex-direction: column; }
+.panel.active { display: flex; }
 .panel-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
 .section-divider { font-size: 13px; font-weight: 500; color: var(--text-muted); padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
 
@@ -68,7 +68,7 @@ input:focus, textarea:focus, select:focus { outline: none; border-color: var(--r
 
 /* LISTINGS TABLE */
 .table-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); flex: 1; display: flex; flex-direction: column; }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 thead th { background: var(--bg); padding: 10px 14px; text-align: left; font-weight: 500; color: var(--text-muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
 tbody tr { transition: background 0.1s; }
@@ -93,7 +93,7 @@ tbody tr:last-child td { border-bottom: none; }
 .icon-btn svg { width: 15px; height: 15px; }
 
 /* EMPTY STATE */
-.empty-state { text-align: center; padding: 60px 20px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-top: 12px; }
+.empty-state { text-align: center; padding: 60px 20px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-top: 12px; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .empty-icon { width: 48px; height: 48px; background: var(--red-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
 .empty-icon svg { width: 22px; height: 22px; color: var(--red); }
 .empty-state h3 { font-size: 15px; font-weight: 500; margin-bottom: 6px; }
@@ -324,7 +324,7 @@ tbody tr:last-child td { border-bottom: none; }
     </div>
 
     <!-- MY DETAILS -->
-    <div id="panel-details" class="panel active" style="display:block">
+    <div id="panel-details" class="panel active">
       <div class="panel-title">My details</div>
       <div class="section-divider">Information</div>
       <div class="photo-row">
@@ -347,7 +347,7 @@ tbody tr:last-child td { border-bottom: none; }
     </div>
 
     <!-- MY LISTINGS -->
-    <div id="panel-listings" class="panel" style="display:none">
+    <div id="panel-listings" class="panel">
       <div class="table-header">
         <div class="panel-title" style="margin:0">My Listings</div>
         <button class="btn btn-primary" onclick="window.location.href='venly-listing-fees.html'" style="display:flex;align-items:center;gap:6px">
@@ -374,7 +374,7 @@ tbody tr:last-child td { border-bottom: none; }
     </div>
 
     <!-- FAVOURITES -->
-    <div id="panel-favourites" class="panel" style="display:none">
+    <div id="panel-favourites" class="panel">
       <div class="panel-title">Saved Favourites</div>
       <div class="empty-state">
         <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg></div>
@@ -685,7 +685,7 @@ const planPrices = {
 function switchToPanel(name) {
   ['details','listings','favourites'].forEach(function(n) {
     var p = document.getElementById('panel-' + n);
-    if (p) p.style.display = (n === name) ? 'block' : 'none';
+    if (p) p.classList.toggle('active', n === name);
   });
 }
 
