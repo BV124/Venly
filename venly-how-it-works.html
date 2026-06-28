@@ -156,6 +156,9 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
 .steps-panel { display: none; }
 .steps-panel.active { display: block; }
 
+.feature-tiles-grid { grid-template-columns: repeat(3, 1fr); }
+.price-panel { grid-template-columns: repeat(3, 1fr); }
+
 .steps-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -283,6 +286,8 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
   .steps-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
   .steps-grid::before { display: none; }
   .steps-grid .track-fill { display: none; }
+  .feature-tiles-grid { grid-template-columns: 1fr 1fr; }
+  .price-panel { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 540px) {
   .hero-title { font-size: 36px; letter-spacing: -1px; }
@@ -293,6 +298,8 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
   .who-tabs { width: 100%; }
   .who-tab { flex: 1; text-align: center; padding: 10px 12px; }
   .cta-inner h2 { font-size: 28px; }
+  .feature-tiles-grid { grid-template-columns: 1fr; }
+  .price-panel { grid-template-columns: 1fr; }
 }
 
 /* Shared mobile nav */
@@ -363,7 +370,7 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
       </div>
 
       <!-- Feature tiles -->
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:56px">
+      <div class="feature-tiles-grid" style="display:grid;gap:16px;margin-top:56px">
         <div style="background:var(--bg);border-radius:14px;padding:24px;border:1px solid var(--border)">
           <div style="width:40px;height:40px;border-radius:10px;background:var(--red-light);display:flex;align-items:center;justify-content:center;margin-bottom:14px">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
@@ -426,7 +433,7 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
         </div>
 
         <!-- Event Space pricing -->
-        <div id="price-event" class="price-panel" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+        <div id="price-event" class="price-panel" style="display:grid;gap:16px">
           <div style="background:var(--bg);border-radius:14px;padding:24px;border:1px solid var(--border);text-align:center">
             <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(224,58,47,0.7);margin-bottom:6px">Event Space</div>
             <div style="font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Basic</div>
@@ -455,7 +462,7 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
         </div>
 
         <!-- Meeting Space pricing -->
-        <div id="price-meeting" class="price-panel" style="display:none;grid-template-columns:repeat(3,1fr);gap:16px">
+        <div id="price-meeting" class="price-panel" style="display:none;gap:16px">
           <div style="background:var(--bg);border-radius:14px;padding:24px;border:1px solid var(--border);text-align:center">
             <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(224,58,47,0.7);margin-bottom:6px">Meeting Space</div>
             <div style="font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Basic</div>
@@ -484,7 +491,7 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
         </div>
 
         <!-- Shoot Location pricing -->
-        <div id="price-shoot" class="price-panel" style="display:none;grid-template-columns:repeat(3,1fr);gap:16px">
+        <div id="price-shoot" class="price-panel" style="display:none;gap:16px">
           <div style="background:var(--bg);border-radius:14px;padding:24px;border:1px solid var(--border);text-align:center">
             <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(224,58,47,0.7);margin-bottom:6px">Shoot Location</div>
             <div style="font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Basic</div>
