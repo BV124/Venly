@@ -1006,6 +1006,36 @@ section { padding: 80px 48px; }
     <div class="hiw-cta-eyebrow">Ready to go?</div>
     <h2>Find the perfect space today<span class="hiw-cta-dot">.</span></h2>
     <p>Browse spaces across New Zealand for free. No account needed to search — just great venues waiting to be discovered.</p>
+  </div>
+
+  <!-- 4-step diagram (matches venly-how-it-works.html "Finding a Space" steps) -->
+  <div class="hiw-cta-steps-wrap">
+    <div class="hiw-cta-steps-grid" data-steps="4">
+      <div class="hiw-cta-track-fill"></div>
+      <div class="hiw-cta-step">
+        <div class="hiw-cta-step-num lit">1</div>
+        <div class="hiw-cta-step-title">Search &amp; filter</div>
+        <div class="hiw-cta-step-desc">Use our filters to narrow by space type, region, capacity and event type. Find exactly what you need in seconds.</div>
+      </div>
+      <div class="hiw-cta-step">
+        <div class="hiw-cta-step-num">2</div>
+        <div class="hiw-cta-step-title">Browse listings</div>
+        <div class="hiw-cta-step-desc">View photos, read about the space, check features and pricing — everything you need to make a decision in one place.</div>
+      </div>
+      <div class="hiw-cta-step">
+        <div class="hiw-cta-step-num">3</div>
+        <div class="hiw-cta-step-title">Enquire directly</div>
+        <div class="hiw-cta-step-desc">Send a message straight to the host with your details and event info. No third party involved — it's just you and them.</div>
+      </div>
+      <div class="hiw-cta-step">
+        <div class="hiw-cta-step-num">4</div>
+        <div class="hiw-cta-step-title">Book your space</div>
+        <div class="hiw-cta-step-desc">The host gets back to you, you confirm the details and sort payment directly. Simple, fast, stress-free.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hiw-cta-inner">
     <div class="hiw-cta-btns">
       <a href="venly-find-a-space.html" class="btn btn-primary">Find a space</a>
       <a href="venly-listing-fees.html" class="btn btn-outline">List a space</a>
@@ -1024,16 +1054,143 @@ section { padding: 80px 48px; }
 .hiw-cta-eyebrow { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--red); margin-bottom: 14px; }
 .hiw-cta-inner h2 { font-size: 36px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 12px; color: var(--text); }
 .hiw-cta-dot { color: var(--red); }
-.hiw-cta-inner p { font-size: 15px; color: var(--text-muted); margin-bottom: 32px; line-height: 1.7; }
+.hiw-cta-inner p { font-size: 15px; color: var(--text-muted); margin-bottom: 0; line-height: 1.7; }
 .hiw-cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+/* 4-step diagram — wider than the text column above/below it */
+.hiw-cta-steps-wrap { max-width: 1100px; margin: 48px auto 56px; padding: 0 24px; }
+.hiw-cta-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  position: relative;
+}
+.hiw-cta-steps-grid::before {
+  content: '';
+  position: absolute;
+  top: 28px;
+  left: calc(12.5% + 20px);
+  right: calc(12.5% + 20px);
+  height: 2px;
+  background: #eee;
+  z-index: 0;
+}
+.hiw-cta-track-fill {
+  position: absolute;
+  top: 28px;
+  left: calc(12.5% + 20px);
+  right: calc(12.5% + 20px);
+  height: 2px;
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: var(--red);
+  z-index: 1;
+  pointer-events: none;
+  border-radius: 2px;
+}
+.hiw-cta-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 24px;
+  position: relative;
+  z-index: 1;
+}
+.hiw-cta-step-num {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #e8c5c3;
+  color: rgba(255,255,255,0.7);
+  font-size: 18px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+  transition: background 0.5s ease, box-shadow 0.5s ease, color 0.5s ease;
+  position: relative;
+  z-index: 2;
+}
+.hiw-cta-step-num.lit { background: var(--red); color: #fff; box-shadow: 0 4px 20px rgba(224,58,47,0.45); }
+.hiw-cta-step-num.pulse { animation: hiwCtaStepPulse 0.5s ease-out; }
+@keyframes hiwCtaStepPulse {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+.hiw-cta-step-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.hiw-cta-step-desc { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
 
 @media (max-width: 860px) {
   .hiw-cta-section { padding: 60px 24px 90px; }
+  .hiw-cta-steps-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+  .hiw-cta-steps-grid::before { display: none; }
+  .hiw-cta-track-fill { display: none; }
 }
 @media (max-width: 560px) {
   .hiw-cta-inner h2 { font-size: 28px; }
+  .hiw-cta-steps-grid { grid-template-columns: 1fr; }
+  .hiw-cta-steps-wrap { margin: 40px auto 48px; }
 }
 </style>
+
+<script>
+// Animates the red line travelling from step 1 through to step 4,
+// lighting up each circle as it arrives. Fires once when the diagram
+// scrolls into view (matches the one-shot behaviour on venly-how-it-works.html).
+(function() {
+  var grid = document.querySelector('.hiw-cta-steps-grid');
+  if (!grid) return;
+  var fired = false;
+
+  function runStepAnimation() {
+    var nums = grid.querySelectorAll('.hiw-cta-step-num');
+    var fill = grid.querySelector('.hiw-cta-track-fill');
+    if (!nums.length || !fill) return;
+
+    var segMs = 900;
+    var pauseMs = 350;
+
+    function getScale(num) {
+      var rect = grid.getBoundingClientRect();
+      var trackLeft = rect.left + rect.width * 0.125 + 20;
+      var trackRight = rect.right - rect.width * 0.125 - 20;
+      var trackW = trackRight - trackLeft;
+      var nRect = num.getBoundingClientRect();
+      var centerX = nRect.left + nRect.width / 2;
+      return Math.max(0, Math.min(1, (centerX - trackLeft) / trackW));
+    }
+
+    function animateTo(index) {
+      if (index >= nums.length) return;
+      var num = nums[index];
+      var scale = getScale(num);
+      fill.style.transition = 'transform ' + segMs + 'ms cubic-bezier(0.25, 0.1, 0.25, 1)';
+      fill.style.transform = 'scaleX(' + scale + ')';
+      setTimeout(function() {
+        num.classList.add('lit', 'pulse');
+        setTimeout(function() { num.classList.remove('pulse'); }, 600);
+        setTimeout(function() { animateTo(index + 1); }, pauseMs);
+      }, segMs);
+    }
+
+    setTimeout(function() { animateTo(1); }, 600);
+  }
+
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting && !fired) {
+        fired = true;
+        runStepAnimation();
+      }
+    });
+  }, { threshold: 0.4 });
+  observer.observe(grid);
+})();
+</script>
 
 <!-- RECENT BLOG POSTS -->
 <section class="hb" id="home-blog-section">
