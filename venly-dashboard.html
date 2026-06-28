@@ -41,7 +41,7 @@ nav { background: var(--white); border-bottom: 1px solid var(--border); display:
 .tab-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
 
 /* PANEL */
-.panel { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow); display: none; flex-direction: column; }
+.panel { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow); display: none; flex-direction: column; min-width: 0; }
 .panel.active { display: flex; }
 .panel-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
 .section-divider { font-size: 13px; font-weight: 500; color: var(--text-muted); padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
@@ -68,7 +68,7 @@ input:focus, textarea:focus, select:focus { outline: none; border-color: var(--r
 
 /* LISTINGS TABLE */
 .table-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); flex: 1; display: flex; flex-direction: column; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); flex: 1; display: flex; flex-direction: column; min-width: 0; }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 thead th { background: var(--bg); padding: 10px 14px; text-align: left; font-weight: 500; color: var(--text-muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
 tbody tr { transition: background 0.1s; }
@@ -238,11 +238,28 @@ tbody tr:last-child td { border-bottom: none; }
   .page { padding: 16px 16px 60px; }
   .page-title { font-size: 20px; margin-bottom: 16px; }
   .layout { grid-template-columns: 1fr; gap: 16px; }
-  /* Sidebar becomes horizontal tab bar */
-  .sidebar { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; gap: 4px; padding: 8px; scrollbar-width: none; }
-  .sidebar::-webkit-scrollbar { display: none; }
-  .tab-btn { flex: 0 0 auto; min-width: unset; padding: 9px 14px; font-size: 12px; white-space: nowrap; }
-  .tab-btn svg { display: none; }
+  /* Sidebar becomes a full-width segmented tab bar — all 3 options
+     visible at once, no horizontal scrolling required. */
+  .sidebar {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: visible;
+    gap: 6px;
+    padding: 6px;
+  }
+  .tab-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    border-radius: 10px;
+  }
+  .tab-btn svg { display: block; width: 20px; height: 20px; }
   .panel { padding: 16px; }
   /* Form */
   .photo-row { flex-direction: column; align-items: center; text-align: center; }
@@ -262,7 +279,8 @@ tbody tr:last-child td { border-bottom: none; }
   .feature-chip { font-size: 11px; padding: 5px 10px; }
 }
 @media (max-width: 400px) {
-  .tab-btn { font-size: 11px; padding: 8px 10px; }
+  .tab-btn { font-size: 10px; padding: 9px 2px; }
+  .tab-btn svg { width: 18px; height: 18px; }
   .photo-upload-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
