@@ -353,9 +353,9 @@ function renderFooter() {
     <!-- QUICK SEARCH -->
     <div>
       <span class="vf-col-heading">Quick Search</span>
-      <a href="venly-find-a-space.html?region=Auckland" class="vf-link">Auckland Spaces</a>
-      <a href="venly-find-a-space.html?region=Wellington" class="vf-link">Wellington Spaces</a>
-      <a href="venly-find-a-space.html?region=Hamilton" class="vf-link">Hamilton Spaces</a>
+      <a href="venly-find-a-space.html?type=Event+space" class="vf-link">Event Spaces</a>
+      <a href="venly-find-a-space.html?type=Meeting+space" class="vf-link">Meeting Spaces</a>
+      <a href="venly-find-a-space.html?type=Shoot+Location" class="vf-link">Shoot Locations</a>
     </div>
 
   </div>
