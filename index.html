@@ -1066,6 +1066,19 @@ section { padding: 80px 48px; }
   </div>
 </section>
 
+<!-- BOTTOM CTA (matches venly-how-it-works.html) -->
+<div class="hiw-cta-section">
+  <div class="hiw-cta-inner">
+    <div class="hiw-cta-eyebrow">Ready to go?</div>
+    <h2>Find your perfect space today</h2>
+    <p>Browse spaces across New Zealand for free. No account needed to search — just great venues waiting to be discovered.</p>
+    <div class="hiw-cta-btns">
+      <a href="venly-find-a-space.html" class="btn btn-primary">Find a space</a>
+      <a href="venly-listing-fees.html" class="btn btn-outline">List a space</a>
+    </div>
+  </div>
+</div>
+
 <style>
 .hiw { padding: 32px 0 88px; background: var(--white); }
 .hiw-wrap { max-width: 1600px; margin: 0 auto; padding: 0 48px; }
@@ -1136,6 +1149,25 @@ section { padding: 80px 48px; }
   .hiw-wrap { padding: 0 20px; }
   .hiw-steps { grid-template-columns: 1fr; gap: 28px; }
   .hiw-step-desc { max-width: none; }
+}
+
+/* ── BOTTOM CTA (matches venly-how-it-works.html) ───────────────── */
+.hiw-cta-section {
+  padding: 80px 48px;
+  background: var(--white);
+  text-align: center;
+}
+.hiw-cta-inner { max-width: 580px; margin: 0 auto; }
+.hiw-cta-eyebrow { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--red); margin-bottom: 14px; }
+.hiw-cta-inner h2 { font-size: 36px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 12px; color: var(--text); }
+.hiw-cta-inner p { font-size: 15px; color: var(--text-muted); margin-bottom: 32px; line-height: 1.7; }
+.hiw-cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+@media (max-width: 860px) {
+  .hiw-cta-section { padding: 60px 24px; }
+}
+@media (max-width: 560px) {
+  .hiw-cta-inner h2 { font-size: 28px; }
 }
 </style>
 
