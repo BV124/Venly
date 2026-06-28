@@ -32,7 +32,7 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
 
 /* PAGE HEADER */
 .page-header { text-align: center; padding: 72px 48px 56px; }
-.page-header h1 { font-size: 64px; font-weight: 800; color: var(--red); letter-spacing: -2.5px; margin-bottom: 16px; line-height: 1; }
+.page-header h1 { font-size: clamp(26px, 3vw, 32px); font-weight: 800; color: var(--text); letter-spacing: -0.5px; margin-bottom: 16px; line-height: 1; }
 .page-header p { font-size: 16px; color: var(--text-muted); max-width: 500px; margin: 0 auto; line-height: 1.7; }
 
 /* MAIN LAYOUT */
@@ -118,7 +118,6 @@ textarea { min-height: 160px; }
 @media (max-width: 860px) {
   .contact-wrap { grid-template-columns: 1fr; padding: 0 24px 60px; }
   .page-header { padding: 48px 24px 40px; }
-  .page-header h1 { font-size: 44px; }
   nav { padding: 0 24px; }
   footer { padding: 40px 32px 20px; }
   
@@ -169,7 +168,7 @@ textarea { min-height: 160px; }
 <script>renderNav({ activePage: "contact", loggedIn: !!localStorage.getItem("venly_current_user") });</script>
 
 <div class="page-header">
-  <h1>Contact Us</h1>
+  <h1>Contact Us<span style="color:var(--red)">.</span></h1>
   <p>Can't find what you're looking for? Get in touch with the team at Venly — we're here to help and would love to hear from you.</p>
 </div>
 
