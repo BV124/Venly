@@ -546,7 +546,7 @@ tbody tr:last-child td { border-bottom: none; }
               </div>
               <div class="plan-summary-row">
                 <span>Total today</span>
-                <span class="plan-price-display" id="summary-price">$79/mo</span>
+                <span class="plan-price-display" id="summary-price">$89/mo</span>
               </div>
             </div>
             <button class="btn-pay" onclick="handlePayment()">
@@ -598,7 +598,7 @@ tbody tr:last-child td { border-bottom: none; }
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center">
           <span style="font-size:18px;font-weight:700" id="current-plan-name">Premium</span>
-          <span style="font-size:16px;font-weight:700;color:var(--red)" id="current-plan-price">$79/mo</span>
+          <span style="font-size:16px;font-weight:700;color:var(--red)" id="current-plan-price">$89/mo</span>
         </div>
         <div style="font-size:12px;color:var(--text-muted);margin-top:4px" id="current-plan-features"></div>
       </div>
@@ -696,7 +696,7 @@ let currentUploadSlot = 0;
 const planPrices = {
   'Basic': { 'Event Space': 'Free*', 'Meeting Space': 'Free*', 'Shoot Location': 'Free*' },
   'Standard': { 'Event Space': '$59/mo', 'Meeting Space': '$39/mo', 'Shoot Location': '$49/mo' },
-  'Premium': { 'Event Space': '$79/mo', 'Meeting Space': '$59/mo', 'Shoot Location': '$69/mo' },
+  'Premium': { 'Event Space': '$89/mo', 'Meeting Space': '$59/mo', 'Shoot Location': '$69/mo' },
 };
 
 // ---- TAB NAVIGATION ----
@@ -734,7 +734,7 @@ function openManagePlan(idx) {
   const l = listings[idx];
   document.getElementById('manage-listing-name').textContent = l.name + ' · ' + l.type;
   document.getElementById('current-plan-name').textContent = l.plan;
-  document.getElementById('current-plan-price').textContent = (planPrices[l.plan]?.[l.type] || '$79/mo');
+  document.getElementById('current-plan-price').textContent = (planPrices[l.plan]?.[l.type] || '$89/mo');
   document.getElementById('current-plan-features').textContent =
     'Up to ' + planCaps[l.plan].photos + ' photos · ' + planCaps[l.plan].features + ' features · ' + planCaps[l.plan].eventTypes + ' event types';
   renderPlanOptions(l.plan, l.type);
@@ -973,7 +973,7 @@ function openModal() {
   document.getElementById('modal-type-tag').textContent = activeType;
   document.getElementById('summary-plan').textContent = activePlan;
   document.getElementById('summary-type').textContent = activeType;
-  document.getElementById('summary-price').textContent = planPrices[activePlan]?.[activeType] || '$79/mo';
+  document.getElementById('summary-price').textContent = planPrices[activePlan]?.[activeType] || '$89/mo';
   updateStepUI();
   populateRegionOptions();
   renderPhotoGrid();
