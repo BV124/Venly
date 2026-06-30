@@ -907,7 +907,7 @@ function buildTable() {
           <button class="icon-btn delete" title="Delete" onclick="deleteListing(${i})">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
           </button>
-          <button class="icon-btn" title="Preview">
+          <button class="icon-btn" title="${l.status === 'live' ? 'View live listing' : 'Preview'}" onclick="previewListing(${i})">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
         </div>
@@ -922,6 +922,19 @@ function deleteListing(i) {
     buildTable();
     showToast('Listing deleted');
   }
+}
+
+// Opens the venue's real page in a new tab. The page itself renders
+// straight from the venue's stored data regardless of live/draft status,
+// so this doubles as an accurate "what it will look like" preview for
+// drafts — no separate preview mode needed, it's the same page either way.
+function previewListing(i) {
+  var listing = listings[i];
+  if (!listing || !listing.id) {
+    showToast('Unable to preview — listing has no id yet');
+    return;
+  }
+  window.open('venly-venue.html?id=' + encodeURIComponent(listing.id), '_blank');
 }
 
 function openEditListing(i) {
