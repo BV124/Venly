@@ -245,23 +245,48 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
 .step-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
 .step-desc { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
 
-/* ── FAQ ──────────────────────── */
+/* ── FAQ (matches venly-listing-fees.html) ──────────────────────── */
 .faq-section { padding: 80px 48px; background: var(--bg); }
 .faq-inner { max-width: 720px; margin: 0 auto; }
 .faq-heading { text-align: center; margin-bottom: 48px; }
 .faq-heading h2 { font-size: 32px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
 .faq-heading p { font-size: 15px; color: var(--text-muted); }
-.faq-item { border-radius: 10px; background: var(--white); border: 1px solid var(--border); margin-bottom: 8px; overflow: hidden; }
-.faq-q {
-  width: 100%; text-align: left; padding: 18px 20px;
-  font-size: 15px; font-weight: 600; cursor: pointer;
-  background: none; border: none; font-family: 'Inter', sans-serif;
-  color: var(--text); display: flex; align-items: center; justify-content: space-between; gap: 12px;
+
+.faq-item {
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
 }
-.faq-q svg { width: 18px; height: 18px; color: var(--text-muted); flex-shrink: 0; transition: transform 0.2s; }
-.faq-item.open .faq-q svg { transform: rotate(45deg); color: var(--red); }
-.faq-a { display: none; padding: 0 20px 18px; font-size: 14px; color: var(--text-muted); line-height: 1.75; }
-.faq-item.open .faq-a { display: block; }
+.faq-item.open { border-color: var(--red); }
+
+.faq-question {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px; cursor: pointer;
+  font-size: 15px; font-weight: 500;
+  background: transparent; border: none; width: 100%;
+  text-align: left; font-family: 'Inter', sans-serif;
+  color: var(--text); transition: background 0.15s;
+}
+.faq-question:hover { background: var(--bg); }
+.faq-item.open .faq-question { background: var(--red); color: #fff; }
+
+.faq-icon {
+  width: 24px; height: 24px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 300; line-height: 1;
+  color: var(--text-muted);
+}
+.faq-item.open .faq-icon { color: #fff; }
+
+.faq-answer {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+  font-size: 14px; color: var(--text-muted); line-height: 1.7;
+  padding: 0 24px;
+}
+.faq-item.open .faq-answer { max-height: 300px; padding: 20px 24px; }
 
 /* ── BOTTOM CTA ───────────────── */
 .cta-section {
@@ -532,52 +557,52 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
       <p>Everything you need to know about using Venly</p>
     </div>
 
-    <div class="faq-item open">
-      <button class="faq-q" onclick="toggleFaq(this)">
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
         Is it free to search for a space?
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span class="faq-icon">+</span>
       </button>
-      <div class="faq-a">Yes, completely free. You can browse all listings, view photos and read about each space without creating an account. You'll only need to sign up when you want to enquire or save favourites.</div>
+      <div class="faq-answer">Yes, completely free. You can browse all listings, view photos and read about each space without creating an account. You'll only need to sign up when you want to enquire or save favourites.</div>
     </div>
 
     <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">
+      <button class="faq-question" onclick="toggleFaq(this)">
         Does Venly charge a commission on bookings?
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span class="faq-icon">+</span>
       </button>
-      <div class="faq-a">No. Venly charges hosts a flat monthly listing fee only. We never take a percentage of your booking or charge guests anything. What you see is what you pay.</div>
+      <div class="faq-answer">No. Venly charges hosts a flat monthly listing fee only. We never take a percentage of your booking or charge guests anything. What you see is what you pay.</div>
     </div>
 
     <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">
+      <button class="faq-question" onclick="toggleFaq(this)">
         How do I contact a venue host?
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span class="faq-icon">+</span>
       </button>
-      <div class="faq-a">Each listing has a contact form where you can send your details and event information directly to the host. They'll typically get back to you within 24 hours. All communication is between you and the host — Venly isn't in the middle.</div>
+      <div class="faq-answer">Each listing has a contact form where you can send your details and event information directly to the host. They'll typically get back to you within 24 hours. All communication is between you and the host — Venly isn't in the middle.</div>
     </div>
 
     <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">
+      <button class="faq-question" onclick="toggleFaq(this)">
         What types of spaces are listed on Venly?
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span class="faq-icon">+</span>
       </button>
-      <div class="faq-a">Venly lists three types of spaces: Event Spaces (for weddings, parties, launches, galas and more), Meeting Spaces (boardrooms, workshops, conference rooms), and Shoot Locations (for film, photography and content creation).</div>
+      <div class="faq-answer">Venly lists three types of spaces: Event Spaces (for weddings, parties, launches, galas and more), Meeting Spaces (boardrooms, workshops, conference rooms), and Shoot Locations (for film, photography and content creation).</div>
     </div>
 
     <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">
+      <button class="faq-question" onclick="toggleFaq(this)">
         How do I list my space on Venly?
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span class="faq-icon">+</span>
       </button>
-      <div class="faq-a">Create a free account, choose a listing plan that suits you, and fill in your space details — photos, description, features and pricing. Your listing goes live as soon as it's complete. The whole process takes about 10 minutes.</div>
+      <div class="faq-answer">Create a free account, choose a listing plan that suits you, and fill in your space details — photos, description, features and pricing. Your listing goes live as soon as it's complete. The whole process takes about 10 minutes.</div>
     </div>
 
     <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">
+      <button class="faq-question" onclick="toggleFaq(this)">
         Which cities does Venly cover?
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span class="faq-icon">+</span>
       </button>
-      <div class="faq-a">Venly currently covers Auckland, Wellington and Hamilton, with more regions being added regularly. If your city isn't listed yet, create an account and we'll let you know when it becomes available.</div>
+      <div class="faq-answer">Venly currently covers Auckland, Wellington and Hamilton, with more regions being added regularly. If your city isn't listed yet, create an account and we'll let you know when it becomes available.</div>
     </div>
 
   </div>
@@ -753,8 +778,14 @@ function switchTab(tab) {
 function toggleFaq(btn) {
   var item = btn.closest('.faq-item');
   var isOpen = item.classList.contains('open');
-  document.querySelectorAll('.faq-item').forEach(function(i) { i.classList.remove('open'); });
-  if (!isOpen) item.classList.add('open');
+  document.querySelectorAll('.faq-item').forEach(function(i) {
+    i.classList.remove('open');
+    i.querySelector('.faq-icon').textContent = '+';
+  });
+  if (!isOpen) {
+    item.classList.add('open');
+    item.querySelector('.faq-icon').textContent = '−';
+  }
 }
 </script>
 </body>
