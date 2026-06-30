@@ -1249,8 +1249,10 @@ if (window.location.search) filterCards();
 else updateChipAvailability();
 updateFiltersTriggerBadge();
 
-// Mobile never gets the map split-view — make sure list is active
+// Map view is the default everywhere except mobile, where there's no
+// split-view to show — list stays the only option there.
 if (window.innerWidth <= 768) setView('list');
+else setView('map');
 </script>
 </body>
 </html>
