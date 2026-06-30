@@ -924,7 +924,7 @@ function deleteListing(i) {
   }
 }
 
-// Opens the venue's real page in a new tab. The page itself renders
+// Opens the venue's real page in the same tab. The page itself renders
 // straight from the venue's stored data regardless of live/draft status,
 // so this doubles as an accurate "what it will look like" preview for
 // drafts — no separate preview mode needed, it's the same page either way.
@@ -934,7 +934,7 @@ function previewListing(i) {
     showToast('Unable to preview — listing has no id yet');
     return;
   }
-  window.open('venly-venue.html?id=' + encodeURIComponent(listing.id), '_blank');
+  window.location.href = 'venly-venue.html?id=' + encodeURIComponent(listing.id);
 }
 
 function openEditListing(i) {
