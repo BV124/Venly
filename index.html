@@ -909,7 +909,7 @@ section { padding: 80px 48px; }
 
 <style>
 .sts { padding: 40px 0 88px; background: var(--white); }
-.sts-wrap { max-width: 1140px; margin: 0 auto; padding: 0 48px; }
+.sts-wrap { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
 
 .sts-header { text-align: center; margin-bottom: 72px; }
 .sts-title { font-size: clamp(26px, 3.2vw, 36px); font-weight: 800; letter-spacing: -0.5px; color: var(--text); opacity: 0; transform: translateY(10px); transition: opacity 0.6s ease, transform 0.6s ease; }
@@ -918,11 +918,11 @@ section { padding: 80px 48px; }
 .sts-title.is-visible .sts-dot { transform: scale(1); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s; }
 
 .sts-row {
-  display: grid; grid-template-columns: 1.2fr 1fr; gap: 64px; align-items: center;
+  display: grid; grid-template-columns: 1.4fr 1fr; gap: 56px; align-items: center;
   margin-bottom: 96px; opacity: 0; transform: translateY(24px);
   transition: opacity 0.6s ease, transform 0.6s ease;
 }
-.sts-row.reverse { grid-template-columns: 1fr 1.2fr; }
+.sts-row.reverse { grid-template-columns: 1fr 1.4fr; }
 .sts-row:last-child { margin-bottom: 0; }
 .sts-row.is-visible { opacity: 1; transform: translateY(0); }
 .sts-row.reverse .sts-media { order: 2; }
@@ -934,7 +934,7 @@ section { padding: 80px 48px; }
   text-decoration: none; color: inherit; -webkit-tap-highlight-color: transparent;
 }
 .sts-slideshow {
-  position: relative; width: 100%; aspect-ratio: 1.28; border-radius: 24px;
+  position: relative; width: 100%; aspect-ratio: 5 / 3; border-radius: 24px;
   overflow: hidden; background: #ddd;
   transition: box-shadow 0.25s ease;
 }
