@@ -162,7 +162,28 @@ var VENLY_DEFAULT_FILTERS = {
     shoot:   ['Film & TV', 'Photography', 'Commercial', 'Content Creation', 'Podcast / Recording'],
   },
   blogCategories: ['Hosting Tips', 'Event Space', 'Meeting Space', 'Shoot Location', 'Guide', 'Venly News'],
+
+  // Quick-filter chips shown in the homepage's "Trending Spaces" marquee.
+  // Each chip is a label + a filterType/value pair rather than a raw URL,
+  // so every chip always points at a real, valid find-a-space filter —
+  // see buildTrendingChipHref() below for how the link gets built.
+  trendingChips: [
+    { label: 'Wedding venues',  filterType: 'event',  value: 'Wedding' },
+    { label: 'Auckland spaces', filterType: 'region', value: 'Auckland' },
+    { label: 'Meeting space',   filterType: 'type',   value: 'Meeting space' },
+    { label: 'Shoot locations', filterType: 'type',   value: 'Shoot Location' },
+  ],
 };
+
+// Builds the venly-find-a-space.html link for a trending chip, given its
+// filterType ('event' | 'region' | 'type') and value. Kept in one place so
+// the admin's Filters page and the homepage marquee never disagree on how
+// a chip's link is constructed.
+function buildTrendingChipHref(chip) {
+  var paramByType = { event: 'event', region: 'region', type: 'type' };
+  var param = paramByType[chip.filterType] || 'type';
+  return 'venly-find-a-space.html?' + param + '=' + encodeURIComponent(chip.value);
+}
 
 // Maps the admin Filters page's short keys (event/meeting/shoot) to the
 // literal space-type labels used everywhere else on venues and listings.

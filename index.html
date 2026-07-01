@@ -470,16 +470,7 @@ section { padding: 80px 48px; }
     <div class="ja-header">
       <h2 class="ja-title">Trending Spaces<span class="ja-title-dot" id="ja-dot">.</span></h2>
       <div class="ja-chips" id="ja-chips">
-        <div class="ja-chips-track">
-          <a href="venly-find-a-space.html?event=Wedding" class="ja-chip">Wedding venues</a>
-          <a href="venly-find-a-space.html?region=Auckland" class="ja-chip">Auckland spaces</a>
-          <a href="venly-find-a-space.html?type=Meeting+space" class="ja-chip">Meeting space</a>
-          <a href="venly-find-a-space.html?type=Shoot+Location" class="ja-chip">Shoot locations</a>
-          <a href="venly-find-a-space.html?event=Wedding" class="ja-chip" aria-hidden="true" tabindex="-1">Wedding venues</a>
-          <a href="venly-find-a-space.html?region=Auckland" class="ja-chip" aria-hidden="true" tabindex="-1">Auckland spaces</a>
-          <a href="venly-find-a-space.html?type=Meeting+space" class="ja-chip" aria-hidden="true" tabindex="-1">Meeting space</a>
-          <a href="venly-find-a-space.html?type=Shoot+Location" class="ja-chip" aria-hidden="true" tabindex="-1">Shoot locations</a>
-        </div>
+        <div class="ja-chips-track" id="ja-chips-track"></div>
       </div>
     </div>
 
@@ -784,6 +775,31 @@ section { padding: 80px 48px; }
   .ja-tile-img { height: 200px; }
 }
 </style>
+
+<script>
+// Trending Spaces chips are managed from the admin's Filters page (see
+// venly-admin.html > Filters > "Trending Spaces Filter Options") and read
+// here via the same shared getVenlyFilters() data everything else uses —
+// so a change made once in the admin shows up here automatically.
+(function() {
+  var track = document.getElementById('ja-chips-track');
+  if (!track || typeof getVenlyFilters !== 'function') return;
+  var chips = (getVenlyFilters().trendingChips || []);
+  if (!chips.length) return;
+
+  function chipHtml(chip, hidden) {
+    var href = buildTrendingChipHref(chip);
+    var hiddenAttrs = hidden ? ' aria-hidden="true" tabindex="-1"' : '';
+    return '<a href="' + href + '" class="ja-chip"' + hiddenAttrs + '>' + chip.label + '</a>';
+  }
+
+  // Real chips first, then an aria-hidden duplicate set — the marquee
+  // animation scrolls the track by -50% so it loops seamlessly.
+  track.innerHTML =
+    chips.map(function(c) { return chipHtml(c, false); }).join('') +
+    chips.map(function(c) { return chipHtml(c, true); }).join('');
+})();
+</script>
 
 <script>
 // Toggles the "Trending venues" heading + dot animation, and the quick-

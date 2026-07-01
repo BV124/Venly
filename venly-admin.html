@@ -427,6 +427,21 @@ tbody tr:last-child td { border-bottom: none; }
   font-size: 12px; font-family: 'Inter', sans-serif; color: var(--text);
 }
 .filter-add-row input:focus { outline: none; border-color: var(--red); }
+.filter-add-row select {
+  padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px;
+  background: var(--white); color: var(--text); font-family: inherit;
+}
+.filter-add-row select:focus { outline: none; border-color: var(--red); }
+.filter-chip-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); margin-bottom: 6px; }
+.filter-chip-row-label { font-size: 12px; font-weight: 600; color: var(--text); }
+.filter-chip-row-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.filter-chip-row .tag-remove { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: var(--white); border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; flex-shrink: 0; }
+.filter-chip-row .tag-remove svg { width: 9px; height: 9px; }
+.filter-chip-row .tag-remove:hover { background: var(--red); color: #fff; border-color: var(--red); }
+.filter-card.is-locked .filter-chip-row .tag-remove,
+.filter-card.is-locked .trending-add-row {
+  display: none;
+}
 .filter-add-row button {
   padding: 6px 14px; border-radius: 20px; border: none; background: var(--red);
   color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif;
@@ -1651,6 +1666,13 @@ tbody tr:last-child td { border-bottom: none; }
         <div id="filter-blog-categories"></div>
       </div>
 
+      <!-- EDITABLE: Trending Spaces chips (homepage "Trending Spaces" marquee) -->
+      <div class="filter-card is-locked" id="card-trending" style="grid-column: span 3">
+        <h3>Trending Spaces Filter Options<button class="filter-lock-btn" onclick="toggleCardLock('card-trending', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Locked</button></h3>
+        <div class="filter-card-note" style="margin:0 0 12px">Controls the scrolling quick-filter chips shown under "Trending Spaces" on the homepage. Each chip links to Find a Space, pre-filtered by the event type, region or space type you choose below.</div>
+        <div id="filter-trending-chips"></div>
+      </div>
+
     </div>
   </div>
 
@@ -2517,7 +2539,129 @@ function renderAllFilters() {
   renderEditableTagList('filter-events-meeting', 'eventsByType.meeting');
   renderEditableTagList('filter-events-shoot', 'eventsByType.shoot');
   renderEditableTagList('filter-blog-categories', 'blogCategories');
+  renderTrendingChipsList();
   refreshDependentDropdowns();
+}
+
+// ---- TRENDING SPACES CHIPS (homepage marquee) ----
+// Unlike the simple string lists above, each chip needs a label plus a
+// filterType/value pair, so it gets its own render/add/remove functions
+// rather than reusing renderEditableTagList. buildTrendingChipHref() (in
+// venly-config.js) is the single source of truth for turning a chip into
+// an actual Find a Space link — used here and on the homepage — so the
+// two can never disagree about how a link is built.
+var TRENDING_FILTER_TYPES = [
+  { value: 'event',  label: 'Event type' },
+  { value: 'region', label: 'Region' },
+  { value: 'type',   label: 'Space type' },
+];
+
+// Value options available for a given filter type, pulled from the same
+// shared filters data as the rest of this page.
+function getTrendingValueOptions(filterType) {
+  var filters = getFilters();
+  if (filterType === 'region') return filters.regions;
+  if (filterType === 'type') return ['Event space', 'Meeting space', 'Shoot Location'];
+  // 'event' — flatten and de-duplicate event types across all three space types
+  var seen = {};
+  var all = [];
+  ['event', 'meeting', 'shoot'].forEach(function(key) {
+    (filters.eventsByType[key] || []).forEach(function(ev) {
+      if (!seen[ev]) { seen[ev] = true; all.push(ev); }
+    });
+  });
+  return all;
+}
+
+function renderTrendingChipsList() {
+  var container = document.getElementById('filter-trending-chips');
+  if (!container) return;
+  var filters = getFilters();
+  var chips = filters.trendingChips || [];
+
+  var typeLabelMap = {};
+  TRENDING_FILTER_TYPES.forEach(function(t) { typeLabelMap[t.value] = t.label; });
+
+  var rowsHtml = chips.map(function(chip, idx) {
+    return '<div class="filter-chip-row">' +
+      '<div><div class="filter-chip-row-label">' + escapeHtml(chip.label) + '</div>' +
+      '<div class="filter-chip-row-meta">' + escapeHtml(typeLabelMap[chip.filterType] || chip.filterType) + ': ' + escapeHtml(chip.value) + '</div></div>' +
+      '<span class="tag-remove" onclick="removeTrendingChip(' + idx + ')" title="Remove">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+      '</span>' +
+    '</div>';
+  }).join('') || '<div class="filter-card-note" style="margin:0 0 10px">No chips yet — add one below.</div>';
+
+  var typeOptionsHtml = TRENDING_FILTER_TYPES.map(function(t) {
+    return '<option value="' + t.value + '">' + t.label + '</option>';
+  }).join('');
+
+  var addRow =
+    '<div class="filter-add-row trending-add-row" style="flex-wrap:wrap">' +
+      '<input type="text" id="trending-add-label" placeholder="Chip text, e.g. Wedding venues" style="flex:1;min-width:180px" />' +
+      '<select id="trending-add-type" onchange="renderTrendingValueOptions()">' + typeOptionsHtml + '</select>' +
+      '<select id="trending-add-value"></select>' +
+      '<button onclick="addTrendingChip()">Add</button>' +
+    '</div>';
+
+  container.innerHTML = rowsHtml + addRow;
+  renderTrendingValueOptions();
+}
+
+// Repopulates the value dropdown whenever the filter type dropdown changes
+function renderTrendingValueOptions() {
+  var typeSelect = document.getElementById('trending-add-type');
+  var valueSelect = document.getElementById('trending-add-value');
+  if (!typeSelect || !valueSelect) return;
+  var options = getTrendingValueOptions(typeSelect.value);
+  valueSelect.innerHTML = options.map(function(v) {
+    return '<option value="' + escapeHtml(v) + '">' + escapeHtml(v) + '</option>';
+  }).join('');
+}
+
+function addTrendingChip() {
+  var labelInput = document.getElementById('trending-add-label');
+  var typeSelect = document.getElementById('trending-add-type');
+  var valueSelect = document.getElementById('trending-add-value');
+  var label = labelInput.value.trim();
+  var filterType = typeSelect.value;
+  var value = valueSelect.value;
+
+  if (!label) { showToast('Give the chip some text first'); return; }
+  if (!value) { showToast('Choose a value for this chip'); return; }
+
+  var filters = getFilters();
+  filters.trendingChips = filters.trendingChips || [];
+  filters.trendingChips.push({ label: label, filterType: filterType, value: value });
+
+  if (saveFilters(filters)) {
+    labelInput.value = '';
+    renderTrendingChipsList();
+    showToast('Added "' + label + '"');
+  }
+}
+
+function removeTrendingChip(idx) {
+  var filters = getFilters();
+  var chip = (filters.trendingChips || [])[idx];
+  if (!chip) return;
+
+  document.getElementById('confirm-delete-title').textContent = 'Remove "' + chip.label + '"?';
+  document.getElementById('confirm-delete-desc').textContent = 'This will remove it from the homepage\'s Trending Spaces chips. This can\'t be undone.';
+
+  var confirmBtn = document.getElementById('confirm-delete-btn');
+  confirmBtn.textContent = 'Remove';
+  confirmBtn.onclick = function() {
+    var f = getFilters();
+    f.trendingChips.splice(idx, 1);
+    if (saveFilters(f)) {
+      renderTrendingChipsList();
+      showToast('Removed "' + chip.label + '"');
+    }
+    closeConfirmDelete();
+  };
+
+  document.getElementById('confirm-delete-modal').classList.remove('hidden');
 }
 
 // Populates the "which region" dropdown at the top of the Districts card
