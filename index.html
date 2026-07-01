@@ -657,10 +657,6 @@ section { padding: 80px 48px; }
 }
 .ja-chip:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
 .ja-chips.is-visible .ja-chip { opacity: 1; transform: translateY(0) scale(1); }
-.ja-chips.is-visible .ja-chip:nth-child(1) { transition-delay: 0s, 0s, 0s, 0.55s, 0.55s; }
-.ja-chips.is-visible .ja-chip:nth-child(2) { transition-delay: 0s, 0s, 0s, 0.65s, 0.65s; }
-.ja-chips.is-visible .ja-chip:nth-child(3) { transition-delay: 0s, 0s, 0s, 0.75s, 0.75s; }
-.ja-chips.is-visible .ja-chip:nth-child(4) { transition-delay: 0s, 0s, 0s, 0.85s, 0.85s; }
 
 /* Even grid, every tile the same size — photo first, info below, no
    overlay text on the image itself. */
@@ -787,17 +783,22 @@ section { padding: 80px 48px; }
   var chips = (getVenlyFilters().trendingChips || []);
   if (!chips.length) return;
 
-  function chipHtml(chip, hidden) {
+  function chipHtml(chip, hidden, idx) {
     var href = buildTrendingChipHref(chip);
     var hiddenAttrs = hidden ? ' aria-hidden="true" tabindex="-1"' : '';
-    return '<a href="' + href + '" class="ja-chip"' + hiddenAttrs + '>' + chip.label + '</a>';
+    // Staggered fade-in delay (0.55s, 0.65s, 0.75s...) — set inline per
+    // chip rather than in CSS so it automatically covers however many
+    // chips are configured in the admin, not just a fixed number.
+    var delay = (0.55 + idx * 0.1).toFixed(2) + 's';
+    var delayAttr = hidden ? '' : ' style="transition-delay:0s,0s,0s,' + delay + ',' + delay + '"';
+    return '<a href="' + href + '" class="ja-chip"' + hiddenAttrs + delayAttr + '>' + chip.label + '</a>';
   }
 
   // Real chips first, then an aria-hidden duplicate set — the marquee
   // animation scrolls the track by -50% so it loops seamlessly.
   track.innerHTML =
-    chips.map(function(c) { return chipHtml(c, false); }).join('') +
-    chips.map(function(c) { return chipHtml(c, true); }).join('');
+    chips.map(function(c, idx) { return chipHtml(c, false, idx); }).join('') +
+    chips.map(function(c, idx) { return chipHtml(c, true, idx); }).join('');
 })();
 </script>
 
