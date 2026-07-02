@@ -1037,7 +1037,7 @@ tbody tr:last-child td { border-bottom: none; }
             <div class="editor-row">
               <div class="editor-field">
                 <label>Space type</label>
-                <select id="ven-type" onchange="renderVenueFeatures(); renderVenueEventTypes()">
+                <select id="ven-type" onchange="renderVenueFeatures(); renderVenueEventTypes(); updateVenueOccasionLabel()">
                   <option value="Event space">Event space</option>
                   <option value="Meeting space">Meeting space</option>
                   <option value="Shoot Location">Shoot Location</option>
@@ -1152,6 +1152,25 @@ tbody tr:last-child td { border-bottom: none; }
               </div>
               <div class="toggle-switch" id="ven-live-toggle" onclick="this.classList.toggle('on'); updateVenueLiveHelper()"></div>
             </div>
+          </div>
+
+          <div class="editor-card">
+            <h4>Homepage placement</h4>
+            <div class="publish-status-row">
+              <div>
+                <span>Trending Spaces</span>
+                <div style="font-size:10px;color:#bbb;margin-top:2px" id="ven-trending-slots-label">0 of 8 homepage slots used</div>
+              </div>
+              <div class="toggle-switch" id="ven-trending-toggle" onclick="toggleVenueTrending(this)"></div>
+            </div>
+            <div class="publish-status-row">
+              <div>
+                <span>For all occasions</span>
+                <div style="font-size:10px;color:#bbb;margin-top:2px" id="ven-occasion-slots-label">0 of 4 Event space slots used</div>
+              </div>
+              <div class="toggle-switch" id="ven-occasion-toggle" onclick="toggleVenueOccasion(this)"></div>
+            </div>
+            <div class="filter-card-note" style="margin-top:10px">"For all occasions" slots are counted separately per space type — up to 4 Event spaces, 4 Meeting spaces and 4 Shoot locations can be featured there at once.</div>
           </div>
 
           <div class="editor-sidebar-actions">
@@ -1940,6 +1959,77 @@ function toggleFeatured(toggleEl) {
 
   toggleEl.classList.toggle('on');
   updateFeaturedSlotsLabel();
+}
+
+// ---- VENUE HOMEPAGE PLACEMENT ----
+// Same pattern as the blog's "Featured on homepage" toggle above, but for
+// venues, and split across two independent homepage sections: the
+// "Trending Spaces" grid (one shared pool of slots) and "For all
+// occasions" (a separate pool of slots per space type, since that section
+// shows one row per space type). VENLY_MAX_TRENDING_HOME_VENUES and
+// VENLY_MAX_OCCASION_PER_TYPE live in venly-config.js so the homepage and
+// this page always agree on the caps.
+
+function getTrendingHomeCount(excludeId) {
+  return getAllVenues().filter(function(v) { return v.featuredHome && v.id !== excludeId; }).length;
+}
+
+function updateVenueTrendingLabel() {
+  var label = document.getElementById('ven-trending-slots-label');
+  var toggle = document.getElementById('ven-trending-toggle');
+  if (!label || !toggle) return;
+  var isOn = toggle.classList.contains('on');
+  var total = getTrendingHomeCount(currentEditingVenueId) + (isOn ? 1 : 0);
+  label.textContent = total + ' of ' + VENLY_MAX_TRENDING_HOME_VENUES + ' homepage slots used';
+  label.style.color = total >= VENLY_MAX_TRENDING_HOME_VENUES ? 'var(--red)' : '#bbb';
+}
+
+function toggleVenueTrending(toggleEl) {
+  var isCurrentlyOn = toggleEl.classList.contains('on');
+  if (!isCurrentlyOn) {
+    var count = getTrendingHomeCount(currentEditingVenueId);
+    if (count >= VENLY_MAX_TRENDING_HOME_VENUES) {
+      showToast('Only ' + VENLY_MAX_TRENDING_HOME_VENUES + ' venues can be featured in Trending Spaces at once — unfeature another venue first');
+      return;
+    }
+  }
+  toggleEl.classList.toggle('on');
+  updateVenueTrendingLabel();
+}
+
+// "For all occasions" slots are per space type — a venue only competes
+// for slots against other venues of the same type (Event/Meeting/Shoot).
+function getOccasionCount(spaceType, excludeId) {
+  return getAllVenues().filter(function(v) {
+    return v.featuredOccasion && v.type === spaceType && v.id !== excludeId;
+  }).length;
+}
+
+function updateVenueOccasionLabel() {
+  var label = document.getElementById('ven-occasion-slots-label');
+  var toggle = document.getElementById('ven-occasion-toggle');
+  var typeSelect = document.getElementById('ven-type');
+  if (!label || !toggle || !typeSelect) return;
+  var spaceType = typeSelect.value || 'Event space';
+  var isOn = toggle.classList.contains('on');
+  var total = getOccasionCount(spaceType, currentEditingVenueId) + (isOn ? 1 : 0);
+  label.textContent = total + ' of ' + VENLY_MAX_OCCASION_PER_TYPE + ' ' + spaceType + ' slots used';
+  label.style.color = total >= VENLY_MAX_OCCASION_PER_TYPE ? 'var(--red)' : '#bbb';
+}
+
+function toggleVenueOccasion(toggleEl) {
+  var isCurrentlyOn = toggleEl.classList.contains('on');
+  var typeSelect = document.getElementById('ven-type');
+  var spaceType = typeSelect ? (typeSelect.value || 'Event space') : 'Event space';
+  if (!isCurrentlyOn) {
+    var count = getOccasionCount(spaceType, currentEditingVenueId);
+    if (count >= VENLY_MAX_OCCASION_PER_TYPE) {
+      showToast('Only ' + VENLY_MAX_OCCASION_PER_TYPE + ' ' + spaceType + ' venues can be featured in "For all occasions" at once — unfeature another first');
+      return;
+    }
+  }
+  toggleEl.classList.toggle('on');
+  updateVenueOccasionLabel();
 }
 
 function saveAllBlogPosts(posts) {
@@ -2963,8 +3053,17 @@ function renderVenuesTable(venues, statusTotal, statusFilter) {
     var linkNote = v.hostUserId
       ? '<div style="font-size:10px;color:#1a8a4a">✓ Linked to account</div>'
       : '<div style="font-size:10px;color:#c2632a">Awaiting signup</div>';
+    var homePills = '';
+    if (v.featuredHome) {
+      homePills += '<span class="featured-home-pill" title="Shown in the homepage Trending Spaces grid">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Trending</span>';
+    }
+    if (v.featuredOccasion) {
+      homePills += '<span class="featured-home-pill" title="Shown in the homepage For all occasions section">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Occasions</span>';
+    }
     return '<tr>' +
-      '<td class="cell-name">' + escapeHtml(v.name || 'Untitled venue') + '</td>' +
+      '<td class="cell-name">' + escapeHtml(v.name || 'Untitled venue') + homePills + '</td>' +
       '<td style="color:var(--text-muted)">' + escapeHtml(v.hostName || v.hostEmail || '—') + linkNote + '</td>' +
       '<td>' + escapeHtml(v.type || '—') + '</td>' +
       '<td>' + escapeHtml(v.district || v.region || '—') + '</td>' +
@@ -3290,6 +3389,8 @@ function openVenueEditor(venueId) {
     document.getElementById('ven-enquiry-email').value = venue.enquiryEmail || '';
     lookupHostByEmail();
     document.getElementById('ven-live-toggle').classList.toggle('on', !!venue.isLive);
+    document.getElementById('ven-trending-toggle').classList.toggle('on', !!venue.featuredHome);
+    document.getElementById('ven-occasion-toggle').classList.toggle('on', !!venue.featuredOccasion);
 
     venuePhotoDataUrls = (venue.photos && venue.photos.length) ? venue.photos.slice() : [];
     venueCoverPhotoIndex = 0; // photos[0] is always saved as the cover photo
@@ -3317,6 +3418,8 @@ function openVenueEditor(venueId) {
     document.getElementById('ven-enquiry-email').value = '';
     document.getElementById('host-lookup-result-wrap').innerHTML = '';
     document.getElementById('ven-live-toggle').classList.remove('on');
+    document.getElementById('ven-trending-toggle').classList.remove('on');
+    document.getElementById('ven-occasion-toggle').classList.remove('on');
 
     venuePhotoDataUrls = [];
     venueCoverPhotoIndex = 0;
@@ -3330,6 +3433,8 @@ function openVenueEditor(venueId) {
   renderVenueFeatures();
   renderVenueEventTypes();
   updateVenueLiveHelper();
+  updateVenueTrendingLabel();
+  updateVenueOccasionLabel();
   updateEnquiryFallbackNote();
 }
 
@@ -3385,6 +3490,8 @@ function saveVenue() {
     photos: getOrderedVenuePhotos(),
     features: venueSelectedFeatures.slice(),
     eventTypes: venueSelectedEventTypes.slice(),
+    featuredHome: document.getElementById('ven-trending-toggle').classList.contains('on'),
+    featuredOccasion: document.getElementById('ven-occasion-toggle').classList.contains('on'),
   };
 
   if (currentEditingVenueId) {
