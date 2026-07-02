@@ -303,6 +303,27 @@ function sendMessage() {
   if (!subject) { showToast('Please select a subject'); return; }
   if (!message) { showToast('Please enter a message'); return; }
 
+  if (typeof SUPABASE_READY !== 'undefined' && SUPABASE_READY) {
+    sb.from('contact_messages').insert({
+      name: name, email: email, subject: subject, message: message, status: 'open'
+    });
+  } else {
+    // DEMO MODE: save to localStorage so the admin's Messages inbox can
+    // actually show it — same pattern as venue enquiries (venly-venue.html).
+    var messages = JSON.parse(localStorage.getItem('venly_contact_messages') || '[]');
+    messages.unshift({
+      id: 'msg-' + Date.now(),
+      name: name,
+      email: email,
+      subject: subject,
+      message: message,
+      read: false,
+      folder: 'inbox',
+      createdAt: new Date().toISOString(),
+    });
+    localStorage.setItem('venly_contact_messages', JSON.stringify(messages));
+  }
+
   document.getElementById('form-wrap').style.display = 'none';
   document.getElementById('success-msg').style.display = 'block';
 }

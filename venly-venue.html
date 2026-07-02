@@ -741,6 +741,8 @@ async function submitEnquiry() {
       phone: phone,
       message: msg,
       status: 'open',
+      read: false,
+      folder: 'inbox',
       createdAt: new Date().toISOString(),
     });
     localStorage.setItem('venly_enquiries', JSON.stringify(enquiries));
