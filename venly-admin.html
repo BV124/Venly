@@ -33,6 +33,7 @@ nav {
 .nav-badge { background: #fff0ef; color: var(--red); border: 1px solid #f5c4bf; border-radius: 20px; font-size: 11px; font-weight: 600; padding: 3px 10px; }
 .nav-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--red); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 .btn-sm { border-radius: var(--radius-sm); padding: 7px 16px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; border: none; transition: all 0.15s; }
+.btn-sm:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-red { background: var(--red); color: #fff; }
 .btn-red:hover { background: var(--red-dark); }
 .btn-outline-sm { background: transparent; color: var(--red); border: 1.5px solid var(--red) !important; }
@@ -914,8 +915,8 @@ tbody tr:last-child td { border-bottom: none; }
       <div class="stat-card">
         <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
         <div class="stat-label">Monthly Revenue</div>
-        <div class="stat-value">$1,840</div>
-        <div class="stat-change up">↑ $340 this month</div>
+        <div class="stat-value" id="stat-monthly-revenue">$0</div>
+        <div class="stat-change up" id="stat-monthly-revenue-note" style="color:var(--text-muted)">Live · current active subscriptions</div>
       </div>
       <div class="stat-card">
         <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></div>
@@ -933,7 +934,7 @@ tbody tr:last-child td { border-bottom: none; }
       </div>
       <div class="chart-wrap">
         <div class="chart-title">Revenue per month</div>
-        <div class="chart-subtitle">NZD · Last 6 months</div>
+        <div class="chart-subtitle">NZD · Last 6 months · sample data — connect Stripe to track this for real</div>
         <div class="bar-chart" id="revenue-chart"></div>
       </div>
     </div>
@@ -1063,6 +1064,16 @@ tbody tr:last-child td { border-bottom: none; }
                   <option value="Standard">Standard</option>
                   <option value="Premium">Premium</option>
                 </select>
+              </div>
+            </div>
+            <div class="editor-row">
+              <div class="editor-field">
+                <label>Subscription discount <span style="font-weight:400;text-transform:none;color:#bbb">(%, optional)</span></label>
+                <input type="number" id="ven-discount-percent" min="0" max="100" placeholder="0" />
+              </div>
+              <div class="editor-field">
+                <label>Discount code <span style="font-weight:400;text-transform:none;color:#bbb">(for your records)</span></label>
+                <input type="text" id="ven-discount-code" placeholder="e.g. LAUNCH20" />
               </div>
             </div>
             <div class="editor-row">
@@ -1223,8 +1234,11 @@ tbody tr:last-child td { border-bottom: none; }
     </div>
 
     <div class="table-card">
-      <div class="table-card-header"><div class="table-card-title">Venue performance</div></div>
-      <table>
+      <div class="table-card-header">
+        <div class="table-card-title">Venue performance</div>
+        <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input class="search-input" placeholder="Search venues..." oninput="filterTable(this,'analytics-venues-table')" /></div>
+      </div>
+      <table id="analytics-venues-table">
         <thead><tr><th>Venue</th><th>Views</th><th>Favourites</th><th>Enquiries</th></tr></thead>
         <tbody id="analytics-venues-tbody"></tbody>
       </table>
@@ -1499,7 +1513,7 @@ tbody tr:last-child td { border-bottom: none; }
       <div><div class="section-title">Stats</div><div class="section-subtitle">Platform-wide performance metrics.</div></div>
     </div>
     <div class="stats-grid">
-      <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="stat-label">Total Revenue</div><div class="stat-value">$8,420</div><div class="stat-change up">↑ 22% YTD</div></div>
+      <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="stat-label">Total Revenue</div><div class="stat-value">$8,420</div><div class="stat-change" style="color:var(--text-muted)">Sample data — YTD needs Stripe connected</div></div>
       <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div><div class="stat-label">Live Venues</div><div class="stat-value">16</div><div class="stat-change up">↑ 4 this month</div></div>
       <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="stat-label">Active Users</div><div class="stat-value">94</div><div class="stat-change up">↑ 8 this week</div></div>
       <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="stat-label">Churn Rate</div><div class="stat-value">2.1%</div><div class="stat-change down">↑ 0.3% vs last month</div></div>
@@ -1507,7 +1521,7 @@ tbody tr:last-child td { border-bottom: none; }
     <div class="two-col">
       <div class="chart-wrap">
         <div class="chart-title">Revenue over time</div>
-        <div class="chart-subtitle">Monthly NZD · Last 6 months</div>
+        <div class="chart-subtitle">Monthly NZD · Last 6 months · sample data — connect Stripe to track this for real</div>
         <div class="bar-chart" id="stats-revenue-chart"></div>
       </div>
       <div class="chart-wrap">
@@ -1732,6 +1746,10 @@ tbody tr:last-child td { border-bottom: none; }
   <div class="modal-box" style="max-width:380px">
     <h3 id="confirm-delete-title">Remove this item?</h3>
     <p id="confirm-delete-desc">This will remove it from the list and from any dropdowns where it's used. This can't be undone.</p>
+    <div id="delete-typed-confirm-wrap" style="display:none;margin:2px 0 14px">
+      <label id="delete-typed-confirm-label" style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:6px"></label>
+      <input type="text" id="delete-typed-confirm-input" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:'Inter',sans-serif;color:var(--text)" />
+    </div>
     <div class="modal-actions">
       <button class="action-btn" onclick="closeConfirmDelete()">Cancel</button>
       <button class="btn-sm btn-red" id="confirm-delete-btn" onclick="">Remove</button>
@@ -1874,8 +1892,6 @@ function saveAccountOverride(id, patch) {
   localStorage.setItem('venly_account_overrides', JSON.stringify(overrides));
 }
 
-var ACCOUNT_TYPE_TO_PLAN_CATEGORY = { 'Event space': 'event', 'Meeting space': 'meeting', 'Shoot Location': 'shoot' };
-
 function getAllAccounts() {
   var overrides = getAccountOverrides();
   var venues = (typeof getAllVenues === 'function') ? getAllVenues() : [];
@@ -1886,11 +1902,11 @@ function getAllAccounts() {
       return v.hostEmail && v.hostEmail.toLowerCase() === acc.email.toLowerCase();
     });
 
+    // Uses the shared getVenueMonthlyRevenue() helper (venly-config.js) so
+    // any discount on a listing is reflected here too, not just on the
+    // Overview page's headline number.
     var monthlyValue = theirVenues.reduce(function(sum, v) {
-      if (v.subscriptionStatus !== 'active') return sum;
-      var catKey = ACCOUNT_TYPE_TO_PLAN_CATEGORY[v.type] || 'event';
-      var planInfo = VENLY_CONFIG.plans[catKey] && VENLY_CONFIG.plans[catKey][v.plan];
-      return sum + (planInfo ? planInfo.monthly : 0);
+      return sum + getVenueMonthlyRevenue(v);
     }, 0);
 
     return Object.assign({}, acc, {
@@ -2202,6 +2218,9 @@ function showSection(name, btn) {
   var section = document.getElementById('section-' + name);
   if (section) section.classList.add('active');
   if (btn) btn.classList.add('active');
+  if (name === 'overview') {
+    buildOverviewRevenueStat();
+  }
   if (name === 'analytics') {
     buildAnalyticsStats();
     buildAnalyticsVenuesTable();
@@ -2220,7 +2239,22 @@ function renderBarChart(id, data, color) {
   }).join('');
 }
 
-// ---- VENUE ANALYTICS (real, tracked data — see venly-shared.js / venly-config.js) ----
+// ---- OVERVIEW: MONTHLY REVENUE ----
+// This is current MRR (monthly recurring revenue) — the sum of what every
+// currently-active subscription is billing right now, using the shared
+// getVenueMonthlyRevenue() helper (venly-config.js) so any per-venue
+// discount is already factored in. It's a live snapshot, not a forecast:
+// it goes up the moment a venue's subscription becomes active, and down
+// the moment one is cancelled — there's no projection or estimate involved.
+function buildOverviewRevenueStat() {
+  var el = document.getElementById('stat-monthly-revenue');
+  if (!el) return;
+  var venues = getAllVenues();
+  var total = venues.reduce(function(sum, v) { return sum + getVenueMonthlyRevenue(v); }, 0);
+  el.textContent = '$' + total.toLocaleString();
+}
+
+
 // "Page views" = every load of any public page (venly_analytics_pageviews,
 // bumped by trackPageView()). "Venue views" = loads of venue detail pages
 // specifically (venue.hits, bumped by incrementVenueViews() — a venue view
@@ -2985,6 +3019,12 @@ function performFilterRemoval(listPath, idx, containerId, itemName) {
 
 function closeConfirmDelete() {
   document.getElementById('confirm-delete-modal').classList.add('hidden');
+  var typeWrap = document.getElementById('delete-typed-confirm-wrap');
+  if (typeWrap) typeWrap.style.display = 'none';
+  var typeInput = document.getElementById('delete-typed-confirm-input');
+  if (typeInput) typeInput.oninput = null;
+  var confirmBtn = document.getElementById('confirm-delete-btn');
+  if (confirmBtn) confirmBtn.disabled = false;
 }
 
 // Re-renders anything elsewhere in the admin that depends on filter data
@@ -3783,6 +3823,8 @@ function openVenueEditor(venueId) {
     document.getElementById('ven-website').value = venue.website || '';
     document.getElementById('ven-price-from').value = venue.priceFrom || '';
     document.getElementById('ven-price-to').value = venue.priceTo || '';
+    document.getElementById('ven-discount-percent').value = venue.discountPercent || '';
+    document.getElementById('ven-discount-code').value = venue.discountCode || '';
     document.getElementById('ven-host-email').value = venue.hostEmail || '';
     document.getElementById('ven-host-user-id').value = venue.hostUserId || '';
     document.getElementById('ven-host-name').value = venue.hostName || '';
@@ -3812,6 +3854,8 @@ function openVenueEditor(venueId) {
     document.getElementById('ven-website').value = '';
     document.getElementById('ven-price-from').value = '';
     document.getElementById('ven-price-to').value = '';
+    document.getElementById('ven-discount-percent').value = '';
+    document.getElementById('ven-discount-code').value = '';
     document.getElementById('ven-host-email').value = '';
     document.getElementById('ven-host-user-id').value = '';
     document.getElementById('ven-host-name').value = '';
@@ -3869,6 +3913,8 @@ function saveVenue() {
     website: document.getElementById('ven-website').value.trim(),
     priceFrom: document.getElementById('ven-price-from').value.trim(),
     priceTo: document.getElementById('ven-price-to').value.trim(),
+    discountPercent: Math.min(100, Math.max(0, Number(document.getElementById('ven-discount-percent').value) || 0)),
+    discountCode: document.getElementById('ven-discount-code').value.trim(),
     // hostUserId is the real link — it ties this venue to a specific account,
     // independent of whatever the host typed as their email at signup. The
     // email field below is just how the admin looks up that account; once
@@ -3929,6 +3975,8 @@ function saveVenue() {
       ? 'Venue saved and linked to ' + matchedUser.name
       : 'Venue saved — will link once ' + hostEmail + ' signs up');
     closeVenueEditor();
+    if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
+    if (typeof buildAccountsTable === 'function') buildAccountsTable();
   }
 }
 
@@ -3937,18 +3985,56 @@ function deleteVenueWithConfirm(venueId) {
   var venue = venues.find(function(v) { return v.id === venueId; });
   if (!venue) return;
 
+  // Extra safeguard: a venue with a currently-active paid subscription
+  // gets a stronger warning and has to be confirmed by typing its name,
+  // rather than a single click — same friction level as any other
+  // destructive+billing-affecting action in the admin.
+  var isPaying = venue.subscriptionStatus === 'active';
+
   document.getElementById('confirm-delete-title').textContent = 'Delete "' + venue.name + '"?';
-  document.getElementById('confirm-delete-desc').textContent =
-    'This will permanently remove the venue listing. This can\'t be undone.';
+  document.getElementById('confirm-delete-desc').innerHTML = isPaying
+    ? 'This venue has an <strong>active subscription</strong>. Deleting it will cancel that subscription first, the same as using "Cancel subscription" on the listing, so it stops being billed and drops out of revenue/account totals. This can\'t be undone.'
+    : 'This will permanently remove the venue listing. This can\'t be undone.';
+
+  var typeWrap = document.getElementById('delete-typed-confirm-wrap');
+  var typeInput = document.getElementById('delete-typed-confirm-input');
   var confirmBtn = document.getElementById('confirm-delete-btn');
   confirmBtn.textContent = 'Delete';
+
+  if (isPaying) {
+    document.getElementById('delete-typed-confirm-label').textContent = 'Type "' + venue.name + '" to confirm';
+    typeInput.value = '';
+    typeWrap.style.display = 'block';
+    confirmBtn.disabled = true;
+    typeInput.oninput = function() {
+      confirmBtn.disabled = typeInput.value.trim() !== venue.name;
+    };
+  } else {
+    typeWrap.style.display = 'none';
+    confirmBtn.disabled = false;
+  }
+
   confirmBtn.onclick = function() {
+    if (isPaying) {
+      // LIVE MODE: this is where a real Stripe subscription cancellation
+      // call belongs once billing is connected — mirroring the comment on
+      // incrementVenueViews() elsewhere in this file, mutating the local
+      // record isn't enough once there's a real subscription behind it.
+      //
+      // DEMO MODE: no live subscription exists yet to cancel, so — same
+      // as the "Cancel subscription" button on the listing itself — we
+      // just record the cancellation on the venue's own data.
+      venue.subscriptionStatus = 'cancelled';
+      venue.isLive = false;
+    }
+
     var updated = getAllVenues().filter(function(v) { return v.id !== venueId; });
     saveAllVenues(updated);
     buildVenuesTable();
+    if (typeof buildAccountsTable === 'function') buildAccountsTable();
     closeConfirmDelete();
     confirmBtn.textContent = 'Remove';
-    showToast('Venue deleted');
+    showToast(isPaying ? 'Venue deleted — subscription cancelled' : 'Venue deleted');
   };
   document.getElementById('confirm-delete-modal').classList.remove('hidden');
 }
@@ -4481,6 +4567,7 @@ buildBlogTable();
 renderAllFilters();
 buildVenuesTable();
 buildAccountsTable();
+buildOverviewRevenueStat();
 buildAnalyticsStats();
 buildAnalyticsVenuesTable();
 renderAnalyticsChart('pageviews');
