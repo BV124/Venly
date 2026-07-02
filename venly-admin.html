@@ -504,6 +504,7 @@ tbody tr:last-child td { border-bottom: none; }
 .account-venue-name { font-size: 13px; font-weight: 600; color: var(--text); }
 .account-venue-type { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 .account-venue-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.analytics-chart-toggle.active { background: var(--text); color: #fff; border-color: var(--text); }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
 
 /* ── BLOG EDITOR ───────────────────────────────────────────── */
@@ -919,8 +920,8 @@ tbody tr:last-child td { border-bottom: none; }
       <div class="stat-card">
         <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div class="stat-label">Page Views</div>
-        <div class="stat-value">4,291</div>
-        <div class="stat-change up">↑ 654 this month</div>
+        <div class="stat-value" id="stat-overview-pageviews">0</div>
+        <div class="stat-change up" id="stat-overview-pageviews-change"></div>
       </div>
     </div>
 
@@ -1197,26 +1198,32 @@ tbody tr:last-child td { border-bottom: none; }
   <!-- ===== ANALYTICS ===== -->
   <div id="section-analytics" class="page-section">
     <div class="section-header">
-      <div><div class="section-title">Venue Analytics</div><div class="section-subtitle">Page views, engagement and performance per listing.</div></div>
+      <div><div class="section-title">Venue Analytics</div><div class="section-subtitle">Real page views, favourites and enquiries — tracked live as people browse the site.</div></div>
     </div>
     <div class="stats-grid">
-      <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></div><div class="stat-label">Total Page Views</div><div class="stat-value">4,291</div><div class="stat-change up">↑ 654 this month</div></div>
-      <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg></div><div class="stat-label">Total Favourites</div><div class="stat-value">86</div><div class="stat-change up">↑ 9 this week</div></div>
-      <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.12 1.18 2 2 0 012.1 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg></div><div class="stat-label">Contact Enquiries</div><div class="stat-value">34</div><div class="stat-change up">↑ 6 this week</div></div>
-      <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="stat-label">Avg. Time on Page</div><div class="stat-value">2:34</div><div class="stat-change up">↑ 12s vs last month</div></div>
+      <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></div><div class="stat-label">Total Page Views</div><div class="stat-value" id="stat-total-pageviews">0</div><div class="stat-change up" id="stat-pageviews-change"></div></div>
+      <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div class="stat-label">Total Venue Views</div><div class="stat-value" id="stat-total-venueviews">0</div><div class="stat-change up" id="stat-venueviews-change"></div></div>
+      <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg></div><div class="stat-label">Total Favourites</div><div class="stat-value" id="stat-total-favourites">0</div></div>
+      <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.12 1.18 2 2 0 012.1 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg></div><div class="stat-label">Contact Enquiries</div><div class="stat-value" id="stat-total-enquiries">0</div><div class="stat-change up" id="stat-enquiries-change"></div></div>
     </div>
+    <div class="filter-card-note" style="margin:-14px 0 24px">"Page views" counts every page on the site; "Venue views" counts only venue detail pages, so a venue visit adds to both. Every page load counts — including reloads.</div>
+
+    <div class="table-card" style="margin-bottom:20px">
+      <div class="table-card-header">
+        <div class="table-card-title">Monthly performance</div>
+        <div style="display:flex;gap:6px">
+          <button class="action-btn analytics-chart-toggle active" data-metric="pageviews" onclick="renderAnalyticsChart('pageviews')">Page views</button>
+          <button class="action-btn analytics-chart-toggle" data-metric="venueviews" onclick="renderAnalyticsChart('venueviews')">Venue views</button>
+        </div>
+      </div>
+      <div id="analytics-chart-wrap"><div class="bar-chart" id="analytics-monthly-chart"></div></div>
+    </div>
+
     <div class="table-card">
       <div class="table-card-header"><div class="table-card-title">Venue performance</div></div>
       <table>
-        <thead><tr><th>Venue</th><th>Views</th><th>Favourites</th><th>Enquiries</th><th>Conversion</th><th>Top traffic source</th></tr></thead>
-        <tbody>
-          <tr><td class="cell-name">Brads Warehouse</td><td>1,240</td><td>32</td><td>14</td><td style="color:#1a8a4a;font-weight:600">1.1%</td><td>Direct search</td></tr>
-          <tr><td class="cell-name">North Shore Event Space</td><td>980</td><td>21</td><td>8</td><td style="color:#1a8a4a;font-weight:600">0.8%</td><td>Homepage feature</td></tr>
-          <tr><td class="cell-name">Okahu – Meeting Space</td><td>720</td><td>14</td><td>6</td><td style="color:#1a8a4a;font-weight:600">0.8%</td><td>Direct search</td></tr>
-          <tr><td class="cell-name">Brads – Meeting Space</td><td>540</td><td>10</td><td>4</td><td style="color:#a06000;font-weight:600">0.7%</td><td>Google</td></tr>
-          <tr><td class="cell-name">Okahu</td><td>410</td><td>6</td><td>2</td><td style="color:#a06000;font-weight:600">0.5%</td><td>Google</td></tr>
-          <tr><td class="cell-name">Brads – Shoot Location</td><td>280</td><td>3</td><td>0</td><td style="color:var(--text-muted);font-weight:600">0%</td><td>Direct</td></tr>
-        </tbody>
+        <thead><tr><th>Venue</th><th>Views</th><th>Favourites</th><th>Enquiries</th></tr></thead>
+        <tbody id="analytics-venues-tbody"></tbody>
       </table>
     </div>
   </div>
@@ -2192,6 +2199,11 @@ function showSection(name, btn) {
   var section = document.getElementById('section-' + name);
   if (section) section.classList.add('active');
   if (btn) btn.classList.add('active');
+  if (name === 'analytics') {
+    buildAnalyticsStats();
+    buildAnalyticsVenuesTable();
+    renderAnalyticsChart('pageviews');
+  }
 }
 
 // ---- CHARTS ----
@@ -2203,6 +2215,95 @@ function renderBarChart(id, data, color) {
     var h = Math.round((d.val / max) * 120);
     return '<div class="bar-col"><div class="bar-val">' + d.label2 + '</div><div class="bar" style="height:' + h + 'px;background:' + color + '" title="' + d.label2 + '"></div><div class="bar-label">' + d.label + '</div></div>';
   }).join('');
+}
+
+// ---- VENUE ANALYTICS (real, tracked data — see venly-shared.js / venly-config.js) ----
+// "Page views" = every load of any public page (venly_analytics_pageviews,
+// bumped by trackPageView()). "Venue views" = loads of venue detail pages
+// specifically (venue.hits, bumped by incrementVenueViews() — a venue view
+// always also counts as a page view). Both count reloads as new views.
+function _analyticsMonthKey(d) {
+  d = d || new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+function buildAnalyticsStats() {
+  var venues = getAllVenues();
+  var pageviews = JSON.parse(localStorage.getItem('venly_analytics_pageviews') || '{"total":0,"monthly":{}}');
+  var venueviewsMonthly = JSON.parse(localStorage.getItem('venly_analytics_venueviews_monthly') || '{}');
+  var enquiries = JSON.parse(localStorage.getItem('venly_enquiries') || '[]');
+  var mk = _analyticsMonthKey();
+
+  var totalVenueViews = venues.reduce(function(sum, v) { return sum + (v.hits || 0); }, 0);
+  var totalFavourites = venues.reduce(function(sum, v) { return sum + getVenueFavouriteCount(v.id); }, 0);
+  var enquiriesThisMonth = enquiries.filter(function(e) {
+    return e.createdAt && e.createdAt.slice(0, 7) === mk;
+  }).length;
+
+  document.getElementById('stat-total-pageviews').textContent = (pageviews.total || 0).toLocaleString();
+  document.getElementById('stat-pageviews-change').textContent = '↑ ' + (pageviews.monthly[mk] || 0) + ' this month';
+  document.getElementById('stat-total-venueviews').textContent = totalVenueViews.toLocaleString();
+  document.getElementById('stat-venueviews-change').textContent = '↑ ' + (venueviewsMonthly[mk] || 0) + ' this month';
+  document.getElementById('stat-total-favourites').textContent = totalFavourites.toLocaleString();
+  document.getElementById('stat-total-enquiries').textContent = enquiries.length.toLocaleString();
+  document.getElementById('stat-enquiries-change').textContent = '↑ ' + enquiriesThisMonth + ' this month';
+
+  // Overview page has its own Page Views card — keep it in sync with the same data
+  var overviewPV = document.getElementById('stat-overview-pageviews');
+  if (overviewPV) {
+    overviewPV.textContent = (pageviews.total || 0).toLocaleString();
+    document.getElementById('stat-overview-pageviews-change').textContent = '↑ ' + (pageviews.monthly[mk] || 0) + ' this month';
+  }
+}
+
+function buildAnalyticsVenuesTable() {
+  var tbody = document.getElementById('analytics-venues-tbody');
+  if (!tbody) return;
+  var venues = getAllVenues().slice().sort(function(a, b) { return (b.hits || 0) - (a.hits || 0); });
+  tbody.innerHTML = venues.map(function(v) {
+    return '<tr>' +
+      '<td class="cell-name">' + escapeHtml(v.name) + '</td>' +
+      '<td>' + (v.hits || 0).toLocaleString() + '</td>' +
+      '<td>' + getVenueFavouriteCount(v.id) + '</td>' +
+      '<td>' + getVenueEnquiryCount(v.id) + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+// Builds { label:'Feb', label2:'12', val:12 } for each of the last 6
+// calendar months (oldest first) from a { "YYYY-MM": count } store.
+function getLast6MonthsChartData(monthlyStore) {
+  var monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var now = new Date();
+  var out = [];
+  for (var i = 5; i >= 0; i--) {
+    var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    var key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    var val = monthlyStore[key] || 0;
+    out.push({ label: monthNames[d.getMonth()], label2: String(val), val: val });
+  }
+  return out;
+}
+
+function renderAnalyticsChart(metric) {
+  var isPageviews = metric === 'pageviews';
+  document.querySelectorAll('.analytics-chart-toggle').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.metric === metric);
+  });
+
+  var store = isPageviews
+    ? (JSON.parse(localStorage.getItem('venly_analytics_pageviews') || '{"monthly":{}}').monthly || {})
+    : JSON.parse(localStorage.getItem('venly_analytics_venueviews_monthly') || '{}');
+  var data = getLast6MonthsChartData(store);
+  var wrap = document.getElementById('analytics-chart-wrap');
+  var hasData = data.some(function(d) { return d.val > 0; });
+
+  if (!hasData) {
+    wrap.innerHTML = '<div class="filter-card-note" style="margin:0;padding:24px 0;text-align:center">No page loads recorded yet this period — numbers will appear here as people browse the live site.</div>';
+    return;
+  }
+  wrap.innerHTML = '<div class="bar-chart" id="analytics-monthly-chart"></div>';
+  renderBarChart('analytics-monthly-chart', data, isPageviews ? '#e03a2f' : '#1a6fa8');
 }
 
 // ---- BLOG EDITOR ----
@@ -4377,6 +4478,9 @@ buildBlogTable();
 renderAllFilters();
 buildVenuesTable();
 buildAccountsTable();
+buildAnalyticsStats();
+buildAnalyticsVenuesTable();
+renderAnalyticsChart('pageviews');
 initCrmAccess();
 applyAdminAccessRestrictions();
 

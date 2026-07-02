@@ -520,15 +520,27 @@ function loadVenue() {
   var v = loadedVenue;
 
   // Count this page load as a view — including reloads, which are treated
-  // as genuine new views the same as any first-time visit.
+  // as genuine new views the same as any first-time visit. A venue page
+  // load counts both as a venue view (via hits) and a sitewide page view.
   if (typeof incrementVenueViews === 'function') {
     incrementVenueViews(v.id);
+  }
+  if (typeof trackPageView === 'function') {
+    trackPageView();
   }
 
   document.title = 'Venly – ' + v.name;
   document.getElementById('venue-title').textContent = v.name || 'Untitled venue';
   document.getElementById('breadcrumb-current').textContent = v.name || 'Untitled venue';
   document.getElementById('venue-desc').textContent = v.description || 'No description provided yet.';
+
+  // Reflect any previously-saved favourite state for this venue
+  if (typeof isVenueFavourited === 'function' && isVenueFavourited(v.id)) {
+    var favBtn = document.getElementById('fav-btn');
+    favBtn.classList.add('active');
+    var favSvg = favBtn.querySelector('svg');
+    if (favSvg) { favSvg.setAttribute('fill', '#e03a2f'); favSvg.setAttribute('stroke', '#e03a2f'); }
+  }
 
   // Meta pills: plan, space type, location, capacity, price
   var pillsHtml = '';
@@ -668,8 +680,18 @@ document.addEventListener('keydown', function(e) {
 
 function toggleFav() {
   var btn = document.getElementById('fav-btn');
-  btn.classList.toggle('active');
-  showToast(btn.classList.contains('active') ? '♥ Saved to favourites' : 'Removed from favourites');
+  if (!loadedVenue || typeof toggleVenueFavourite !== 'function') {
+    btn.classList.toggle('active');
+    return;
+  }
+  var nowActive = toggleVenueFavourite(loadedVenue.id);
+  btn.classList.toggle('active', nowActive);
+  var svg = btn.querySelector('svg');
+  if (svg) {
+    svg.setAttribute('fill', nowActive ? '#e03a2f' : 'none');
+    svg.setAttribute('stroke', nowActive ? '#e03a2f' : 'currentColor');
+  }
+  showToast(nowActive ? '♥ Saved to favourites' : 'Removed from favourites');
 }
 
 function toggleCardFav(btn) {

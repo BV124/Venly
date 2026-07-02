@@ -286,4 +286,12 @@ async function incrementVenueViews(venueId) {
   if (!venue) return;
   venue.hits = (venue.hits || 0) + 1;
   saveAllVenues(venues);
+
+  // Also bump a month-bucketed aggregate (total venue views across ALL
+  // venues, this calendar month) purely for the admin's monthly chart —
+  // venue.hits above remains the source of truth for lifetime totals.
+  var monthly = JSON.parse(localStorage.getItem('venly_analytics_venueviews_monthly') || '{}');
+  var mk = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0');
+  monthly[mk] = (monthly[mk] || 0) + 1;
+  localStorage.setItem('venly_analytics_venueviews_monthly', JSON.stringify(monthly));
 }

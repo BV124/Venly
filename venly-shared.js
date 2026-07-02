@@ -393,6 +393,63 @@ function handleFooterLogin() {
   }
 }
 
+// ============================================================
+// ANALYTICS — real tracking, no dedup (every page load/reload counts)
+// ============================================================
+// Everything here is stored in localStorage, same as the rest of this
+// pre-Supabase build — so it's real for this browser's own activity, but
+// it's not a shared, cross-visitor count until this moves to a real
+// database. Bucketed by calendar month ("2026-07") so the admin's Venue
+// Analytics page can chart month-over-month trends.
+function _venlyMonthKey(d) {
+  d = d || new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+// Sitewide page view — call once from every public-facing page. Every
+// load counts, including reloads, by design (no session dedup).
+function trackPageView() {
+  var store = JSON.parse(localStorage.getItem('venly_analytics_pageviews') || '{"total":0,"monthly":{}}');
+  store.total = (store.total || 0) + 1;
+  var mk = _venlyMonthKey();
+  store.monthly[mk] = (store.monthly[mk] || 0) + 1;
+  localStorage.setItem('venly_analytics_pageviews', JSON.stringify(store));
+}
+
+// Favourites — current on/off state (drives the heart icon) is kept
+// separate from the lifetime "times favourited" counter (drives the
+// admin's Favourites stat), so unfavouriting doesn't erase history.
+function isVenueFavourited(venueId) {
+  var current = JSON.parse(localStorage.getItem('venly_favourites') || '{}');
+  return !!current[venueId];
+}
+
+function toggleVenueFavourite(venueId) {
+  var current = JSON.parse(localStorage.getItem('venly_favourites') || '{}');
+  var nowFav = !current[venueId];
+  if (nowFav) { current[venueId] = true; } else { delete current[venueId]; }
+  localStorage.setItem('venly_favourites', JSON.stringify(current));
+
+  if (nowFav) {
+    var counts = JSON.parse(localStorage.getItem('venly_analytics_favourites') || '{}');
+    counts[venueId] = (counts[venueId] || 0) + 1;
+    localStorage.setItem('venly_analytics_favourites', JSON.stringify(counts));
+  }
+  return nowFav;
+}
+
+function getVenueFavouriteCount(venueId) {
+  var counts = JSON.parse(localStorage.getItem('venly_analytics_favourites') || '{}');
+  return counts[venueId] || 0;
+}
+
+// Enquiries aren't tracked as a separate counter — venly-venue.html already
+// saves a full record per submission to venly_enquiries (see submitEnquiry
+// in venly-venue.html), so this just reads real counts from that.
+function getVenueEnquiryCount(venueId) {
+  var enquiries = JSON.parse(localStorage.getItem('venly_enquiries') || '[]');
+  return enquiries.filter(function(e) { return String(e.venueId) === String(venueId); }).length;
+}
 
 // ============================================================
 // AUTH STATE — updates nav automatically on every page

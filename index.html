@@ -685,8 +685,8 @@ section { padding: 80px 48px; }
       '<div class="ja-tile-info">' +
         '<div class="ja-tile-row">' +
           '<span class="ja-tile-name">' + escapeHtmlHome(v.name) + '</span>' +
-          '<button class="fav-btn" onclick="toggleFav(this); event.stopPropagation();" aria-label="Save to favourites">' +
-            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>' +
+          '<button class="fav-btn' + (isVenueFavourited(v.id) ? ' active' : '') + '" onclick="toggleFav(this, \'' + v.id + '\'); event.stopPropagation();" aria-label="Save to favourites">' +
+            '<svg viewBox="0 0 24 24" fill="' + (isVenueFavourited(v.id) ? '#e03a2f' : 'none') + '" stroke="' + (isVenueFavourited(v.id) ? '#e03a2f' : 'currentColor') + '" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>' +
           '</button>' +
         '</div>' +
         '<div class="ja-tile-meta">' +
@@ -1305,13 +1305,19 @@ section { padding: 80px 48px; }
 
 <!-- FOOTER -->
 <div id="venly-footer"></div>
-<script>renderFooter();</script>
+<script>renderFooter(); trackPageView();</script>
 
 <script>
-function toggleFav(btn) {
-  btn.classList.toggle('active');
+function toggleFav(btn, venueId) {
+  var nowActive;
+  if (venueId && typeof toggleVenueFavourite === 'function') {
+    nowActive = toggleVenueFavourite(venueId);
+  } else {
+    nowActive = !btn.classList.contains('active');
+  }
+  btn.classList.toggle('active', nowActive);
   const svg = btn.querySelector('svg');
-  if (btn.classList.contains('active')) {
+  if (nowActive) {
     svg.setAttribute('fill', '#e03a2f');
     svg.setAttribute('stroke', '#e03a2f');
   } else {
