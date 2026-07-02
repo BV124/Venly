@@ -934,8 +934,8 @@ tbody tr:last-child td { border-bottom: none; }
       </div>
       <div class="chart-wrap">
         <div class="chart-title">Revenue per month</div>
-        <div class="chart-subtitle">NZD · Last 6 months · sample data — connect Stripe to track this for real</div>
-        <div class="bar-chart" id="revenue-chart"></div>
+        <div class="chart-subtitle" id="overview-revenue-subtitle">NZD · Last 6 months</div>
+        <div id="overview-revenue-chart-wrap"><div class="bar-chart" id="revenue-chart"></div></div>
       </div>
     </div>
 
@@ -1513,34 +1513,22 @@ tbody tr:last-child td { border-bottom: none; }
       <div><div class="section-title">Stats</div><div class="section-subtitle">Platform-wide performance metrics.</div></div>
     </div>
     <div class="stats-grid">
-      <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="stat-label">Total Revenue</div><div class="stat-value">$8,420</div><div class="stat-change" style="color:var(--text-muted)">Sample data — YTD needs Stripe connected</div></div>
-      <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div><div class="stat-label">Live Venues</div><div class="stat-value">16</div><div class="stat-change up">↑ 4 this month</div></div>
-      <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="stat-label">Active Users</div><div class="stat-value">94</div><div class="stat-change up">↑ 8 this week</div></div>
-      <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="stat-label">Churn Rate</div><div class="stat-value">2.1%</div><div class="stat-change down">↑ 0.3% vs last month</div></div>
+      <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="stat-label">Annualized Revenue</div><div class="stat-value" id="stat-arr">$0</div><div class="stat-change" id="stat-arr-note" style="color:var(--text-muted)">= Monthly Revenue × 12</div></div>
+      <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div><div class="stat-label">Live Venues</div><div class="stat-value" id="stat-live-venues">0</div></div>
+      <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="stat-label">Active Users</div><div class="stat-value" id="stat-active-users">0</div></div>
+      <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="stat-label">Cancelled Subscriptions</div><div class="stat-value" id="stat-cancelled-subs">0</div></div>
     </div>
+    <div class="filter-card-note" style="margin:-14px 0 24px">Swapped "Total Revenue (YTD)" and "Churn Rate" for numbers we can actually calculate today — both need payment/cancellation history over time, which isn't tracked yet.</div>
     <div class="two-col">
       <div class="chart-wrap">
         <div class="chart-title">Revenue over time</div>
-        <div class="chart-subtitle">Monthly NZD · Last 6 months · sample data — connect Stripe to track this for real</div>
-        <div class="bar-chart" id="stats-revenue-chart"></div>
+        <div class="chart-subtitle" id="stats-revenue-subtitle">Monthly NZD · Last 6 months</div>
+        <div id="stats-revenue-chart-wrap"><div class="bar-chart" id="stats-revenue-chart"></div></div>
       </div>
       <div class="chart-wrap">
         <div class="chart-title">Plan distribution</div>
         <div class="chart-subtitle">Current active subscriptions</div>
-        <div style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
-          <div>
-            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="font-weight:500">Premium</span><span style="color:var(--text-muted)">8 accounts · $632/mo</span></div>
-            <div style="height:8px;background:var(--bg);border-radius:4px;overflow:hidden"><div style="height:100%;width:67%;background:var(--red);border-radius:4px"></div></div>
-          </div>
-          <div>
-            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="font-weight:500">Standard</span><span style="color:var(--text-muted)">3 accounts · $177/mo</span></div>
-            <div style="height:8px;background:var(--bg);border-radius:4px;overflow:hidden"><div style="height:100%;width:25%;background:#5a4fcf;border-radius:4px"></div></div>
-          </div>
-          <div>
-            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="font-weight:500">Basic (Free)</span><span style="color:var(--text-muted)">4 accounts · $0/mo</span></div>
-            <div style="height:8px;background:var(--bg);border-radius:4px;overflow:hidden"><div style="height:100%;width:33%;background:#e8e8e8;border-radius:4px"></div></div>
-          </div>
-        </div>
+        <div id="plan-distribution-wrap" style="display:flex;flex-direction:column;gap:12px;margin-top:8px"></div>
       </div>
     </div>
   </div>
@@ -2220,6 +2208,12 @@ function showSection(name, btn) {
   if (btn) btn.classList.add('active');
   if (name === 'overview') {
     buildOverviewRevenueStat();
+    renderRevenueTrendChart('revenue-chart', 'overview-revenue-chart-wrap', 'overview-revenue-subtitle', 'NZD · Last 6 months');
+  }
+  if (name === 'stats') {
+    buildStatsPageStats();
+    buildPlanDistribution();
+    renderRevenueTrendChart('stats-revenue-chart', 'stats-revenue-chart-wrap', 'stats-revenue-subtitle', 'Monthly NZD · Last 6 months');
   }
   if (name === 'analytics') {
     buildAnalyticsStats();
@@ -2252,6 +2246,96 @@ function buildOverviewRevenueStat() {
   var venues = getAllVenues();
   var total = venues.reduce(function(sum, v) { return sum + getVenueMonthlyRevenue(v); }, 0);
   el.textContent = '$' + total.toLocaleString();
+  recordRevenueSnapshot(total);
+}
+
+// Takes a live reading of current MRR and stores it against the current
+// calendar month, overwriting any earlier reading for that same month
+// (it's a snapshot of "right now", not a running total). Called every
+// time MRR is computed, so real month-over-month history builds up the
+// same way page views do — starting from whenever this feature shipped,
+// not backfilled for months before it existed.
+function recordRevenueSnapshot(total) {
+  var snapshots = JSON.parse(localStorage.getItem('venly_revenue_snapshots') || '{}');
+  var mk = _analyticsMonthKey();
+  snapshots[mk] = Math.round(total * 100) / 100;
+  localStorage.setItem('venly_revenue_snapshots', JSON.stringify(snapshots));
+}
+
+// Renders a revenue-over-time chart from real snapshot data into any of
+// the chart-wrap containers that show it (Overview's "Revenue per month"
+// and Stats' "Revenue over time" both call this against their own ids).
+function renderRevenueTrendChart(chartId, wrapId, subtitleId, subtitleText) {
+  var subtitleEl = document.getElementById(subtitleId);
+  var wrap = document.getElementById(wrapId);
+  if (!wrap) return;
+
+  var snapshots = JSON.parse(localStorage.getItem('venly_revenue_snapshots') || '{}');
+  var data = getLast6MonthsChartData(snapshots).map(function(d) {
+    return Object.assign({}, d, { label2: '$' + d.val.toLocaleString() });
+  });
+  var hasData = data.some(function(d) { return d.val > 0; });
+
+  if (subtitleEl) subtitleEl.textContent = subtitleText;
+
+  if (!hasData) {
+    wrap.innerHTML = '<div class="filter-card-note" style="margin:0;padding:24px 0;text-align:center">No revenue history yet — a snapshot is taken automatically each time this dashboard is open, so this fills in over the next few months.</div>';
+    return;
+  }
+  wrap.innerHTML = '<div class="bar-chart" id="' + chartId + '"></div>';
+  renderBarChart(chartId, data, '#f5c4bf');
+}
+
+// ---- STATS PAGE ----
+function buildStatsPageStats() {
+  var venues = getAllVenues();
+  var users = (typeof getAllUsers === 'function') ? getAllUsers() : [];
+
+  var mrr = venues.reduce(function(sum, v) { return sum + getVenueMonthlyRevenue(v); }, 0);
+  var liveCount = venues.filter(function(v) { return v.isLive; }).length;
+  var activeUserCount = users.filter(function(u) { return u.status === 'Active'; }).length;
+  var cancelledCount = venues.filter(function(v) { return v.subscriptionStatus === 'cancelled'; }).length;
+
+  var arrEl = document.getElementById('stat-arr');
+  if (arrEl) arrEl.textContent = '$' + Math.round(mrr * 12).toLocaleString();
+  var liveEl = document.getElementById('stat-live-venues');
+  if (liveEl) liveEl.textContent = liveCount;
+  var usersEl = document.getElementById('stat-active-users');
+  if (usersEl) usersEl.textContent = activeUserCount;
+  var cancelledEl = document.getElementById('stat-cancelled-subs');
+  if (cancelledEl) cancelledEl.textContent = cancelledCount;
+}
+
+function buildPlanDistribution() {
+  var wrap = document.getElementById('plan-distribution-wrap');
+  if (!wrap) return;
+
+  var tiers = ['Premium', 'Standard', 'Basic'];
+  var tierLabels = { Premium: 'Premium', Standard: 'Standard', Basic: 'Basic (Free)' };
+  var tierColors = { Premium: 'var(--red)', Standard: '#5a4fcf', Basic: '#e8e8e8' };
+
+  var activeVenues = getAllVenues().filter(function(v) { return v.subscriptionStatus === 'active'; });
+  var counts = { Premium: 0, Standard: 0, Basic: 0 };
+  var revenue = { Premium: 0, Standard: 0, Basic: 0 };
+  activeVenues.forEach(function(v) {
+    var tier = tiers.indexOf(v.plan) > -1 ? v.plan : 'Basic';
+    counts[tier] += 1;
+    revenue[tier] += getVenueMonthlyRevenue(v);
+  });
+  var totalCount = activeVenues.length || 1;
+
+  if (!activeVenues.length) {
+    wrap.innerHTML = '<div class="filter-card-note" style="margin:0">No active subscriptions yet.</div>';
+    return;
+  }
+
+  wrap.innerHTML = tiers.map(function(t) {
+    var pct = Math.round((counts[t] / totalCount) * 100);
+    return '<div>' +
+      '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="font-weight:500">' + tierLabels[t] + '</span><span style="color:var(--text-muted)">' + counts[t] + ' venue' + (counts[t] === 1 ? '' : 's') + ' · $' + Math.round(revenue[t]).toLocaleString() + '/mo</span></div>' +
+      '<div style="height:8px;background:var(--bg);border-radius:4px;overflow:hidden"><div style="height:100%;width:' + pct + '%;background:' + tierColors[t] + ';border-radius:4px"></div></div>' +
+    '</div>';
+  }).join('');
 }
 
 
@@ -3977,6 +4061,8 @@ function saveVenue() {
     closeVenueEditor();
     if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
     if (typeof buildAccountsTable === 'function') buildAccountsTable();
+    if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
+    if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
   }
 }
 
@@ -4032,6 +4118,9 @@ function deleteVenueWithConfirm(venueId) {
     saveAllVenues(updated);
     buildVenuesTable();
     if (typeof buildAccountsTable === 'function') buildAccountsTable();
+    if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
+    if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
+    if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
     closeConfirmDelete();
     confirmBtn.textContent = 'Remove';
     showToast(isPaying ? 'Venue deleted — subscription cancelled' : 'Venue deleted');
@@ -4568,6 +4657,10 @@ renderAllFilters();
 buildVenuesTable();
 buildAccountsTable();
 buildOverviewRevenueStat();
+renderRevenueTrendChart('revenue-chart', 'overview-revenue-chart-wrap', 'overview-revenue-subtitle', 'NZD · Last 6 months');
+buildStatsPageStats();
+buildPlanDistribution();
+renderRevenueTrendChart('stats-revenue-chart', 'stats-revenue-chart-wrap', 'stats-revenue-subtitle', 'Monthly NZD · Last 6 months');
 buildAnalyticsStats();
 buildAnalyticsVenuesTable();
 renderAnalyticsChart('pageviews');
