@@ -996,7 +996,7 @@ tbody tr:last-child td { border-bottom: none; }
         </div>
 
         <table id="venues-table">
-          <thead><tr><th>Venue name</th><th>Host</th><th>Type</th><th>Region</th><th>Plan</th><th>Page views</th><th>Status</th><th></th></tr></thead>
+          <thead><tr><th>Venue name</th><th>Host</th><th>Type</th><th>Region</th><th>Plan</th><th>Status</th><th></th></tr></thead>
           <tbody id="venues-tbody"></tbody>
         </table>
       </div>
@@ -3045,7 +3045,7 @@ function renderVenuesTable(venues, statusTotal, statusFilter) {
   if (!tbody) return;
 
   if (venues.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:32px 0">No venues match these filters</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:32px 0">No venues match these filters</td></tr>';
     return;
   }
 
@@ -3068,7 +3068,6 @@ function renderVenuesTable(venues, statusTotal, statusFilter) {
       '<td>' + escapeHtml(v.type || '—') + '</td>' +
       '<td>' + escapeHtml(v.district || v.region || '—') + '</td>' +
       '<td><span class="badge badge-' + (v.plan || 'basic').toLowerCase() + '">' + escapeHtml(v.plan || 'Basic') + '</span></td>' +
-      '<td>' + (v.hits || 0) + '</td>' +
       '<td>' + getVenueStatusBadge(v) + '</td>' +
       '<td><button class="action-btn" onclick="openVenueEditor(\'' + v.id + '\')">Edit</button>' +
       '<button class="action-btn danger" onclick="deleteVenueWithConfirm(\'' + v.id + '\')">Delete</button></td>' +
