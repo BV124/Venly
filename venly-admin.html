@@ -492,6 +492,8 @@ tbody tr:last-child td { border-bottom: none; }
 .modal-form-group label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
 .modal-form-group input, .modal-form-group select, .modal-form-group textarea { padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-family: 'Inter', sans-serif; color: var(--text); }
 .modal-form-group input:focus, .modal-form-group select:focus, .modal-form-group textarea:focus { outline: none; border-color: var(--red); }
+.admin-perm-check { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text); cursor: pointer; }
+.admin-perm-check input { width: 14px; height: 14px; accent-color: var(--red); cursor: pointer; }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
 
 /* ── BLOG EDITOR ───────────────────────────────────────────── */
@@ -1392,7 +1394,7 @@ tbody tr:last-child td { border-bottom: none; }
   <div id="section-users" class="page-section">
     <div class="section-header">
       <div><div class="section-title">Users</div><div class="section-subtitle">All registered users on the platform.</div></div>
-      <button class="btn-sm btn-red" onclick="openModal('user')">+ Add user</button>
+      <button class="btn-sm btn-red" onclick="openUserModal(null)">+ Add user</button>
     </div>
     <div class="table-card">
       <div class="table-card-header">
@@ -1705,7 +1707,7 @@ tbody tr:last-child td { border-bottom: none; }
     <div id="modal-fields"></div>
     <div class="modal-actions">
       <button class="action-btn" onclick="document.getElementById('add-modal').classList.add('hidden')">Cancel</button>
-      <button class="btn-sm btn-red" onclick="saveModal()">Save</button>
+      <button class="btn-sm btn-red" id="modal-save-btn" onclick="saveModal()">Save</button>
     </div>
   </div>
 </div>
@@ -1728,24 +1730,73 @@ tbody tr:last-child td { border-bottom: none; }
 // ---- USER DATA ----
 var avatarColors = ['#e03a2f','#1a6fa8','#5a4fcf','#1a8a4a','#a06000','#c2332a','#0891b2','#7c3aed'];
 
-// Seed users — always present
-var seedUsers = [
-  { id:1, name:'Braedyn Veysi', email:'braedyn@venly.co.nz', phone:'027 425 4550', initials:'BV', role:'Admin', joined:'Jan 2025', status:'Active', color:'#e03a2f' },
-  { id:2, name:'Alex Turner', email:'alex@northshore.co.nz', phone:'021 345 6789', initials:'AT', role:'User', joined:'Mar 2025', status:'Active', color:'#1a6fa8' },
-  { id:3, name:'Maria Chen', email:'maria@studio.co.nz', phone:'021 987 6543', initials:'MC', role:'User', joined:'Apr 2025', status:'Active', color:'#5a4fcf' },
-  { id:4, name:'James Mitchell', email:'james@gmail.com', phone:'027 111 2233', initials:'JM', role:'User', joined:'Jun 2025', status:'New', color:'#1a8a4a' },
-  { id:5, name:'Sarah Robertson', email:'sarah@co.nz', phone:'021 444 5566', initials:'SR', role:'User', joined:'Jun 2025', status:'New', color:'#a06000' },
-  { id:6, name:'Lisa Patel', email:'lisa@studio.co', phone:'021 777 8899', initials:'LP', role:'User', joined:'Jun 2025', status:'Active', color:'#c2332a' },
+// Every section reachable from the sidebar — this is the menu an admin's
+// access can be restricted to. Keys must match the 'name' passed into
+// showSection(name, btn) for each nav-item button below.
+var VENLY_ADMIN_SECTIONS = [
+  { key: 'overview',  label: 'Overview' },
+  { key: 'venues',    label: 'Venues' },
+  { key: 'analytics', label: 'Venue analytics' },
+  { key: 'blog',      label: 'Blog' },
+  { key: 'filters',   label: 'Filters' },
+  { key: 'accounts',  label: 'Accounts' },
+  { key: 'users',     label: 'Users' },
+  { key: 'messages',  label: 'Messages' },
+  { key: 'stats',     label: 'Stats' },
+  { key: 'crm',       label: 'CRM' },
 ];
 
+// Seed users — always present
+var seedUsers = [
+  { id:1, name:'Braedyn Veysi', email:'braedyn@venly.co.nz', phone:'027 425 4550', initials:'BV', role:'Admin', joined:'Jan 2025', status:'Active', color:'#e03a2f', permissions:[] },
+  { id:2, name:'Alex Turner', email:'alex@northshore.co.nz', phone:'021 345 6789', initials:'AT', role:'User', joined:'Mar 2025', status:'Active', color:'#1a6fa8', permissions:[] },
+  { id:3, name:'Maria Chen', email:'maria@studio.co.nz', phone:'021 987 6543', initials:'MC', role:'User', joined:'Apr 2025', status:'Active', color:'#5a4fcf', permissions:[] },
+  { id:4, name:'James Mitchell', email:'james@gmail.com', phone:'027 111 2233', initials:'JM', role:'User', joined:'Jun 2025', status:'New', color:'#1a8a4a', permissions:[] },
+  { id:5, name:'Sarah Robertson', email:'sarah@co.nz', phone:'021 444 5566', initials:'SR', role:'User', joined:'Jun 2025', status:'New', color:'#a06000', permissions:[] },
+  { id:6, name:'Lisa Patel', email:'lisa@studio.co', phone:'021 777 8899', initials:'LP', role:'User', joined:'Jun 2025', status:'Active', color:'#c2332a', permissions:[] },
+];
+
+// Edits to seed users (including Braedyn, id 1) are stored as an overlay
+// keyed by id, the same "seed + override" pattern used for venues/blog/
+// filters elsewhere in this file — the seed data itself never changes.
+function getUserOverrides() {
+  return JSON.parse(localStorage.getItem('venly_user_overrides') || '{}');
+}
+function saveUserOverride(id, patch) {
+  var overrides = getUserOverrides();
+  overrides[id] = Object.assign({}, overrides[id], patch);
+  localStorage.setItem('venly_user_overrides', JSON.stringify(overrides));
+}
+
+// Single entry point for editing ANY user, whether they're one of the six
+// seed accounts above or a real signup stored in venly_users.
+function updateUser(id, patch) {
+  var isSeed = seedUsers.some(function(u) { return u.id === id; });
+  if (isSeed) {
+    saveUserOverride(id, patch);
+    return;
+  }
+  var fromStorage = JSON.parse(localStorage.getItem('venly_users') || '[]');
+  var idx = fromStorage.findIndex(function(u) { return u.id === id; });
+  if (idx > -1) {
+    fromStorage[idx] = Object.assign({}, fromStorage[idx], patch);
+    localStorage.setItem('venly_users', JSON.stringify(fromStorage));
+  }
+}
+
 function getAllUsers() {
+  var overrides = getUserOverrides();
+  var seeded = seedUsers.map(function(u) {
+    return overrides[u.id] ? Object.assign({}, u, overrides[u.id]) : u;
+  });
   var fromStorage = JSON.parse(localStorage.getItem('venly_users') || '[]');
   var emails = seedUsers.map(function(u) { return u.email; });
   var newUsers = fromStorage.filter(function(u) { return !emails.includes(u.email); });
   newUsers = newUsers.map(function(u, i) {
-    return Object.assign({}, u, { color: avatarColors[i % avatarColors.length] });
+    var withColor = Object.assign({}, u, { color: avatarColors[i % avatarColors.length] });
+    return overrides[u.id] ? Object.assign({}, withColor, overrides[u.id]) : withColor;
   });
-  return seedUsers.concat(newUsers);
+  return seeded.concat(newUsers);
 }
 
 // LIVE MODE: load real users from Supabase
@@ -1845,14 +1896,17 @@ function buildUsersTable() {
   if (!tbody) return;
   tbody.innerHTML = users.map(function(u, i) {
     var badgeClass = u.status === 'New' ? 'badge-new' : u.status === 'Active' ? 'badge-active' : 'badge-inactive';
+    var roleLabel = (u.role === 'Admin' && u.permissions && u.permissions.length)
+      ? 'Admin <span style="color:var(--text-muted);font-weight:400">· Restricted</span>'
+      : (u.role || 'User');
     return '<tr>' +
       '<td><div class="cell-user"><div class="avatar-sm" style="background:' + u.color + '">' + u.initials + '</div>' +
       '<div><div class="cell-name">' + u.name + '</div><div class="cell-email">' + u.email + '</div></div></div></td>' +
       '<td>' + (u.phone || '—') + '</td>' +
-      '<td>' + (u.role || 'User') + '</td>' +
+      '<td>' + roleLabel + '</td>' +
       '<td style="color:var(--text-muted)">' + (u.joined || '—') + '</td>' +
       '<td><span class="badge ' + badgeClass + '">' + u.status + '</span></td>' +
-      '<td><button class="action-btn" onclick="showToast(this.dataset.t)">Edit</button>' +
+      '<td><button class="action-btn" onclick="openUserModal(' + u.id + ')">Edit</button>' +
       '<button class="action-btn danger" onclick="suspendUser(' + i + ')">Suspend</button></td>' +
       '</tr>';
   }).join('');
@@ -1876,19 +1930,92 @@ function buildRecentSignups() {
 }
 
 function suspendUser(idx) {
-  if (confirm('Suspend this user?')) {
-    var fromStorage = JSON.parse(localStorage.getItem('venly_users') || '[]');
-    if (idx >= seedUsers.length) {
-      fromStorage[idx - seedUsers.length].status = 'Suspended';
-      localStorage.setItem('venly_users', JSON.stringify(fromStorage));
-    }
+  var users = getAllUsers();
+  var user = users[idx];
+  if (!user) return;
+  if (confirm('Suspend ' + user.name + '?')) {
+    updateUser(user.id, { status: 'Suspended' });
     buildUsersTable();
     showToast('User suspended');
   }
 }
 
+// ---- ADMIN DASHBOARD ACCESS CONTROL ----
+// Cross-references the logged-in mock session (venly_current_user) against
+// the platform user list to work out what this person is allowed to see.
+// Not logged in at all -> unrestricted, so the dashboard keeps working as
+// a demo without requiring the mock auth flow to be used first.
+function getCurrentAdminAccess() {
+  var raw = localStorage.getItem('venly_current_user');
+  if (!raw) return { restricted: false };
+  var current;
+  try { current = JSON.parse(raw); } catch (e) { return { restricted: false }; }
+  if (!current || !current.email) return { restricted: false };
+
+  var match = getAllUsers().find(function(u) {
+    return u.email && u.email.toLowerCase() === current.email.toLowerCase();
+  });
+  if (!match) return { restricted: false };
+  if (match.role !== 'Admin') return { restricted: true, permissions: [], blocked: true };
+  if (!match.permissions || !match.permissions.length) return { restricted: false };
+  return { restricted: true, permissions: match.permissions };
+}
+
+// Hides sidebar nav items (and now-empty group headers) outside a
+// restricted admin's permissions, and bounces them off any section
+// they've navigated to (directly or via a "View all" button) that isn't
+// on their list. Called on load and again after saving a user, in case
+// the admin just changed their own access.
+function applyAdminAccessRestrictions() {
+  var access = getCurrentAdminAccess();
+  var navItems = document.querySelectorAll('.sidebar .nav-item');
+
+  if (access.blocked) {
+    showToast("This account doesn't have admin dashboard access");
+    setTimeout(function() { window.location.href = 'venly-dashboard.html'; }, 1200);
+    return;
+  }
+
+  if (!access.restricted) {
+    navItems.forEach(function(btn) { btn.style.display = ''; });
+    document.querySelectorAll('.sidebar-section').forEach(function(h) { h.style.display = ''; });
+    return;
+  }
+
+  navItems.forEach(function(btn) {
+    var m = (btn.getAttribute('onclick') || '').match(/showSection\('([a-z]+)'/);
+    var key = m ? m[1] : null;
+    btn.style.display = (key && access.permissions.indexOf(key) > -1) ? '' : 'none';
+  });
+
+  // Hide a group header (e.g. "Content", "People") if none of its items are visible
+  document.querySelectorAll('.sidebar-section').forEach(function(header) {
+    var el = header.nextElementSibling, anyVisible = false;
+    while (el && !el.classList.contains('sidebar-section')) {
+      if (el.classList.contains('nav-item') && el.style.display !== 'none') anyVisible = true;
+      el = el.nextElementSibling;
+    }
+    header.style.display = anyVisible ? '' : 'none';
+  });
+
+  var activeSection = document.querySelector('.page-section.active');
+  var activeKey = activeSection ? activeSection.id.replace('section-', '') : null;
+  if (!activeKey || access.permissions.indexOf(activeKey) === -1) {
+    var firstAllowedKey = access.permissions[0];
+    var firstBtn = Array.prototype.find.call(navItems, function(btn) {
+      return (btn.getAttribute('onclick') || '').indexOf("showSection('" + firstAllowedKey + "'") > -1;
+    });
+    if (firstAllowedKey) showSection(firstAllowedKey, firstBtn);
+  }
+}
+
 // ---- SECTION NAVIGATION ----
 function showSection(name, btn) {
+  var access = getCurrentAdminAccess();
+  if (access.restricted && access.permissions.indexOf(name) === -1) {
+    showToast("You don't have access to that section");
+    return;
+  }
   document.querySelectorAll('.page-section').forEach(function(s) { s.classList.remove('active'); });
   document.querySelectorAll('.nav-item').forEach(function(b) { b.classList.remove('active'); });
   var section = document.getElementById('section-' + name);
@@ -4079,6 +4206,7 @@ buildBlogTable();
 renderAllFilters();
 buildVenuesTable();
 initCrmAccess();
+applyAdminAccessRestrictions();
 
 if (typeof loadSupabaseUsers === 'function') {
   loadSupabaseUsers();
@@ -4158,12 +4286,126 @@ function openModal(type) {
     crm: '<div class="modal-form-row"><div class="modal-form-group"><label>Name</label><input type="text" placeholder="Sophie Williams" /></div><div class="modal-form-group"><label>Email</label><input type="email" placeholder="sophie@example.com" /></div></div><div class="modal-form-row"><div class="modal-form-group"><label>Space type</label><input type="text" placeholder="Event space" /></div><div class="modal-form-group"><label>Stage</label><select><option>Lead</option><option>Contacted</option><option>Listing</option><option>Paying</option></select></div></div><div class="modal-form-group" style="margin-top:10px"><label>Notes</label><textarea rows="3" placeholder="Any notes..."></textarea></div>'
   };
   document.getElementById('modal-fields').innerHTML = fields[type];
+  document.getElementById('modal-save-btn').onclick = saveModal;
+  var box = document.querySelector('#add-modal .modal-box');
+  if (box) box.style.maxWidth = '';
   document.getElementById('add-modal').classList.remove('hidden');
 }
 
 function saveModal() {
   document.getElementById('add-modal').classList.add('hidden');
   showToast('Saved successfully');
+}
+
+// ---- USER MODAL (add + edit, including dashboard access permissions) ----
+// Separate from the generic openModal() above because it needs prefilled
+// values for editing and a conditional permissions checklist that neither
+// the venue nor CRM modal need.
+function openUserModal(id) {
+  var editing = id != null;
+  var user = editing ? getAllUsers().find(function(u) { return u.id === id; }) : null;
+  if (editing && !user) { showToast('Could not find that user'); return; }
+
+  document.getElementById('modal-title').textContent = editing ? 'Edit user' : 'Add new user';
+  document.getElementById('modal-desc').textContent = editing
+    ? "Update this user's details and dashboard access."
+    : 'Add a new user account to the platform.';
+
+  var role = user ? (user.role || 'User') : 'User';
+  var permissions = (user && user.permissions) ? user.permissions : [];
+  var isRestricted = role === 'Admin' && permissions.length > 0;
+
+  var sectionCheckboxes = VENLY_ADMIN_SECTIONS.map(function(s) {
+    var checked = permissions.indexOf(s.key) > -1 ? ' checked' : '';
+    return '<label class="admin-perm-check"><input type="checkbox" value="' + s.key + '" class="user-perm-checkbox"' + checked + ' /> ' + s.label + '</label>';
+  }).join('');
+
+  document.getElementById('modal-fields').innerHTML =
+    '<div class="modal-form-row">' +
+      '<div class="modal-form-group"><label>Full name</label><input type="text" id="um-name" placeholder="Jane Smith" value="' + escapeHtml(user ? user.name : '') + '" /></div>' +
+      '<div class="modal-form-group"><label>Email</label><input type="email" id="um-email" placeholder="jane@example.com" value="' + escapeHtml(user ? user.email : '') + '" /></div>' +
+    '</div>' +
+    '<div class="modal-form-row">' +
+      '<div class="modal-form-group"><label>Phone</label><input type="tel" id="um-phone" placeholder="021 000 0000" value="' + escapeHtml(user && user.phone && user.phone !== '—' ? user.phone : '') + '" /></div>' +
+      '<div class="modal-form-group"><label>Role</label><select id="um-role" onchange="toggleUserPermissionsPanel()">' +
+        ['User', 'Host', 'Admin'].map(function(r) { return '<option' + (role === r ? ' selected' : '') + '>' + r + '</option>'; }).join('') +
+      '</select></div>' +
+    '</div>' +
+    '<div class="modal-form-row">' +
+      '<div class="modal-form-group"><label>Status</label><select id="um-status">' +
+        ['Active', 'New', 'Suspended'].map(function(s) { return '<option' + ((user ? user.status : 'Active') === s ? ' selected' : '') + '>' + s + '</option>'; }).join('') +
+      '</select></div>' +
+      '<div></div>' +
+    '</div>' +
+    '<div id="user-permissions-panel" style="display:' + (role === 'Admin' ? 'block' : 'none') + ';margin-top:4px;padding-top:14px;border-top:1px solid var(--border)">' +
+      '<div class="publish-status-row" style="margin-bottom:' + (isRestricted ? '10px' : '0') + '">' +
+        '<div><span>Restrict dashboard access</span>' +
+        '<div style="font-size:10px;color:#bbb;margin-top:2px">Off gives full access to every section. Turn on to choose exactly which ones this admin can see.</div></div>' +
+        '<div class="toggle-switch' + (isRestricted ? ' on' : '') + '" id="um-restrict-toggle" onclick="this.classList.toggle(\'on\'); toggleUserPermissionsPanel()"></div>' +
+      '</div>' +
+      '<div id="user-perm-checklist" style="display:' + (isRestricted ? 'grid' : 'none') + ';grid-template-columns:1fr 1fr;gap:9px 16px">' + sectionCheckboxes + '</div>' +
+    '</div>';
+
+  var box = document.querySelector('#add-modal .modal-box');
+  if (box) box.style.maxWidth = '560px';
+  document.getElementById('modal-save-btn').onclick = function() { saveUserModal(id); };
+  document.getElementById('add-modal').classList.remove('hidden');
+}
+
+// Keeps the permissions panel and checklist in sync with the Role select
+// and the Restrict toggle as the admin edits the form.
+function toggleUserPermissionsPanel() {
+  var roleSelect = document.getElementById('um-role');
+  var panel = document.getElementById('user-permissions-panel');
+  var restrictToggle = document.getElementById('um-restrict-toggle');
+  var checklist = document.getElementById('user-perm-checklist');
+  if (!roleSelect || !panel) return;
+  panel.style.display = roleSelect.value === 'Admin' ? 'block' : 'none';
+  if (restrictToggle && checklist) {
+    checklist.style.display = restrictToggle.classList.contains('on') ? 'grid' : 'none';
+  }
+}
+
+function saveUserModal(id) {
+  var name = document.getElementById('um-name').value.trim();
+  var email = document.getElementById('um-email').value.trim();
+  var phone = document.getElementById('um-phone').value.trim();
+  var role = document.getElementById('um-role').value;
+  var status = document.getElementById('um-status').value;
+
+  if (!name || !email) { showToast('Name and email are required'); return; }
+
+  var restrictToggle = document.getElementById('um-restrict-toggle');
+  var restricted = role === 'Admin' && restrictToggle && restrictToggle.classList.contains('on');
+  var permissions = [];
+  if (restricted) {
+    document.querySelectorAll('.user-perm-checkbox:checked').forEach(function(cb) { permissions.push(cb.value); });
+    if (!permissions.length) { showToast('Choose at least one section, or turn off "Restrict dashboard access"'); return; }
+  }
+
+  var initials = name.split(' ').filter(Boolean).map(function(p) { return p[0]; }).slice(0, 2).join('').toUpperCase() || '?';
+  var patch = { name: name, email: email, phone: phone || '—', role: role, status: status, initials: initials, permissions: permissions };
+
+  if (id == null) {
+    var fromStorage = JSON.parse(localStorage.getItem('venly_users') || '[]');
+    fromStorage.push(Object.assign({
+      id: Date.now(),
+      joined: new Date().toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' }),
+      joinedRaw: new Date().toISOString(),
+    }, patch));
+    localStorage.setItem('venly_users', JSON.stringify(fromStorage));
+    showToast('User added');
+  } else {
+    updateUser(id, patch);
+    showToast('User updated');
+  }
+
+  document.getElementById('add-modal').classList.add('hidden');
+  var box = document.querySelector('#add-modal .modal-box');
+  if (box) box.style.maxWidth = '';
+  buildUsersTable();
+  buildRecentSignups();
+  applyAdminAccessRestrictions(); // covers the case where you just edited your own account's access
 }
 
 // ---- TOAST ----
