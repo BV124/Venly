@@ -494,6 +494,16 @@ tbody tr:last-child td { border-bottom: none; }
 .modal-form-group input:focus, .modal-form-group select:focus, .modal-form-group textarea:focus { outline: none; border-color: var(--red); }
 .admin-perm-check { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text); cursor: pointer; }
 .admin-perm-check input { width: 14px; height: 14px; accent-color: var(--red); cursor: pointer; }
+
+.account-stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+.account-stat { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+.account-stat-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 4px; }
+.account-stat-value { font-size: 15px; font-weight: 700; color: var(--text); }
+.account-venue-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; }
+.account-venue-row:last-child { margin-bottom: 0; }
+.account-venue-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.account-venue-type { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.account-venue-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
 
 /* ── BLOG EDITOR ───────────────────────────────────────────── */
@@ -1375,17 +1385,12 @@ tbody tr:last-child td { border-bottom: none; }
     </div>
     <div class="table-card">
       <div class="table-card-header">
-        <div class="table-card-title">All accounts (6)</div>
+        <div class="table-card-title" id="accounts-table-title">All accounts</div>
         <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input class="search-input" placeholder="Search accounts..." oninput="filterTable(this,'accounts-table')" /></div>
       </div>
       <table id="accounts-table">
         <thead><tr><th>Account</th><th>Email</th><th>Venues</th><th>Plan</th><th>Monthly value</th><th>Joined</th><th>Status</th><th></th></tr></thead>
-        <tbody>
-          <tr><td><div class="cell-user"><div class="avatar-sm">BV</div><div><div class="cell-name">Braedyn Veysi</div></div></div></td><td style="color:var(--text-muted)">braedyn@venly.co.nz</td><td>5</td><td><span class="badge badge-premium">Premium</span></td><td style="font-weight:600;color:#1a8a4a">$395/mo</td><td>Jan 2025</td><td><span class="badge badge-active">Active</span></td><td><button class="action-btn">View</button></td></tr>
-          <tr><td><div class="cell-user"><div class="avatar-sm" style="background:#1a6fa8">AT</div><div><div class="cell-name">Alex Turner</div></div></div></td><td style="color:var(--text-muted)">alex@northshore.co.nz</td><td>1</td><td><span class="badge badge-standard">Standard</span></td><td style="font-weight:600;color:#1a8a4a">$59/mo</td><td>Mar 2025</td><td><span class="badge badge-active">Active</span></td><td><button class="action-btn">View</button></td></tr>
-          <tr><td><div class="cell-user"><div class="avatar-sm" style="background:#5a4fcf">MC</div><div><div class="cell-name">Maria Chen</div></div></div></td><td style="color:var(--text-muted)">maria@studio.co.nz</td><td>1</td><td><span class="badge badge-basic">Basic</span></td><td style="font-weight:600;color:var(--text-muted)">Free</td><td>Apr 2025</td><td><span class="badge badge-active">Active</span></td><td><button class="action-btn">View</button></td></tr>
-          <tr><td><div class="cell-user"><div class="avatar-sm" style="background:#1a8a4a">TK</div><div><div class="cell-name">Tom Kavanagh</div></div></div></td><td style="color:var(--text-muted)">tom@events.nz</td><td>0</td><td>—</td><td style="color:var(--text-muted)">—</td><td>May 2025</td><td><span class="badge badge-inactive">Inactive</span></td><td><button class="action-btn">View</button></td></tr>
-        </tbody>
+        <tbody id="accounts-tbody"></tbody>
       </table>
     </div>
   </div>
@@ -1724,6 +1729,44 @@ tbody tr:last-child td { border-bottom: none; }
   </div>
 </div>
 
+<!-- ACCOUNT DETAILS MODAL -->
+<div class="modal-overlay hidden" id="account-modal">
+  <div class="modal-box" style="max-width:640px">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
+      <div class="avatar-sm" id="am-avatar" style="width:44px;height:44px;font-size:15px;flex-shrink:0"></div>
+      <div>
+        <h3 id="am-name" style="margin-bottom:2px"></h3>
+        <div id="am-email" style="font-size:12px;color:var(--text-muted)"></div>
+      </div>
+    </div>
+
+    <div class="account-stat-row">
+      <div class="account-stat"><div class="account-stat-label">Venues</div><div class="account-stat-value" id="am-venue-count">0</div></div>
+      <div class="account-stat"><div class="account-stat-label">Monthly value</div><div class="account-stat-value" id="am-monthly">—</div></div>
+      <div class="account-stat"><div class="account-stat-label">Joined</div><div class="account-stat-value" id="am-joined">—</div></div>
+    </div>
+
+    <div class="modal-form-row">
+      <div class="modal-form-group"><label>Full name</label><input type="text" id="am-name-input" /></div>
+      <div class="modal-form-group"><label>Phone</label><input type="tel" id="am-phone-input" /></div>
+    </div>
+    <div class="modal-form-row">
+      <div class="modal-form-group"><label>Status</label><select id="am-status-input"><option>Active</option><option>Inactive</option><option>Suspended</option></select></div>
+      <div></div>
+    </div>
+
+    <div style="margin-top:8px">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-muted);margin-bottom:8px">Their venues</div>
+      <div id="am-venues-list"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="action-btn" onclick="document.getElementById('account-modal').classList.add('hidden')">Close</button>
+      <button class="btn-sm btn-red" onclick="saveAccountModal()">Save changes</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1797,6 +1840,142 @@ function getAllUsers() {
     return overrides[u.id] ? Object.assign({}, withColor, overrides[u.id]) : withColor;
   });
   return seeded.concat(newUsers);
+}
+
+// ---- ACCOUNTS (host accounts) ----
+// An "account" is a host/business, identified by email, that owns zero or
+// more venues. Venue counts, plan tier and monthly value are computed live
+// from getAllVenues() rather than stored, so they always stay in sync with
+// whatever's actually listed — editing contact info or status here goes
+// through the same seed + localStorage-override pattern as Users above.
+var seedAccounts = [
+  { id: 1, name: 'Braedyn Veysi', email: 'braedyn@venly.co.nz', phone: '027 425 4550', joined: 'Jan 2025', status: 'Active' },
+  { id: 2, name: 'Alex Turner', email: 'alex@northshore.co.nz', phone: '021 345 6789', joined: 'Mar 2025', status: 'Active' },
+  { id: 3, name: 'Maria Chen', email: 'maria@studio.co.nz', phone: '021 987 6543', joined: 'Apr 2025', status: 'Active' },
+  { id: 4, name: 'Tom Kavanagh', email: 'tom@events.nz', phone: '022 555 1122', joined: 'May 2025', status: 'Inactive' },
+];
+
+function getAccountOverrides() {
+  return JSON.parse(localStorage.getItem('venly_account_overrides') || '{}');
+}
+function saveAccountOverride(id, patch) {
+  var overrides = getAccountOverrides();
+  overrides[id] = Object.assign({}, overrides[id], patch);
+  localStorage.setItem('venly_account_overrides', JSON.stringify(overrides));
+}
+
+var ACCOUNT_PLAN_RANK = { Premium: 3, Standard: 2, Basic: 1 };
+var ACCOUNT_TYPE_TO_PLAN_CATEGORY = { 'Event space': 'event', 'Meeting space': 'meeting', 'Shoot Location': 'shoot' };
+
+function getAllAccounts() {
+  var overrides = getAccountOverrides();
+  var venues = (typeof getAllVenues === 'function') ? getAllVenues() : [];
+
+  return seedAccounts.map(function(a, i) {
+    var acc = overrides[a.id] ? Object.assign({}, a, overrides[a.id]) : a;
+    var theirVenues = venues.filter(function(v) {
+      return v.hostEmail && v.hostEmail.toLowerCase() === acc.email.toLowerCase();
+    });
+
+    var monthlyValue = theirVenues.reduce(function(sum, v) {
+      if (v.subscriptionStatus !== 'active') return sum;
+      var catKey = ACCOUNT_TYPE_TO_PLAN_CATEGORY[v.type] || 'event';
+      var planInfo = VENLY_CONFIG.plans[catKey] && VENLY_CONFIG.plans[catKey][v.plan];
+      return sum + (planInfo ? planInfo.monthly : 0);
+    }, 0);
+
+    var topPlan = theirVenues.reduce(function(best, v) {
+      return (!best || (ACCOUNT_PLAN_RANK[v.plan] || 0) > (ACCOUNT_PLAN_RANK[best] || 0)) ? v.plan : best;
+    }, null);
+
+    return Object.assign({}, acc, {
+      color: avatarColors[i % avatarColors.length],
+      initials: acc.name.split(' ').filter(Boolean).map(function(p) { return p[0]; }).slice(0, 2).join('').toUpperCase() || '?',
+      venues: theirVenues,
+      venueCount: theirVenues.length,
+      plan: topPlan,
+      monthlyValue: monthlyValue,
+    });
+  });
+}
+
+function buildAccountsTable() {
+  var accounts = getAllAccounts();
+  var tbody = document.getElementById('accounts-tbody');
+  var title = document.getElementById('accounts-table-title');
+  if (title) title.textContent = 'All accounts (' + accounts.length + ')';
+  if (!tbody) return;
+
+  tbody.innerHTML = accounts.map(function(a) {
+    var statusBadge = a.status === 'Active' ? 'badge-active' : a.status === 'Suspended' ? 'badge-inactive' : 'badge-inactive';
+    var planCell = a.plan ? '<span class="badge badge-' + a.plan.toLowerCase() + '">' + a.plan + '</span>' : '—';
+    var monthlyCell = a.monthlyValue > 0
+      ? '<span style="font-weight:600;color:#1a8a4a">$' + a.monthlyValue + '/mo</span>'
+      : (a.venueCount > 0 ? '<span style="color:var(--text-muted)">Free</span>' : '<span style="color:var(--text-muted)">—</span>');
+    return '<tr>' +
+      '<td><div class="cell-user"><div class="avatar-sm" style="background:' + a.color + '">' + a.initials + '</div><div><div class="cell-name">' + escapeHtml(a.name) + '</div></div></div></td>' +
+      '<td style="color:var(--text-muted)">' + escapeHtml(a.email) + '</td>' +
+      '<td>' + a.venueCount + '</td>' +
+      '<td>' + planCell + '</td>' +
+      '<td>' + monthlyCell + '</td>' +
+      '<td>' + escapeHtml(a.joined || '—') + '</td>' +
+      '<td><span class="badge ' + statusBadge + '">' + escapeHtml(a.status) + '</span></td>' +
+      '<td><button class="action-btn" onclick="openAccountModal(' + a.id + ')">View</button></td>' +
+      '</tr>';
+  }).join('');
+}
+
+function openAccountModal(id) {
+  var account = getAllAccounts().find(function(a) { return a.id === id; });
+  if (!account) { showToast('Could not find that account'); return; }
+
+  document.getElementById('am-avatar').style.background = account.color;
+  document.getElementById('am-avatar').textContent = account.initials;
+  document.getElementById('am-name').textContent = account.name;
+  document.getElementById('am-email').textContent = account.email;
+  document.getElementById('am-venue-count').textContent = account.venueCount;
+  document.getElementById('am-monthly').textContent = account.monthlyValue > 0 ? ('$' + account.monthlyValue + '/mo') : (account.venueCount > 0 ? 'Free' : '—');
+  document.getElementById('am-joined').textContent = account.joined || '—';
+
+  document.getElementById('am-name-input').value = account.name;
+  document.getElementById('am-phone-input').value = account.phone || '';
+  document.getElementById('am-status-input').value = account.status;
+
+  var list = document.getElementById('am-venues-list');
+  list.innerHTML = account.venues.length ? account.venues.map(function(v) {
+    var planBadge = '<span class="badge badge-' + (v.plan || 'basic').toLowerCase() + '">' + (v.plan || 'Basic') + '</span>';
+    var statusBadge = v.isLive ? '<span class="badge badge-live">Live</span>' : '<span class="badge badge-draft">Draft</span>';
+    return '<div class="account-venue-row">' +
+      '<div><div class="account-venue-name">' + escapeHtml(v.name) + '</div><div class="account-venue-type">' + escapeHtml(v.type) + '</div></div>' +
+      '<div class="account-venue-actions">' + planBadge + statusBadge +
+        '<button class="action-btn" onclick="openVenueFromAccount(\'' + v.id + '\')">Edit</button>' +
+      '</div></div>';
+  }).join('') : '<div class="filter-card-note" style="margin:0">No venues listed yet.</div>';
+
+  document.getElementById('account-modal').dataset.accountId = id;
+  document.getElementById('account-modal').classList.remove('hidden');
+}
+
+function saveAccountModal() {
+  var modal = document.getElementById('account-modal');
+  var id = Number(modal.dataset.accountId);
+  var name = document.getElementById('am-name-input').value.trim();
+  var phone = document.getElementById('am-phone-input').value.trim();
+  var status = document.getElementById('am-status-input').value;
+
+  if (!name) { showToast('Name is required'); return; }
+
+  saveAccountOverride(id, { name: name, phone: phone || '—', status: status });
+  modal.classList.add('hidden');
+  buildAccountsTable();
+  showToast('Account updated');
+}
+
+// Jumps from an account's venue list straight into that venue's editor
+function openVenueFromAccount(venueId) {
+  document.getElementById('account-modal').classList.add('hidden');
+  showSection('venues', document.querySelector('[onclick*=venues]'));
+  openVenueEditor(venueId);
 }
 
 // LIVE MODE: load real users from Supabase
@@ -4205,6 +4384,7 @@ buildRecentSignups();
 buildBlogTable();
 renderAllFilters();
 buildVenuesTable();
+buildAccountsTable();
 initCrmAccess();
 applyAdminAccessRestrictions();
 
