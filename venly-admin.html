@@ -1389,7 +1389,7 @@ tbody tr:last-child td { border-bottom: none; }
         <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input class="search-input" placeholder="Search accounts..." oninput="filterTable(this,'accounts-table')" /></div>
       </div>
       <table id="accounts-table">
-        <thead><tr><th>Account</th><th>Email</th><th>Venues</th><th>Plan</th><th>Monthly value</th><th>Joined</th><th>Status</th><th></th></tr></thead>
+        <thead><tr><th>Account</th><th>Email</th><th>Venues</th><th>Monthly value</th><th>Joined</th><th>Status</th><th></th></tr></thead>
         <tbody id="accounts-tbody"></tbody>
       </table>
     </div>
@@ -1864,7 +1864,6 @@ function saveAccountOverride(id, patch) {
   localStorage.setItem('venly_account_overrides', JSON.stringify(overrides));
 }
 
-var ACCOUNT_PLAN_RANK = { Premium: 3, Standard: 2, Basic: 1 };
 var ACCOUNT_TYPE_TO_PLAN_CATEGORY = { 'Event space': 'event', 'Meeting space': 'meeting', 'Shoot Location': 'shoot' };
 
 function getAllAccounts() {
@@ -1884,16 +1883,11 @@ function getAllAccounts() {
       return sum + (planInfo ? planInfo.monthly : 0);
     }, 0);
 
-    var topPlan = theirVenues.reduce(function(best, v) {
-      return (!best || (ACCOUNT_PLAN_RANK[v.plan] || 0) > (ACCOUNT_PLAN_RANK[best] || 0)) ? v.plan : best;
-    }, null);
-
     return Object.assign({}, acc, {
       color: avatarColors[i % avatarColors.length],
       initials: acc.name.split(' ').filter(Boolean).map(function(p) { return p[0]; }).slice(0, 2).join('').toUpperCase() || '?',
       venues: theirVenues,
       venueCount: theirVenues.length,
-      plan: topPlan,
       monthlyValue: monthlyValue,
     });
   });
@@ -1908,7 +1902,6 @@ function buildAccountsTable() {
 
   tbody.innerHTML = accounts.map(function(a) {
     var statusBadge = a.status === 'Active' ? 'badge-active' : a.status === 'Suspended' ? 'badge-inactive' : 'badge-inactive';
-    var planCell = a.plan ? '<span class="badge badge-' + a.plan.toLowerCase() + '">' + a.plan + '</span>' : '—';
     var monthlyCell = a.monthlyValue > 0
       ? '<span style="font-weight:600;color:#1a8a4a">$' + a.monthlyValue + '/mo</span>'
       : (a.venueCount > 0 ? '<span style="color:var(--text-muted)">Free</span>' : '<span style="color:var(--text-muted)">—</span>');
@@ -1916,7 +1909,6 @@ function buildAccountsTable() {
       '<td><div class="cell-user"><div class="avatar-sm" style="background:' + a.color + '">' + a.initials + '</div><div><div class="cell-name">' + escapeHtml(a.name) + '</div></div></div></td>' +
       '<td style="color:var(--text-muted)">' + escapeHtml(a.email) + '</td>' +
       '<td>' + a.venueCount + '</td>' +
-      '<td>' + planCell + '</td>' +
       '<td>' + monthlyCell + '</td>' +
       '<td>' + escapeHtml(a.joined || '—') + '</td>' +
       '<td><span class="badge ' + statusBadge + '">' + escapeHtml(a.status) + '</span></td>' +
