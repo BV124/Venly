@@ -612,7 +612,7 @@ nav {
       </div>
     </div>
 
-    <!-- Region -->
+    <!-- Region — options are rebuilt from the admin's Filters data on load (updateChipAvailability) -->
     <div class="filter-chip" id="chip-region">
       <button class="chip-btn" onclick="toggleChip('chip-region')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -621,13 +621,10 @@ nav {
       </button>
       <div class="chip-dropdown">
         <button class="chip-option selected" onclick="selectChip('chip-region','filter-region','','Region',this)">All regions</button>
-        <button class="chip-option" onclick="selectChip('chip-region','filter-region','Auckland','Auckland',this)">Auckland</button>
-        <button class="chip-option" onclick="selectChip('chip-region','filter-region','Wellington','Wellington',this)">Wellington</button>
-        <button class="chip-option" onclick="selectChip('chip-region','filter-region','Christchurch','Christchurch',this)">Christchurch</button>
       </div>
     </div>
 
-    <!-- District -->
+    <!-- District — options are rebuilt from the admin's Filters data on load -->
     <div class="filter-chip" id="chip-district">
       <button class="chip-btn" onclick="toggleChip('chip-district')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
@@ -636,18 +633,10 @@ nav {
       </button>
       <div class="chip-dropdown">
         <button class="chip-option selected" onclick="selectChip('chip-district','filter-district','','District',this)">All districts</button>
-        <button class="chip-option" data-region="Auckland" onclick="selectChip('chip-district','filter-district','Auckland City','Auckland City',this)">Auckland City</button>
-        <button class="chip-option" data-region="Auckland" onclick="selectChip('chip-district','filter-district','North Shore','North Shore',this)">North Shore</button>
-        <button class="chip-option" data-region="Auckland" onclick="selectChip('chip-district','filter-district','Waitakere','Waitakere',this)">Waitakere</button>
-        <button class="chip-option" data-region="Auckland" onclick="selectChip('chip-district','filter-district','Manukau','Manukau',this)">Manukau</button>
-        <button class="chip-option" data-region="Wellington" onclick="selectChip('chip-district','filter-district','Wellington Central','Wellington Central',this)">Wellington Central</button>
-        <button class="chip-option" data-region="Wellington" onclick="selectChip('chip-district','filter-district','Lower Hutt','Lower Hutt',this)">Lower Hutt</button>
-        <button class="chip-option" data-region="Christchurch" onclick="selectChip('chip-district','filter-district','Christchurch Central','Christchurch Central',this)">Christchurch Central</button>
-        <button class="chip-option" data-region="Christchurch" onclick="selectChip('chip-district','filter-district','Riccarton','Riccarton',this)">Riccarton</button>
       </div>
     </div>
 
-    <!-- Event type -->
+    <!-- Event type — options are rebuilt from the admin's Filters data on load -->
     <div class="filter-chip" id="chip-event">
       <button class="chip-btn" onclick="toggleChip('chip-event')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -656,29 +645,18 @@ nav {
       </button>
       <div class="chip-dropdown" style="min-width:220px">
         <button class="chip-option selected" onclick="selectChip('chip-event','filter-event','','Event type',this)">All event types</button>
-        <span class="chip-optgroup-label" data-type="Event space">Event Spaces</span>
-        <button class="chip-option" data-type="Event space" onclick="selectChip('chip-event','filter-event','Wedding','Wedding',this)">Wedding</button>
-        <button class="chip-option" data-type="Event space" onclick="selectChip('chip-event','filter-event','18th Party','18th Party',this)">18th Party</button>
-        <button class="chip-option" data-type="Event space" onclick="selectChip('chip-event','filter-event','21st Party','21st Party',this)">21st Party</button>
-        <button class="chip-option" data-type="Event space" onclick="selectChip('chip-event','filter-event','Corporate Event','Corporate Event',this)">Corporate Event</button>
-        <button class="chip-option" data-type="Event space" onclick="selectChip('chip-event','filter-event','Private Party','Private Party',this)">Private Party</button>
-        <button class="chip-option" data-type="Event space" onclick="selectChip('chip-event','filter-event','Product Launch','Product Launch',this)">Product Launch</button>
-        <button class="chip-option" data-type="Event space" onclick="selectChip('chip-event','filter-event','Gala / Awards','Gala / Awards',this)">Gala / Awards</button>
-        <button class="chip-option" data-type="Event space" onclick="selectChip('chip-event','filter-event','Market / Expo','Market / Expo',this)">Market / Expo</button>
-        <button class="chip-option" data-type="Event space" onclick="selectChip('chip-event','filter-event','Live Performance','Live Performance',this)">Live Performance</button>
-        <span class="chip-optgroup-label" data-type="Meeting space">Meeting Spaces</span>
-        <button class="chip-option" data-type="Meeting space" onclick="selectChip('chip-event','filter-event','Boardroom','Boardroom',this)">Boardroom</button>
-        <button class="chip-option" data-type="Meeting space" onclick="selectChip('chip-event','filter-event','Workshop','Workshop',this)">Workshop</button>
-        <button class="chip-option" data-type="Meeting space" onclick="selectChip('chip-event','filter-event','Training','Training',this)">Training</button>
-        <button class="chip-option" data-type="Meeting space" onclick="selectChip('chip-event','filter-event','Conference','Conference',this)">Conference</button>
-        <button class="chip-option" data-type="Meeting space" onclick="selectChip('chip-event','filter-event','Interview Room','Interview Room',this)">Interview Room</button>
-        <button class="chip-option" data-type="Meeting space" onclick="selectChip('chip-event','filter-event','Coworking','Coworking',this)">Coworking</button>
-        <span class="chip-optgroup-label" data-type="Shoot Location">Shoot Locations</span>
-        <button class="chip-option" data-type="Shoot Location" onclick="selectChip('chip-event','filter-event','Film &amp; TV','Film &amp; TV',this)">Film &amp; TV</button>
-        <button class="chip-option" data-type="Shoot Location" onclick="selectChip('chip-event','filter-event','Photography','Photography',this)">Photography</button>
-        <button class="chip-option" data-type="Shoot Location" onclick="selectChip('chip-event','filter-event','Commercial','Commercial',this)">Commercial</button>
-        <button class="chip-option" data-type="Shoot Location" onclick="selectChip('chip-event','filter-event','Content Creation','Content Creation',this)">Content Creation</button>
-        <button class="chip-option" data-type="Shoot Location" onclick="selectChip('chip-event','filter-event','Podcast / Recording','Podcast / Recording',this)">Podcast / Recording</button>
+      </div>
+    </div>
+
+    <!-- Amenities — new, options come from the admin's Filters data -->
+    <div class="filter-chip" id="chip-amenities">
+      <button class="chip-btn" onclick="toggleChip('chip-amenities')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+        <span id="label-amenities">Amenities</span>
+        <svg class="chip-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="chip-dropdown">
+        <button class="chip-option selected" onclick="selectChip('chip-amenities','filter-amenities','','Amenities',this)">All amenities</button>
       </div>
     </div>
 
@@ -687,6 +665,7 @@ nav {
     <input type="hidden" id="filter-region" value="" />
     <input type="hidden" id="filter-district" value="" />
     <input type="hidden" id="filter-event" value="" />
+    <input type="hidden" id="filter-amenities" value="" />
 
     <div class="filter-divider"></div>
     <button class="clear-filters" onclick="clearFilters()">
@@ -742,14 +721,14 @@ nav {
 
 <script>
 const spaces = [
-  { name: "Brads – Shoot Location", type: "Shoot Location", region: "Auckland", district: "Auckland City", capacity: "1 – 100", premium: true, img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80", events: ["Photography","Commercial","Content Creation"], lat: -36.8485, lng: 174.7633 }, // Auckland CBD
-  { name: "Brads – Meeting Space", type: "Meeting space", region: "Auckland", district: "Auckland City", capacity: "20 – 380", premium: true, img: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&q=80", events: ["Boardroom","Conference","Training","Workshop"], lat: -36.8600, lng: 174.7700 }, // Parnell area
-  { name: "Brads Warehouse", type: "Event space", region: "Auckland", district: "Auckland City", capacity: "20 – 506", premium: true, img: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&q=80", events: ["Wedding","21st Party","Corporate Event","Product Launch","Gala / Awards","Live Performance"], lat: -36.8420, lng: 174.7550 }, // Ponsonby area
-  { name: "Okahu – Meeting Space", type: "Meeting space", region: "Auckland", district: "Auckland City", capacity: "1 – 100", premium: true, img: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80", events: ["Boardroom","Conference","Interview Room","Coworking"], lat: -36.8550, lng: 174.7800 }, // Newmarket area
-  { name: "Okahu – Shoot Location", type: "Shoot Location", region: "Auckland", district: "Auckland City", capacity: "1 – 100", premium: true, img: "https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=600&q=80", events: ["Film & TV","Photography","Commercial","Podcast / Recording"], lat: -36.8650, lng: 174.7650 }, // Grafton area
-  { name: "Okahu", type: "Event space", region: "Auckland", district: "Auckland City", capacity: "1 – 350", premium: false, img: "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=600&q=80", events: ["Wedding","21st Party","Private Party","Corporate Event","Market / Expo"], lat: -36.8400, lng: 174.7700 }, // Mt Eden area
-  { name: "North Shore Event Space", type: "Event space", region: "Auckland", district: "North Shore", capacity: "40 – 500", premium: true, img: "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80", events: ["Corporate Event","Gala / Awards","Product Launch","18th Party","21st Party"], lat: -36.7900, lng: 174.7450 }, // North Shore (Takapuna)
-  { name: "City Meeting Room", type: "Meeting space", region: "Auckland", district: "Auckland City", capacity: "2 – 20", premium: false, img: "https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=600&q=80", events: ["Boardroom","Interview Room","Training","Workshop"], lat: -36.8500, lng: 174.7680 }, // City fringe
+  { name: "Brads – Shoot Location", type: "Shoot Location", region: "Auckland", district: "Auckland City", capacity: "1 – 100", premium: true, img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80", events: ["Photography","Commercial","Content Creation"], amenities: ["WiFi","Natural Light","Parking Available"], lat: -36.8485, lng: 174.7633 }, // Auckland CBD
+  { name: "Brads – Meeting Space", type: "Meeting space", region: "Auckland", district: "Auckland City", capacity: "20 – 380", premium: true, img: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&q=80", events: ["Boardroom","Conference","Training","Workshop"], amenities: ["WiFi","AV Equipment","Air Conditioning"], lat: -36.8600, lng: 174.7700 }, // Parnell area
+  { name: "Brads Warehouse", type: "Event space", region: "Auckland", district: "Auckland City", capacity: "20 – 506", premium: true, img: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&q=80", events: ["Wedding","21st Party","Corporate Event","Product Launch","Gala / Awards","Live Performance"], amenities: ["Bar / Drinks","Stage / Performance Area","Loading Dock"], lat: -36.8420, lng: 174.7550 }, // Ponsonby area
+  { name: "Okahu – Meeting Space", type: "Meeting space", region: "Auckland", district: "Auckland City", capacity: "1 – 100", premium: true, img: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80", events: ["Boardroom","Conference","Interview Room","Coworking"], amenities: ["WiFi","Natural Light","Catering"], lat: -36.8550, lng: 174.7800 }, // Newmarket area
+  { name: "Okahu – Shoot Location", type: "Shoot Location", region: "Auckland", district: "Auckland City", capacity: "1 – 100", premium: true, img: "https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=600&q=80", events: ["Film & TV","Photography","Commercial","Podcast / Recording"], amenities: ["Natural Light","Private Entrance"], lat: -36.8650, lng: 174.7650 }, // Grafton area
+  { name: "Okahu", type: "Event space", region: "Auckland", district: "Auckland City", capacity: "1 – 350", premium: false, img: "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=600&q=80", events: ["Wedding","21st Party","Private Party","Corporate Event","Market / Expo"], amenities: ["Outdoor Space","Catering"], lat: -36.8400, lng: 174.7700 }, // Mt Eden area
+  { name: "North Shore Event Space", type: "Event space", region: "Auckland", district: "North Shore", capacity: "40 – 500", premium: true, img: "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80", events: ["Corporate Event","Gala / Awards","Product Launch","18th Party","21st Party"], amenities: ["Parking Available","AV Equipment"], lat: -36.7900, lng: 174.7450 }, // North Shore (Takapuna)
+  { name: "City Meeting Room", type: "Meeting space", region: "Auckland", district: "Auckland City", capacity: "2 – 20", premium: false, img: "https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=600&q=80", events: ["Boardroom","Interview Room","Training","Workshop"], amenities: ["WiFi","Furniture Included"], lat: -36.8500, lng: 174.7680 }, // City fringe
 ];
 
 function renderCards(list) {
@@ -1051,7 +1030,7 @@ function updateFiltersTriggerBadge() {
   var badge = document.getElementById('filters-trigger-badge');
   if (!trigger || !badge) return;
   var f = currentFilters();
-  var count = ['type', 'region', 'district', 'event'].filter(function(k) { return f[k]; }).length;
+  var count = ['type', 'region', 'district', 'event', 'amenities'].filter(function(k) { return f[k]; }).length;
   trigger.classList.toggle('active', count > 0);
   badge.style.display = count > 0 ? 'inline-flex' : 'none';
   badge.textContent = count;
@@ -1080,19 +1059,19 @@ document.addEventListener('click', function(e) {
   }
 });
 
-// ── Master event list, grouped by space type (for rebuilding the Event chip) ──
-const EVENTS_BY_TYPE = {
-  'Event space': ["Wedding","18th Party","21st Party","Corporate Event","Private Party","Product Launch","Gala / Awards","Market / Expo","Live Performance"],
-  'Meeting space': ["Boardroom","Workshop","Training","Conference","Interview Room","Coworking"],
-  'Shoot Location': ["Film & TV","Photography","Commercial","Content Creation","Podcast / Recording"]
-};
+// ── Filter options now come from the same shared Filters data the admin
+// manages (venly-config.js: getVenlyFilters()) — regions, districts,
+// event types (per space type) and amenities. Space type itself stays a
+// fixed 3-value list since it isn't admin-editable anywhere else either.
+const EVENT_TYPE_GROUP_KEY = { 'Event space': 'event', 'Meeting space': 'meeting', 'Shoot Location': 'shoot' };
 
 function currentFilters() {
   return {
     type: document.getElementById('filter-type').value,
     region: document.getElementById('filter-region').value,
     district: document.getElementById('filter-district').value,
-    event: document.getElementById('filter-event').value
+    event: document.getElementById('filter-event').value,
+    amenities: document.getElementById('filter-amenities').value
   };
 }
 
@@ -1100,17 +1079,20 @@ function currentFilters() {
 function spacesIgnoring(except) {
   const f = currentFilters();
   return spaces.filter(s => {
-    const matchType     = except === 'type'     || !f.type     || s.type === f.type;
-    const matchRegion   = except === 'region'   || !f.region   || s.region === f.region;
-    const matchDistrict = except === 'district' || !f.district || s.district === f.district;
-    const matchEvent    = except === 'event'     || !f.event    || (s.events && s.events.includes(f.event));
-    return matchType && matchRegion && matchDistrict && matchEvent;
+    const matchType      = except === 'type'      || !f.type      || s.type === f.type;
+    const matchRegion    = except === 'region'    || !f.region    || s.region === f.region;
+    const matchDistrict  = except === 'district'  || !f.district  || s.district === f.district;
+    const matchEvent     = except === 'event'     || !f.event     || (s.events && s.events.includes(f.event));
+    const matchAmenities = except === 'amenities' || !f.amenities || (s.amenities && s.amenities.includes(f.amenities));
+    return matchType && matchRegion && matchDistrict && matchEvent && matchAmenities;
   });
 }
 
 function escAttr(str) { return str.replace(/'/g, "\\'"); }
 
-// Rebuild the options inside a chip dropdown based on what's still possible
+// Rebuild the options inside a chip dropdown from a fixed list of values
+// (region/district/amenities), or from the admin's event-types-by-type
+// data grouped under a space type label (event chip only).
 function rebuildChipOptions(key, possibleValues, allLabel, clearLabel) {
   const chip = document.getElementById('chip-' + key);
   const dropdown = chip.querySelector('.chip-dropdown');
@@ -1121,9 +1103,12 @@ function rebuildChipOptions(key, possibleValues, allLabel, clearLabel) {
   let html = '<button class="chip-option' + (!currentVal ? ' selected' : '') + '" onclick="selectChip(\'chip-' + key + '\',\'' + inputId + '\',\'\',\'' + allLabel + '\',this)">' + clearText + '</button>';
 
   if (key === 'event') {
-    const groups = currentFilters().type ? [currentFilters().type] : Object.keys(EVENTS_BY_TYPE);
+    const filters = (typeof getVenlyFilters === 'function') ? getVenlyFilters() : { eventsByType: {} };
+    const selectedType = currentFilters().type;
+    const groups = selectedType ? [selectedType] : Object.keys(EVENT_TYPE_GROUP_KEY);
     groups.forEach(function(groupType) {
-      const opts = (EVENTS_BY_TYPE[groupType] || []).filter(function(ev) { return possibleValues.includes(ev); });
+      const groupKey = EVENT_TYPE_GROUP_KEY[groupType];
+      const opts = (filters.eventsByType[groupKey] || []).filter(function(ev) { return possibleValues.includes(ev); });
       if (!opts.length) return;
       html += '<span class="chip-optgroup-label">' + groupType + '</span>';
       opts.forEach(function(ev) {
@@ -1148,19 +1133,31 @@ function rebuildChipOptions(key, possibleValues, allLabel, clearLabel) {
   }
 }
 
-// Recompute every chip's available options based on the others' current selections
+// Recompute every chip's available options. Region/district/event-type/
+// amenities pull their full option lists from the admin's Filters data —
+// district is scoped to the selected region, and event type is scoped to
+// the selected space type — rather than being derived only from whichever
+// demo listings happen to exist, so what you see here always matches
+// what's configured in the admin, even if there's no matching listing yet.
 function updateChipAvailability() {
-  const typePool = spacesIgnoring('type');
-  rebuildChipOptions('type', [...new Set(typePool.map(s => s.type))], 'Space type', 'All types');
+  const filters = (typeof getVenlyFilters === 'function') ? getVenlyFilters() : { regions: [], districtsByRegion: {}, eventsByType: {}, amenities: [] };
+  const f = currentFilters();
 
-  const regionPool = spacesIgnoring('region');
-  rebuildChipOptions('region', [...new Set(regionPool.map(s => s.region))], 'Region', 'All regions');
+  rebuildChipOptions('type', ['Event space', 'Meeting space', 'Shoot Location'], 'Space type', 'All types');
 
-  const districtPool = spacesIgnoring('district');
-  rebuildChipOptions('district', [...new Set(districtPool.map(s => s.district))], 'District', 'All districts');
+  rebuildChipOptions('region', filters.regions || [], 'Region', 'All regions');
 
-  const eventPool = spacesIgnoring('event');
-  rebuildChipOptions('event', [...new Set(eventPool.flatMap(s => s.events || []))], 'Event type', 'All event types');
+  const districtOptions = f.region
+    ? (filters.districtsByRegion[f.region] || [])
+    : Object.keys(filters.districtsByRegion || {}).reduce(function(acc, r) { return acc.concat(filters.districtsByRegion[r] || []); }, []);
+  rebuildChipOptions('district', districtOptions, 'District', 'All districts');
+
+  const eventOptions = f.type
+    ? (filters.eventsByType[EVENT_TYPE_GROUP_KEY[f.type]] || [])
+    : ['event', 'meeting', 'shoot'].reduce(function(acc, k) { return acc.concat(filters.eventsByType[k] || []); }, []);
+  rebuildChipOptions('event', eventOptions, 'Event type', 'All event types');
+
+  rebuildChipOptions('amenities', filters.amenities || [], 'Amenities', 'All amenities');
 }
 
 function filterCards() {
@@ -1172,7 +1169,8 @@ function filterCards() {
     const matchRegion = !f.region || s.region === f.region;
     const matchDistrict = !f.district || s.district === f.district;
     const matchEvent = !f.event || (s.events && s.events.includes(f.event));
-    return matchSearch && matchType && matchRegion && matchDistrict && matchEvent;
+    const matchAmenities = !f.amenities || (s.amenities && s.amenities.includes(f.amenities));
+    return matchSearch && matchType && matchRegion && matchDistrict && matchEvent && matchAmenities;
   });
 
   updateChipAvailability();
@@ -1186,9 +1184,10 @@ function clearFilters() {
   document.getElementById('filter-region').value = '';
   document.getElementById('filter-district').value = '';
   document.getElementById('filter-event').value = '';
+  document.getElementById('filter-amenities').value = '';
 
   // Reset visible chip labels and active styling
-  var defaultLabels = { type: 'Space type', region: 'Region', district: 'District', event: 'Event type' };
+  var defaultLabels = { type: 'Space type', region: 'Region', district: 'District', event: 'Event type', amenities: 'Amenities' };
   Object.keys(defaultLabels).forEach(function(key) {
     var label = document.getElementById('label-' + key);
     if (label) label.textContent = defaultLabels[key];
