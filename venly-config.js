@@ -103,8 +103,8 @@ async function requireAdmin() {
   if (!SUPABASE_READY) return true;
   const user = await getCurrentUser();
   if (!user) { window.location.href = 'venly-auth.html'; return false; }
-  const { data } = await sb.from('profiles').select('role').eq('id', user.id).single();
-  if (!data || data.role !== 'admin') { window.location.href = 'venly-dashboard.html'; return false; }
+  const { data } = await sb.from('profiles').select('role').eq('id', user.id).maybeSingle();
+  if (!data || data.role !== 'Admin') { window.location.href = 'venly-dashboard.html'; return false; }
   return true;
 }
 
@@ -352,7 +352,11 @@ async function venlyBootstrapVenues() {
 async function venlyBootstrapFilters() {
   if (!SUPABASE_READY) return;
   try {
-    var filtersRes = await sb.from('site_filters').select('*').eq('id', 1).single();
+    // maybeSingle(), not single() — if the site_filters row hasn't been
+    // seeded yet, this should mean "no filters configured", not "the
+    // fetch failed". single() throws on zero rows; maybeSingle() just
+    // returns null, which getVenlyFilters() already handles gracefully.
+    var filtersRes = await sb.from('site_filters').select('*').eq('id', 1).maybeSingle();
     if (filtersRes.error) throw filtersRes.error;
     _venlyCache.filters = _mapFiltersFromDb(filtersRes.data);
     _venlyCache.filtersError = false;
