@@ -2632,23 +2632,87 @@ function _analyticsMonthKey(d) {
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
 }
 
+// Real page_views data, once migrated — a raw event per load (see
+// 01_schema.sql), so this is genuinely aggregated rather than manually
+// bucketed like the localStorage version had to be. A venue page load
+// writes TWO rows (one venue_id-tagged from incrementVenueHits, one plain
+// from trackPageView) by design, matching "a venue view also counts as a
+// page view" — so "page views" always filters to venue_id IS NULL to
+// avoid double-counting a single venue visit as two page views.
+var _adminPageViewsCache = null;
+
+async function adminBootstrapPageViews() {
+  if (!SUPABASE_READY) return;
+  try {
+    var sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+    sixMonthsAgo.setDate(1);
+    sixMonthsAgo.setHours(0, 0, 0, 0);
+
+    var totalRes = await sb.from('page_views').select('id', { count: 'exact', head: true }).is('venue_id', null);
+    if (totalRes.error) throw totalRes.error;
+
+    var rangeRes = await sb.from('page_views').select('venue_id, created_at').gte('created_at', sixMonthsAgo.toISOString());
+    if (rangeRes.error) throw rangeRes.error;
+
+    var monthlyPageviews = {};
+    var monthlyVenueViews = {};
+    rangeRes.data.forEach(function(row) {
+      var key = row.created_at.slice(0, 7);
+      if (row.venue_id) {
+        monthlyVenueViews[key] = (monthlyVenueViews[key] || 0) + 1;
+      } else {
+        monthlyPageviews[key] = (monthlyPageviews[key] || 0) + 1;
+      }
+    });
+
+    var mk = _analyticsMonthKey();
+    _adminPageViewsCache = {
+      total: totalRes.count || 0,
+      monthlyPageviews: monthlyPageviews,
+      monthlyVenueViews: monthlyVenueViews,
+      thisMonthPageviews: monthlyPageviews[mk] || 0,
+      thisMonthVenueViews: monthlyVenueViews[mk] || 0,
+    };
+  } catch (e) {
+    console.error('adminBootstrapPageViews failed, falling back to local data:', e);
+  }
+}
+
 function buildAnalyticsStats() {
   var venues = getAllVenues();
-  var pageviews = JSON.parse(localStorage.getItem('venly_analytics_pageviews') || '{"total":0,"monthly":{}}');
-  var venueviewsMonthly = JSON.parse(localStorage.getItem('venly_analytics_venueviews_monthly') || '{}');
-  var enquiries = JSON.parse(localStorage.getItem('venly_enquiries') || '[]');
   var mk = _analyticsMonthKey();
+
+  var pageviewsTotal, pageviewsThisMonth, venueviewsThisMonth, enquiries, enquiriesThisMonth;
+
+  if (SUPABASE_READY && _adminPageViewsCache) {
+    pageviewsTotal = _adminPageViewsCache.total;
+    pageviewsThisMonth = _adminPageViewsCache.thisMonthPageviews;
+    venueviewsThisMonth = _adminPageViewsCache.thisMonthVenueViews;
+  } else {
+    var pageviews = JSON.parse(localStorage.getItem('venly_analytics_pageviews') || '{"total":0,"monthly":{}}');
+    var venueviewsMonthly = JSON.parse(localStorage.getItem('venly_analytics_venueviews_monthly') || '{}');
+    pageviewsTotal = pageviews.total || 0;
+    pageviewsThisMonth = pageviews.monthly[mk] || 0;
+    venueviewsThisMonth = venueviewsMonthly[mk] || 0;
+  }
+
+  if (SUPABASE_READY && _adminMessagesCache) {
+    enquiries = _adminMessagesCache.filter(function(m) { return m.source === 'venue'; });
+  } else {
+    enquiries = JSON.parse(localStorage.getItem('venly_enquiries') || '[]').map(function(e) { return { createdAt: e.createdAt }; });
+  }
 
   var totalVenueViews = venues.reduce(function(sum, v) { return sum + (v.hits || 0); }, 0);
   var totalFavourites = venues.reduce(function(sum, v) { return sum + getVenueFavouriteCount(v.id); }, 0);
-  var enquiriesThisMonth = enquiries.filter(function(e) {
+  enquiriesThisMonth = enquiries.filter(function(e) {
     return e.createdAt && e.createdAt.slice(0, 7) === mk;
   }).length;
 
-  document.getElementById('stat-total-pageviews').textContent = (pageviews.total || 0).toLocaleString();
-  document.getElementById('stat-pageviews-change').textContent = '↑ ' + (pageviews.monthly[mk] || 0) + ' this month';
+  document.getElementById('stat-total-pageviews').textContent = pageviewsTotal.toLocaleString();
+  document.getElementById('stat-pageviews-change').textContent = '↑ ' + pageviewsThisMonth + ' this month';
   document.getElementById('stat-total-venueviews').textContent = totalVenueViews.toLocaleString();
-  document.getElementById('stat-venueviews-change').textContent = '↑ ' + (venueviewsMonthly[mk] || 0) + ' this month';
+  document.getElementById('stat-venueviews-change').textContent = '↑ ' + venueviewsThisMonth + ' this month';
   document.getElementById('stat-total-favourites').textContent = totalFavourites.toLocaleString();
   document.getElementById('stat-total-enquiries').textContent = enquiries.length.toLocaleString();
   document.getElementById('stat-enquiries-change').textContent = '↑ ' + enquiriesThisMonth + ' this month';
@@ -2656,8 +2720,8 @@ function buildAnalyticsStats() {
   // Overview page has its own Page Views card — keep it in sync with the same data
   var overviewPV = document.getElementById('stat-overview-pageviews');
   if (overviewPV) {
-    overviewPV.textContent = (pageviews.total || 0).toLocaleString();
-    document.getElementById('stat-overview-pageviews-change').textContent = '↑ ' + (pageviews.monthly[mk] || 0) + ' this month';
+    overviewPV.textContent = pageviewsTotal.toLocaleString();
+    document.getElementById('stat-overview-pageviews-change').textContent = '↑ ' + pageviewsThisMonth + ' this month';
   }
 }
 
@@ -2696,9 +2760,14 @@ function renderAnalyticsChart(metric) {
     btn.classList.toggle('active', btn.dataset.metric === metric);
   });
 
-  var store = isPageviews
-    ? (JSON.parse(localStorage.getItem('venly_analytics_pageviews') || '{"monthly":{}}').monthly || {})
-    : JSON.parse(localStorage.getItem('venly_analytics_venueviews_monthly') || '{}');
+  var store;
+  if (SUPABASE_READY && _adminPageViewsCache) {
+    store = isPageviews ? _adminPageViewsCache.monthlyPageviews : _adminPageViewsCache.monthlyVenueViews;
+  } else {
+    store = isPageviews
+      ? (JSON.parse(localStorage.getItem('venly_analytics_pageviews') || '{"monthly":{}}').monthly || {})
+      : JSON.parse(localStorage.getItem('venly_analytics_venueviews_monthly') || '{}');
+  }
   var data = getLast6MonthsChartData(store);
   var wrap = document.getElementById('analytics-chart-wrap');
   var hasData = data.some(function(d) { return d.val > 0; });
@@ -5139,11 +5208,11 @@ function saveCrmActivity() {
   showToast('Activity logged');
 }
 
-// Users+Accounts+Blog+Messages are migrated too now — their bootstrap
-// functions are defined in this same file (above), so they're combined
-// with the head's venues/filters bootstrap right here rather than in
-// <head>, where they wouldn't exist yet.
-Promise.all([window.venlyReady, adminBootstrapUsers(), adminBootstrapBlog(), adminBootstrapMessages()]).then(function() {
+// Users+Accounts+Blog+Messages+Analytics are migrated too now — their
+// bootstrap functions are defined in this same file (above), so they're
+// combined with the head's venues/filters bootstrap right here rather
+// than in <head>, where they wouldn't exist yet.
+Promise.all([window.venlyReady, adminBootstrapUsers(), adminBootstrapBlog(), adminBootstrapMessages(), adminBootstrapPageViews()]).then(function() {
 buildUsersTable();
 buildRecentSignups();
 buildBlogTable();

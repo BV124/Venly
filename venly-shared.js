@@ -399,8 +399,15 @@ function _venlyMonthKey(d) {
 }
 
 // Sitewide page view — call once from every public-facing page. Every
-// load counts, including reloads, by design (no session dedup).
+// load counts, including reloads, by design (no session dedup). Fire-
+// and-forget: nothing on the page waits for this to finish, same as any
+// analytics beacon.
 function trackPageView() {
+  if (SUPABASE_READY) {
+    var path = window.location.pathname.split('/').pop() || 'index.html';
+    sb.rpc('track_page_view', { path_input: path });
+    return;
+  }
   var store = JSON.parse(localStorage.getItem('venly_analytics_pageviews') || '{"total":0,"monthly":{}}');
   store.total = (store.total || 0) + 1;
   var mk = _venlyMonthKey();
@@ -411,6 +418,16 @@ function trackPageView() {
 // Favourites — current on/off state (drives the heart icon) is kept
 // separate from the lifetime "times favourited" counter (drives the
 // admin's Favourites stat), so unfavouriting doesn't erase history.
+//
+// NOTE: still localStorage-only, deliberately, even though a real
+// per-user `favourites` table exists now. Making this genuinely real
+// needs to know who's logged in (RLS requires a real user_id) and,
+// because isVenueFavourited()/toggleVenueFavourite() are called
+// synchronously all over already-migrated pages (index.html, venue
+// detail page) to instantly paint the heart icon, switching to an async
+// Supabase read here would mean reworking those pages' render logic too
+// — a bigger, separate piece of work rather than something to fold into
+// the admin's Analytics pass.
 function isVenueFavourited(venueId) {
   var current = JSON.parse(localStorage.getItem('venly_favourites') || '{}');
   return !!current[venueId];
@@ -435,10 +452,17 @@ function getVenueFavouriteCount(venueId) {
   return counts[venueId] || 0;
 }
 
-// Enquiries aren't tracked as a separate counter — venly-venue.html already
-// saves a full record per submission to venly_enquiries (see submitEnquiry
-// in venly-venue.html), so this just reads real counts from that.
+// Enquiries are real (the `enquiries` table, migrated with Messages) —
+// this is only ever called from the admin, which already has every
+// enquiry loaded via adminBootstrapMessages() (_adminMessagesCache), so
+// counting from that cache avoids a second fetch. Falls back to reading
+// venly_enquiries directly for demo mode / any page without that cache.
 function getVenueEnquiryCount(venueId) {
+  if (typeof _adminMessagesCache !== 'undefined' && _adminMessagesCache) {
+    return _adminMessagesCache.filter(function(m) {
+      return m.source === 'venue' && String(m.venueId) === String(venueId);
+    }).length;
+  }
   var enquiries = JSON.parse(localStorage.getItem('venly_enquiries') || '[]');
   return enquiries.filter(function(e) { return String(e.venueId) === String(venueId); }).length;
 }
