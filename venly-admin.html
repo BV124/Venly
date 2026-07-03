@@ -2666,7 +2666,66 @@ var SEED_BLOG_POSTS = [
   { id: 'seed-6', title: 'Draft: Wedding Venue Guide 2025', category: 'EVENT SPACE', date: null, views: 0, published: false, featured: false, img: '', excerpt: '', readTime: '5 min read', blocks: [] },
 ];
 
+// Real Supabase blog posts, once migrated — same cache pattern as
+// venues/users. NOTE: the public venly-blog.html / venly-blog-post.html
+// pages are still static HTML and don't read from this data yet — that's
+// a separate, larger follow-up (same situation Find a Space's listings
+// were in before that got sorted). This stage is scoped to the admin's
+// own list/create/edit/delete going real.
+var _adminBlogCache = null;
+
+function formatDisplayDate(iso) {
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var d = iso ? new Date(iso) : new Date();
+  return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+function _mapBlogPostFromDb(row) {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    category: row.category,
+    date: row.published ? formatDisplayDate(row.created_at) : null,
+    views: row.views || 0,
+    published: row.published,
+    featured: row.featured,
+    img: row.cover_image || '',
+    excerpt: row.excerpt || '',
+    readTime: row.read_time || '4 min read',
+    blocks: row.blocks || [],
+  };
+}
+
+// Turns a title into a URL-safe slug, and appends a short suffix if that
+// slug's already taken by a different post — slugs must be unique.
+function slugifyBlogTitle(title, excludePostId) {
+  var base = title.toLowerCase().trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-+|-+$)/g, '') || 'post';
+  var existing = (_adminBlogCache || []).filter(function(p) { return p.id !== excludePostId; }).map(function(p) { return p.slug; });
+  var slug = base;
+  var n = 2;
+  while (existing.indexOf(slug) > -1) {
+    slug = base + '-' + n;
+    n++;
+  }
+  return slug;
+}
+
+async function adminBootstrapBlog() {
+  if (!SUPABASE_READY) return;
+  try {
+    var res = await sb.from('blog_posts').select('*').order('created_at', { ascending: false });
+    if (res.error) throw res.error;
+    _adminBlogCache = res.data.map(_mapBlogPostFromDb);
+  } catch (e) {
+    console.error('adminBootstrapBlog failed, falling back to local data:', e);
+  }
+}
+
 function getAllBlogPosts() {
+  if (SUPABASE_READY && _adminBlogCache) return _adminBlogCache;
   var fromStorage = JSON.parse(localStorage.getItem('venly_blog_posts') || 'null');
   return fromStorage || SEED_BLOG_POSTS;
 }
@@ -3060,7 +3119,7 @@ function renderBlocks() {
   }).join('');
 }
 
-function saveBlogPost() {
+async function saveBlogPost() {
   var title = document.getElementById('ed-title').value.trim();
   if (!title) { showToast('Please add a title before saving'); return; }
 
@@ -3079,6 +3138,40 @@ function saveBlogPost() {
     blocks: currentBlocks,
   };
 
+  if (SUPABASE_READY) {
+    var existing = currentEditingPostId ? posts.find(function(p) { return p.id === currentEditingPostId; }) : null;
+    var dbRow = {
+      title: postData.title,
+      category: postData.category,
+      read_time: postData.readTime,
+      cover_image: postData.img,
+      excerpt: postData.excerpt,
+      published: postData.published,
+      featured: postData.featured,
+      blocks: postData.blocks,
+      views: existing ? existing.views : 0,
+      slug: existing ? existing.slug : slugifyBlogTitle(title, currentEditingPostId),
+    };
+
+    var saveRes;
+    if (currentEditingPostId) {
+      saveRes = await sb.from('blog_posts').update(dbRow).eq('id', currentEditingPostId);
+    } else {
+      saveRes = await sb.from('blog_posts').insert(dbRow);
+    }
+
+    if (saveRes.error) {
+      showToast('Could not save post: ' + saveRes.error.message);
+      return;
+    }
+
+    await adminBootstrapBlog();
+    showToast('Post saved successfully');
+    closeBlogEditor();
+    return;
+  }
+
+  // DEMO MODE — existing localStorage array logic
   if (currentEditingPostId) {
     var idx = posts.findIndex(function(p) { return p.id === currentEditingPostId; });
     if (idx > -1) {
@@ -3101,7 +3194,19 @@ function saveBlogPost() {
   }
 }
 
-function deleteBlogPost(postId) {
+async function deleteBlogPost(postId) {
+  if (SUPABASE_READY) {
+    var res = await sb.from('blog_posts').delete().eq('id', postId);
+    if (res.error) {
+      showToast('Could not delete post: ' + res.error.message);
+      return;
+    }
+    await adminBootstrapBlog();
+    showToast('Post deleted');
+    buildBlogTable();
+    return;
+  }
+
   var posts = getAllBlogPosts().filter(function(p) { return p.id !== postId; });
   saveAllBlogPosts(posts);
   showToast('Post deleted');
@@ -4976,11 +5081,11 @@ function saveCrmActivity() {
   showToast('Activity logged');
 }
 
-// Users+Accounts are migrated too now — adminBootstrapUsers() is defined
-// in this same file (above), so it's combined with the head's venues/
-// filters bootstrap right here rather than in <head>, where it wouldn't
-// exist yet.
-Promise.all([window.venlyReady, adminBootstrapUsers()]).then(function() {
+// Users+Accounts+Blog are migrated too now — their bootstrap functions
+// are defined in this same file (above), so they're combined with the
+// head's venues/filters bootstrap right here rather than in <head>,
+// where they wouldn't exist yet.
+Promise.all([window.venlyReady, adminBootstrapUsers(), adminBootstrapBlog()]).then(function() {
 buildUsersTable();
 buildRecentSignups();
 buildBlogTable();
