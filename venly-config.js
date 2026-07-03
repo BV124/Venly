@@ -349,12 +349,12 @@ async function venlyBootstrap() {
 }
 
 // Maps a saved-venue-form object (camelCase, as used throughout the admin
-// and host dashboard) to a real venues table row (snake_case). Deliberately
-// omits host_user_id — Users/Accounts aren't migrated to Supabase yet, so
-// the old demo user ids aren't real profile UUIDs and would fail the
-// foreign key. Venues save with host_email/host_name/host_phone in the
-// meantime (same "will link once they sign up" pattern the app already
-// used), and host_user_id gets wired up properly once Users is migrated.
+// and host dashboard) to a real venues table row (snake_case). host_user_id
+// is passed through as-is — the admin looks up the real profile UUID by
+// matching host email before calling this, now that Users is migrated;
+// callers that don't set hostUserId (e.g. anything not yet doing that
+// lookup) safely fall back to null, same "will link once they sign up"
+// pattern the app always intended.
 function _venueToDbRow(v) {
   return {
     name: v.name,
@@ -367,6 +367,7 @@ function _venueToDbRow(v) {
     price_from: (v.priceFrom !== '' && v.priceFrom != null) ? Number(v.priceFrom) : null,
     price_to: (v.priceTo !== '' && v.priceTo != null) ? Number(v.priceTo) : null,
     plan: v.plan,
+    host_user_id: v.hostUserId || null,
     host_email: v.hostEmail,
     host_name: v.hostName,
     host_phone: v.hostPhone,

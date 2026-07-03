@@ -822,9 +822,11 @@ tbody tr:last-child td { border-bottom: none; }
   <script src="venly-config.js"></script>
   <script src="venly-shared.js"></script>
   <script>
-    // Venues + Filters are both fully migrated (read+write) now — Users/
-    // Blog/Accounts/Messages/Analytics still run on localStorage until each
-    // gets migrated in turn.
+    // Venues + Filters — safe to kick off immediately since both live in
+    // venly-config.js, already loaded above. Users bootstrap happens lower
+    // down in this page instead (see the bottom of the main script block),
+    // since adminBootstrapUsers() is defined in THIS file, later in the
+    // body — calling it from here would run before it exists.
     window.venlyReady = (typeof venlyBootstrap === 'function') ? venlyBootstrap() : Promise.resolve();
   </script>
 </head>
@@ -1719,7 +1721,7 @@ tbody tr:last-child td { border-bottom: none; }
       <div class="modal-form-group"><label>Phone</label><input type="tel" id="am-phone-input" /></div>
     </div>
     <div class="modal-form-row">
-      <div class="modal-form-group"><label>Status</label><select id="am-status-input"><option>Active</option><option>Inactive</option><option>Suspended</option></select></div>
+      <div class="modal-form-group"><label>Status</label><select id="am-status-input"><option>Active</option><option>New</option><option>Suspended</option></select></div>
       <div></div>
     </div>
 
@@ -1788,6 +1790,38 @@ var seedUsers = [
   { id:6, name:'Lisa Patel', email:'lisa@studio.co', phone:'021 777 8899', initials:'LP', role:'User', joined:'Jun 2025', status:'Active', color:'#c2332a', permissions:[] },
 ];
 
+// Real Supabase profiles, once migrated — same "cache populated by an
+// explicit bootstrap call" pattern as venues/filters in venly-config.js,
+// kept local to this file since no other page needs the full user list.
+var _adminUsersCache = null;
+
+function _mapProfileFromDb(p, idx) {
+  return {
+    id: p.id,
+    name: p.name || '',
+    email: p.email,
+    phone: p.phone || '—',
+    role: p.role,
+    status: p.status,
+    permissions: p.permissions || [],
+    initials: (p.name || '?').split(' ').filter(Boolean).map(function(w) { return w[0]; }).slice(0, 2).join('').toUpperCase() || '?',
+    color: avatarColors[idx % avatarColors.length],
+    joined: p.created_at ? new Date(p.created_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' }) : '—',
+    joinedRaw: p.created_at,
+  };
+}
+
+async function adminBootstrapUsers() {
+  if (!SUPABASE_READY) return;
+  try {
+    var res = await sb.from('profiles').select('*').order('created_at', { ascending: false });
+    if (res.error) throw res.error;
+    _adminUsersCache = res.data.map(_mapProfileFromDb);
+  } catch (e) {
+    console.error('adminBootstrapUsers failed, falling back to local data:', e);
+  }
+}
+
 // Edits to seed users (including Braedyn, id 1) are stored as an overlay
 // keyed by id, the same "seed + override" pattern used for venues/blog/
 // filters elsewhere in this file — the seed data itself never changes.
@@ -1800,23 +1834,43 @@ function saveUserOverride(id, patch) {
   localStorage.setItem('venly_user_overrides', JSON.stringify(overrides));
 }
 
-// Single entry point for editing ANY user, whether they're one of the six
-// seed accounts above or a real signup stored in venly_users.
-function updateUser(id, patch) {
-  var isSeed = seedUsers.some(function(u) { return u.id === id; });
+// Single entry point for editing ANY user. In live mode, writes straight
+// to the profiles table and refreshes the cache — the seed/override split
+// below only applies in demo mode.
+async function updateUser(id, patch) {
+  if (SUPABASE_READY) {
+    // Only real profile columns — 'joined'/'initials'/'color' etc. are
+    // derived client-side in _mapProfileFromDb, not stored.
+    var dbPatch = {};
+    ['name', 'email', 'phone', 'role', 'status', 'permissions'].forEach(function(k) {
+      if (patch[k] !== undefined) dbPatch[k] = patch[k];
+    });
+    var res = await sb.from('profiles').update(dbPatch).eq('id', id);
+    if (res.error) {
+      showToast('Could not update user: ' + res.error.message);
+      return false;
+    }
+    await adminBootstrapUsers();
+    return true;
+  }
+
+  var isSeed = seedUsers.some(function(u) { return u.id == id; }); // loose equality: id may arrive as a string from onclick, seed ids are numbers
   if (isSeed) {
     saveUserOverride(id, patch);
-    return;
+    return true;
   }
   var fromStorage = JSON.parse(localStorage.getItem('venly_users') || '[]');
-  var idx = fromStorage.findIndex(function(u) { return u.id === id; });
+  var idx = fromStorage.findIndex(function(u) { return u.id == id; });
   if (idx > -1) {
     fromStorage[idx] = Object.assign({}, fromStorage[idx], patch);
     localStorage.setItem('venly_users', JSON.stringify(fromStorage));
   }
+  return true;
 }
 
 function getAllUsers() {
+  if (SUPABASE_READY && _adminUsersCache) return _adminUsersCache;
+
   var overrides = getUserOverrides();
   var seeded = seedUsers.map(function(u) {
     return overrides[u.id] ? Object.assign({}, u, overrides[u.id]) : u;
@@ -1854,11 +1908,27 @@ function saveAccountOverride(id, patch) {
 }
 
 function getAllAccounts() {
-  var overrides = getAccountOverrides();
   var venues = (typeof getAllVenues === 'function') ? getAllVenues() : [];
 
-  return seedAccounts.map(function(a, i) {
-    var acc = overrides[a.id] ? Object.assign({}, a, overrides[a.id]) : a;
+  // LIVE MODE: an "account" isn't a separate entity — it's just a profile
+  // with role = 'Host'. No seed data, no overrides; real profiles table.
+  var baseAccounts;
+  if (SUPABASE_READY && _adminUsersCache) {
+    baseAccounts = _adminUsersCache
+      .filter(function(u) { return u.role === 'Host'; })
+      .map(function(u) { return { id: u.id, name: u.name, email: u.email, phone: u.phone, joined: u.joined, status: u.status, color: u.color, initials: u.initials }; });
+  } else {
+    var overrides = getAccountOverrides();
+    baseAccounts = seedAccounts.map(function(a, i) {
+      var acc = overrides[a.id] ? Object.assign({}, a, overrides[a.id]) : a;
+      return Object.assign({}, acc, {
+        color: avatarColors[i % avatarColors.length],
+        initials: acc.name.split(' ').filter(Boolean).map(function(p) { return p[0]; }).slice(0, 2).join('').toUpperCase() || '?',
+      });
+    });
+  }
+
+  return baseAccounts.map(function(acc) {
     var theirVenues = venues.filter(function(v) {
       return v.hostEmail && v.hostEmail.toLowerCase() === acc.email.toLowerCase();
     });
@@ -1871,8 +1941,6 @@ function getAllAccounts() {
     }, 0);
 
     return Object.assign({}, acc, {
-      color: avatarColors[i % avatarColors.length],
-      initials: acc.name.split(' ').filter(Boolean).map(function(p) { return p[0]; }).slice(0, 2).join('').toUpperCase() || '?',
       venues: theirVenues,
       venueCount: theirVenues.length,
       monthlyValue: monthlyValue,
@@ -1899,13 +1967,13 @@ function buildAccountsTable() {
       '<td>' + monthlyCell + '</td>' +
       '<td>' + escapeHtml(a.joined || '—') + '</td>' +
       '<td><span class="badge ' + statusBadge + '">' + escapeHtml(a.status) + '</span></td>' +
-      '<td><button class="action-btn" onclick="openAccountModal(' + a.id + ')">View</button></td>' +
+      '<td><button class="action-btn" onclick="openAccountModal(\'' + a.id + '\')">View</button></td>' +
       '</tr>';
   }).join('');
 }
 
 function openAccountModal(id) {
-  var account = getAllAccounts().find(function(a) { return a.id === id; });
+  var account = getAllAccounts().find(function(a) { return a.id == id; }); // loose equality: demo mode ids are numbers, onclick always passes a quoted string
   if (!account) { showToast('Could not find that account'); return; }
 
   document.getElementById('am-avatar').style.background = account.color;
@@ -1935,16 +2003,24 @@ function openAccountModal(id) {
   document.getElementById('account-modal').classList.remove('hidden');
 }
 
-function saveAccountModal() {
+async function saveAccountModal() {
   var modal = document.getElementById('account-modal');
-  var id = Number(modal.dataset.accountId);
+  var id = modal.dataset.accountId; // real UUID in live mode, numeric-as-string in demo mode — never force Number() on this
   var name = document.getElementById('am-name-input').value.trim();
   var phone = document.getElementById('am-phone-input').value.trim();
   var status = document.getElementById('am-status-input').value;
 
   if (!name) { showToast('Name is required'); return; }
 
-  saveAccountOverride(id, { name: name, phone: phone || '—', status: status });
+  if (SUPABASE_READY) {
+    // An account IS a profile (role = 'Host') — same updateUser() used by
+    // the Users page, just without touching role/permissions here.
+    var ok = await updateUser(id, { name: name, phone: phone || '—', status: status });
+    if (ok === false) return; // updateUser already showed an error toast
+  } else {
+    saveAccountOverride(Number(id), { name: name, phone: phone || '—', status: status });
+  }
+
   modal.classList.add('hidden');
   buildAccountsTable();
   showToast('Account updated');
@@ -2064,7 +2140,7 @@ function buildUsersTable() {
       '<td>' + roleLabel + '</td>' +
       '<td style="color:var(--text-muted)">' + (u.joined || '—') + '</td>' +
       '<td><span class="badge ' + badgeClass + '">' + u.status + '</span></td>' +
-      '<td><button class="action-btn" onclick="openUserModal(' + u.id + ')">Edit</button>' +
+      '<td><button class="action-btn" onclick="openUserModal(\'' + u.id + '\')">Edit</button>' +
       '<button class="action-btn danger" onclick="suspendUser(' + i + ')">Suspend</button></td>' +
       '</tr>';
   }).join('');
@@ -2087,12 +2163,13 @@ function buildRecentSignups() {
   }).join('');
 }
 
-function suspendUser(idx) {
+async function suspendUser(idx) {
   var users = getAllUsers();
   var user = users[idx];
   if (!user) return;
   if (confirm('Suspend ' + user.name + '?')) {
-    updateUser(user.id, { status: 'Suspended' });
+    var ok = await updateUser(user.id, { status: 'Suspended' });
+    if (ok === false) return; // updateUser already showed an error toast
     buildUsersTable();
     showToast('User suspended');
   }
@@ -4216,14 +4293,16 @@ async function saveVenue() {
   };
 
   if (SUPABASE_READY) {
-    // LIVE MODE — real insert/update against the venues table. host_user_id
-    // isn't set here (see _venueToDbRow's comment in venly-config.js) —
-    // Users/Accounts aren't migrated yet, so there's no real profile UUID
-    // to link to. The venue still saves correctly with host_email/host_name/
-    // host_phone in the meantime, same "will link once they sign up" idea
-    // the app already used.
+    // LIVE MODE — real insert/update against the venues table.
     var existing = currentEditingVenueId ? venues.find(function(v) { return v.id === currentEditingVenueId; }) : null;
-    venueData.hostUserId = null;
+
+    // Users is migrated now, so link this venue to a real profile if one
+    // exists with a matching email — the "will link once they sign up"
+    // idea the app always intended, now actually working end to end.
+    var matchedProfile = _adminUsersCache
+      ? _adminUsersCache.find(function(u) { return u.email && u.email.toLowerCase() === hostEmail.toLowerCase(); })
+      : null;
+    venueData.hostUserId = matchedProfile ? matchedProfile.id : null;
 
     var prevStatus = existing ? existing.subscriptionStatus : 'none';
     if (isLive) {
@@ -4897,7 +4976,11 @@ function saveCrmActivity() {
   showToast('Activity logged');
 }
 
-window.venlyReady.then(function() {
+// Users+Accounts are migrated too now — adminBootstrapUsers() is defined
+// in this same file (above), so it's combined with the head's venues/
+// filters bootstrap right here rather than in <head>, where it wouldn't
+// exist yet.
+Promise.all([window.venlyReady, adminBootstrapUsers()]).then(function() {
 buildUsersTable();
 buildRecentSignups();
 buildBlogTable();
@@ -5008,7 +5091,7 @@ function saveModal() {
 // the venue nor CRM modal need.
 function openUserModal(id) {
   var editing = id != null;
-  var user = editing ? getAllUsers().find(function(u) { return u.id === id; }) : null;
+  var user = editing ? getAllUsers().find(function(u) { return u.id == id; }) : null; // loose equality: demo mode ids are numbers, onclick always passes a quoted string
   if (editing && !user) { showToast('Could not find that user'); return; }
 
   document.getElementById('modal-title').textContent = editing ? 'Edit user' : 'Add new user';
@@ -5071,7 +5154,7 @@ function toggleUserPermissionsPanel() {
   }
 }
 
-function saveUserModal(id) {
+async function saveUserModal(id) {
   var name = document.getElementById('um-name').value.trim();
   var email = document.getElementById('um-email').value.trim();
   var phone = document.getElementById('um-phone').value.trim();
@@ -5092,6 +5175,16 @@ function saveUserModal(id) {
   var patch = { name: name, email: email, phone: phone || '—', role: role, status: status, initials: initials, permissions: permissions };
 
   if (id == null) {
+    if (SUPABASE_READY) {
+      // A real account can only be created by the person signing up
+      // themselves (Supabase Auth needs a password, email verification,
+      // etc.) — there's no safe way to create one from this client-side
+      // admin page without exposing the service_role key, which must
+      // never be in frontend code. Once they've signed up, their profile
+      // appears here automatically and can be edited/promoted as normal.
+      showToast('Accounts are created by signing up — ask them to sign up, then edit their profile here to set their role');
+      return;
+    }
     var fromStorage = JSON.parse(localStorage.getItem('venly_users') || '[]');
     fromStorage.push(Object.assign({
       id: Date.now(),
@@ -5101,7 +5194,8 @@ function saveUserModal(id) {
     localStorage.setItem('venly_users', JSON.stringify(fromStorage));
     showToast('User added');
   } else {
-    updateUser(id, patch);
+    var ok = await updateUser(id, patch);
+    if (ok === false) return; // updateUser already showed an error toast
     showToast('User updated');
   }
 
