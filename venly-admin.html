@@ -2290,7 +2290,51 @@ var MESSAGE_FOLDERS = [
 var currentMessageFolder = 'inbox';
 var currentMessageSearch = '';
 
+// Real Supabase messages, once migrated — same cache pattern as
+// venues/users/blog. Still two real tables underneath (contact_messages,
+// enquiries), merged here for display exactly like the demo-mode version
+// below merges the two localStorage keys.
+var _adminMessagesCache = null;
+
+function _mapContactMessageFromDb(m) {
+  return {
+    id: m.id, source: 'contact', name: m.name, email: m.email, phone: null,
+    subject: m.subject || 'General enquiry', preview: m.message, message: m.message,
+    venueName: null, venueId: null,
+    createdAt: m.created_at, read: !!m.read, folder: m.folder || 'inbox',
+  };
+}
+function _mapEnquiryFromDb(m) {
+  return {
+    id: m.id, source: 'venue', name: m.name, email: m.email, phone: m.phone || null,
+    subject: 'Venue enquiry: ' + (m.venue_name || 'Unknown venue'), preview: m.message, message: m.message,
+    venueName: m.venue_name, venueId: m.venue_id,
+    createdAt: m.created_at, read: !!m.read, folder: m.folder || 'inbox',
+  };
+}
+
+async function adminBootstrapMessages() {
+  if (!SUPABASE_READY) return;
+  try {
+    var results = await Promise.all([
+      sb.from('contact_messages').select('*').order('created_at', { ascending: false }),
+      sb.from('enquiries').select('*').order('created_at', { ascending: false }),
+    ]);
+    if (results[0].error) throw results[0].error;
+    if (results[1].error) throw results[1].error;
+    var contactMsgs = results[0].data.map(_mapContactMessageFromDb);
+    var enquiries = results[1].data.map(_mapEnquiryFromDb);
+    _adminMessagesCache = contactMsgs.concat(enquiries).sort(function(a, b) {
+      return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+    });
+  } catch (e) {
+    console.error('adminBootstrapMessages failed, falling back to local data:', e);
+  }
+}
+
 function getAllMessages() {
+  if (SUPABASE_READY && _adminMessagesCache) return _adminMessagesCache;
+
   var contactMsgs = JSON.parse(localStorage.getItem('venly_contact_messages') || '[]').map(function(m) {
     return {
       id: m.id, source: 'contact', name: m.name, email: m.email, phone: null,
@@ -2312,7 +2356,18 @@ function getAllMessages() {
   });
 }
 
-function updateMessageMeta(source, id, patch) {
+async function updateMessageMeta(source, id, patch) {
+  if (SUPABASE_READY) {
+    var table = source === 'contact' ? 'contact_messages' : 'enquiries';
+    var res = await sb.from(table).update(patch).eq('id', id);
+    if (res.error) {
+      showToast('Could not update message: ' + res.error.message);
+      return false;
+    }
+    await adminBootstrapMessages();
+    return true;
+  }
+
   var key = source === 'contact' ? 'venly_contact_messages' : 'venly_enquiries';
   var arr = JSON.parse(localStorage.getItem(key) || '[]');
   var idx = arr.findIndex(function(m) { return String(m.id) === String(id); });
@@ -2320,6 +2375,7 @@ function updateMessageMeta(source, id, patch) {
     arr[idx] = Object.assign({}, arr[idx], patch);
     localStorage.setItem(key, JSON.stringify(arr));
   }
+  return true;
 }
 
 function msgInitials(name) {
@@ -2410,24 +2466,26 @@ function buildMessagesList() {
     : '<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-size:13px">No messages here.</div>';
 }
 
-function toggleMessageRead(source, id) {
+async function toggleMessageRead(source, id) {
   var m = getAllMessages().find(function(x) { return x.source === source && String(x.id) === String(id); });
   if (!m) return;
-  updateMessageMeta(source, id, { read: !m.read });
+  var ok = await updateMessageMeta(source, id, { read: !m.read });
+  if (ok === false) return; // updateMessageMeta already showed an error toast
   buildMessagesList();
 }
 
-function moveMessage(source, id, folder) {
-  updateMessageMeta(source, id, { folder: folder });
+async function moveMessage(source, id, folder) {
+  var ok = await updateMessageMeta(source, id, { folder: folder });
+  if (ok === false) return; // updateMessageMeta already showed an error toast
   buildMessagesList();
   showToast('Moved to ' + folder.charAt(0).toUpperCase() + folder.slice(1));
 }
 
-function openMessageDetail(source, id) {
+async function openMessageDetail(source, id) {
   var m = getAllMessages().find(function(x) { return x.source === source && String(x.id) === String(id); });
   if (!m) return;
 
-  if (!m.read) updateMessageMeta(source, id, { read: true });
+  if (!m.read) await updateMessageMeta(source, id, { read: true });
 
   document.getElementById('msg-detail-title').textContent = m.subject;
   document.getElementById('msg-detail-meta').innerHTML =
@@ -5081,11 +5139,11 @@ function saveCrmActivity() {
   showToast('Activity logged');
 }
 
-// Users+Accounts+Blog are migrated too now — their bootstrap functions
-// are defined in this same file (above), so they're combined with the
-// head's venues/filters bootstrap right here rather than in <head>,
-// where they wouldn't exist yet.
-Promise.all([window.venlyReady, adminBootstrapUsers(), adminBootstrapBlog()]).then(function() {
+// Users+Accounts+Blog+Messages are migrated too now — their bootstrap
+// functions are defined in this same file (above), so they're combined
+// with the head's venues/filters bootstrap right here rather than in
+// <head>, where they wouldn't exist yet.
+Promise.all([window.venlyReady, adminBootstrapUsers(), adminBootstrapBlog(), adminBootstrapMessages()]).then(function() {
 buildUsersTable();
 buildRecentSignups();
 buildBlogTable();

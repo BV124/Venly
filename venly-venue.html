@@ -721,15 +721,20 @@ async function submitEnquiry() {
   if (!msg) { showToast('Please add a message for the host'); return; }
 
   if (SUPABASE_READY) {
-    if (loadedVenue) {
-      await sb.from('enquiries').insert({
-        venue_id: loadedVenue.id,
-        name: name,
-        email: email,
-        phone: phone,
-        message: msg,
-        status: 'open'
-      });
+    if (!loadedVenue) { showToast('Could not load this venue — please refresh and try again'); return; }
+    var res = await sb.from('enquiries').insert({
+      venue_id: loadedVenue.id,
+      venue_name: loadedVenue.name,
+      host_email: loadedVenue.effectiveEnquiryEmail || loadedVenue.hostEmail,
+      name: name,
+      email: email,
+      phone: phone,
+      message: msg,
+      status: 'open'
+    });
+    if (res.error) {
+      showToast('Could not send your enquiry — please try again');
+      return;
     }
   } else if (loadedVenue) {
     // DEMO MODE: save the enquiry to localStorage so it's not silently lost
@@ -751,7 +756,7 @@ async function submitEnquiry() {
     localStorage.setItem('venly_enquiries', JSON.stringify(enquiries));
   }
 
-  // Show success regardless (demo or live)
+  // Only reached on success — both branches above return early on error
   document.getElementById('enquiry-form').style.display = 'none';
   document.getElementById('enquiry-success').style.display = 'block';
 }

@@ -292,7 +292,7 @@ textarea { min-height: 160px; }
 <div class="toast" id="toast"></div>
 
 <script>
-function sendMessage() {
+async function sendMessage() {
   const name = document.getElementById('c-name').value.trim();
   const email = document.getElementById('c-email').value.trim();
   const subject = document.getElementById('c-subject').value;
@@ -304,9 +304,13 @@ function sendMessage() {
   if (!message) { showToast('Please enter a message'); return; }
 
   if (typeof SUPABASE_READY !== 'undefined' && SUPABASE_READY) {
-    sb.from('contact_messages').insert({
+    var res = await sb.from('contact_messages').insert({
       name: name, email: email, subject: subject, message: message, status: 'open'
     });
+    if (res.error) {
+      showToast('Could not send your message — please try again');
+      return;
+    }
   } else {
     // DEMO MODE: save to localStorage so the admin's Messages inbox can
     // actually show it — same pattern as venue enquiries (venly-venue.html).
