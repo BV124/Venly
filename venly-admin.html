@@ -821,6 +821,14 @@ tbody tr:last-child td { border-bottom: none; }
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="venly-config.js"></script>
   <script src="venly-shared.js"></script>
+  <script>
+    // Venues only for now — Filters/Users/Blog/Accounts/Messages/Analytics
+    // still run on localStorage until each gets migrated in turn. Using
+    // venlyBootstrapVenues() specifically (not the combined venlyBootstrap)
+    // means this can't accidentally start showing real Filters data before
+    // the Filters admin page's SAVE functions are also ready for it.
+    window.venlyReady = (typeof venlyBootstrapVenues === 'function') ? venlyBootstrapVenues() : Promise.resolve();
+  </script>
 </head>
 <body>
 
@@ -3983,17 +3991,26 @@ function confirmCancelSubscription() {
     'This will take the listing offline immediately and mark the subscription as cancelled. The host can be re-subscribed later, or you can override it live again.';
   var confirmBtn = document.getElementById('confirm-delete-btn');
   confirmBtn.textContent = 'Cancel subscription';
-  confirmBtn.onclick = function() {
+  confirmBtn.onclick = async function() {
     document.getElementById('ven-live-toggle').classList.remove('on');
     updateVenueLiveHelper();
     if (currentEditingVenueId) {
-      var venues = getAllVenues();
-      var v = venues.find(function(x) { return x.id === currentEditingVenueId; });
-      if (v) {
-        v.subscriptionStatus = 'cancelled';
-        v.isLive = false;
-        saveAllVenues(venues);
-        renderVenueStatusBanner(v);
+      if (SUPABASE_READY) {
+        var res = await sb.from('venues').update({ subscription_status: 'cancelled', is_live: false }).eq('id', currentEditingVenueId);
+        if (res.error) { showToast('Could not cancel subscription: ' + res.error.message); return; }
+        await venlyBootstrapVenues();
+        var v2 = getAllVenues().find(function(x) { return x.id === currentEditingVenueId; });
+        if (v2) renderVenueStatusBanner(v2);
+        buildVenuesTable();
+      } else {
+        var venues = getAllVenues();
+        var v = venues.find(function(x) { return x.id === currentEditingVenueId; });
+        if (v) {
+          v.subscriptionStatus = 'cancelled';
+          v.isLive = false;
+          saveAllVenues(venues);
+          renderVenueStatusBanner(v);
+        }
       }
     }
     closeConfirmDelete();
@@ -4003,8 +4020,22 @@ function confirmCancelSubscription() {
   document.getElementById('confirm-delete-modal').classList.remove('hidden');
 }
 
-function reactivateVenue() {
+async function reactivateVenue() {
   if (!currentEditingVenueId) return;
+
+  if (SUPABASE_READY) {
+    var res = await sb.from('venues').update({ subscription_status: 'active', is_live: true }).eq('id', currentEditingVenueId);
+    if (res.error) { showToast('Could not reactivate venue: ' + res.error.message); return; }
+    await venlyBootstrapVenues();
+    var v2 = getAllVenues().find(function(x) { return x.id === currentEditingVenueId; });
+    document.getElementById('ven-live-toggle').classList.add('on');
+    updateVenueLiveHelper();
+    if (v2) renderVenueStatusBanner(v2);
+    buildVenuesTable();
+    showToast('Venue reactivated and live again');
+    return;
+  }
+
   var venues = getAllVenues();
   var v = venues.find(function(x) { return x.id === currentEditingVenueId; });
   if (v) {
@@ -4116,7 +4147,7 @@ function closeVenueEditor() {
   buildVenuesTable();
 }
 
-function saveVenue() {
+async function saveVenue() {
   var name = document.getElementById('ven-name').value.trim();
   if (!name) { showToast('Please add a venue name before saving'); return; }
 
@@ -4167,6 +4198,49 @@ function saveVenue() {
     featuredHome: document.getElementById('ven-trending-toggle').classList.contains('on'),
     featuredOccasion: document.getElementById('ven-occasion-toggle').classList.contains('on'),
   };
+
+  if (SUPABASE_READY) {
+    // LIVE MODE — real insert/update against the venues table. host_user_id
+    // isn't set here (see _venueToDbRow's comment in venly-config.js) —
+    // Users/Accounts aren't migrated yet, so there's no real profile UUID
+    // to link to. The venue still saves correctly with host_email/host_name/
+    // host_phone in the meantime, same "will link once they sign up" idea
+    // the app already used.
+    var existing = currentEditingVenueId ? venues.find(function(v) { return v.id === currentEditingVenueId; }) : null;
+    venueData.hostUserId = null;
+
+    var prevStatus = existing ? existing.subscriptionStatus : 'none';
+    if (isLive) {
+      venueData.subscriptionStatus = (prevStatus === 'active') ? 'active' : 'overridden';
+    } else {
+      venueData.subscriptionStatus = prevStatus;
+    }
+
+    var dbRow = _venueToDbRow(venueData);
+    var saveRes;
+    if (currentEditingVenueId) {
+      saveRes = await sb.from('venues').update(dbRow).eq('id', currentEditingVenueId);
+    } else {
+      saveRes = await sb.from('venues').insert(dbRow);
+    }
+
+    if (saveRes.error) {
+      showToast('Could not save venue: ' + saveRes.error.message);
+      return;
+    }
+
+    await venlyBootstrapVenues(); // refresh the cache so every page reflects this change
+    showToast('Venue saved');
+    closeVenueEditor();
+    buildVenuesTable();
+    if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
+    if (typeof buildAccountsTable === 'function') buildAccountsTable();
+    if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
+    if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
+    return;
+  }
+
+  // DEMO MODE — existing localStorage array logic
 
   if (currentEditingVenueId) {
     var idx = venues.findIndex(function(v) { return v.id === currentEditingVenueId; });
@@ -4243,16 +4317,30 @@ function deleteVenueWithConfirm(venueId) {
     confirmBtn.disabled = false;
   }
 
-  confirmBtn.onclick = function() {
+  confirmBtn.onclick = async function() {
+    if (SUPABASE_READY) {
+      var delRes = await sb.from('venues').delete().eq('id', venueId);
+      if (delRes.error) {
+        showToast('Could not delete venue: ' + delRes.error.message);
+        return;
+      }
+      await venlyBootstrapVenues();
+      buildVenuesTable();
+      if (typeof buildAccountsTable === 'function') buildAccountsTable();
+      if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
+      if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
+      if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
+      closeConfirmDelete();
+      confirmBtn.textContent = 'Remove';
+      showToast(isPaying ? 'Venue deleted — subscription cancelled' : 'Venue deleted');
+      return;
+    }
+
     if (isPaying) {
-      // LIVE MODE: this is where a real Stripe subscription cancellation
-      // call belongs once billing is connected — mirroring the comment on
-      // incrementVenueViews() elsewhere in this file, mutating the local
-      // record isn't enough once there's a real subscription behind it.
-      //
       // DEMO MODE: no live subscription exists yet to cancel, so — same
       // as the "Cancel subscription" button on the listing itself — we
-      // just record the cancellation on the venue's own data.
+      // just record the cancellation on the venue's own data before it's
+      // removed. (Live mode, handled above, just deletes the row directly.)
       venue.subscriptionStatus = 'cancelled';
       venue.isLive = false;
     }
@@ -4793,6 +4881,7 @@ function saveCrmActivity() {
   showToast('Activity logged');
 }
 
+window.venlyReady.then(function() {
 buildUsersTable();
 buildRecentSignups();
 buildBlogTable();
@@ -4810,26 +4899,23 @@ buildAnalyticsVenuesTable();
 renderAnalyticsChart('pageviews');
 initCrmAccess();
 applyAdminAccessRestrictions();
+});
 
-if (typeof loadSupabaseUsers === 'function') {
-  loadSupabaseUsers();
-  loadSupabaseVenues();
-}
+// loadSupabaseUsers()/loadSupabaseVenues() above were early, read-only
+// previews written before the real schema existed — their field names
+// (first_name/last_name, page_hits) don't match what's actually in the
+// database, and calling them here would overwrite the real, fully-wired
+// buildUsersTable()/buildVenuesTable() output below with broken data.
+// Superseded now that venues has real Supabase read+write wiring — not
+// calling them until Users gets the same treatment.
 
 renderBarChart('users-chart', [
   {label:'Jan',label2:'2',val:2},{label:'Feb',label2:'4',val:4},{label:'Mar',label2:'3',val:3},
   {label:'Apr',label2:'5',val:5},{label:'May',label2:'7',val:7},{label:'Jun',label2:'3',val:3}
 ], '#f5c4bf');
-
-renderBarChart('revenue-chart', [
-  {label:'Jan',label2:'$820',val:820},{label:'Feb',label2:'$960',val:960},{label:'Mar',label2:'$1,100',val:1100},
-  {label:'Apr',label2:'$1,340',val:1340},{label:'May',label2:'$1,500',val:1500},{label:'Jun',label2:'$1,840',val:1840}
-], '#f5c4bf');
-
-renderBarChart('stats-revenue-chart', [
-  {label:'Jan',label2:'$820',val:820},{label:'Feb',label2:'$960',val:960},{label:'Mar',label2:'$1,100',val:1100},
-  {label:'Apr',label2:'$1,340',val:1340},{label:'May',label2:'$1,500',val:1500},{label:'Jun',label2:'$1,840',val:1840}
-], '#f5c4bf');
+// Revenue charts are real now (renderRevenueTrendChart, called earlier in
+// this init sequence) — the hardcoded fake versions that used to render
+// here after them, silently overwriting the real ones, have been removed.
 
 // Hover red
 document.querySelectorAll('.bar').forEach(function(b) {

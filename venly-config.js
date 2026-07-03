@@ -314,21 +314,74 @@ function _mapFiltersFromDb(row) {
 }
 
 // Call once, at the top of a page's init code, before anything that
-// reads venues or filters. Safe to call multiple times (re-fetches fresh
-// data each time) and safe to call in demo mode (does nothing).
-async function venlyBootstrap() {
+// reads venues. Safe to call multiple times (re-fetches fresh data each
+// time — used after every write, so the cache never goes stale) and safe
+// to call in demo mode (does nothing).
+async function venlyBootstrapVenues() {
   if (!SUPABASE_READY) return;
   try {
     var venuesRes = await sb.from('venues').select('*').order('created_at', { ascending: false });
     if (venuesRes.error) throw venuesRes.error;
     _venlyCache.venues = venuesRes.data.map(_mapVenueFromDb);
+  } catch (e) {
+    console.error('venlyBootstrapVenues failed, falling back to local data:', e);
+  }
+}
 
+async function venlyBootstrapFilters() {
+  if (!SUPABASE_READY) return;
+  try {
     var filtersRes = await sb.from('site_filters').select('*').eq('id', 1).single();
     if (filtersRes.error) throw filtersRes.error;
     _venlyCache.filters = _mapFiltersFromDb(filtersRes.data);
   } catch (e) {
-    console.error('venlyBootstrap failed, falling back to local data:', e);
+    console.error('venlyBootstrapFilters failed, falling back to local data:', e);
   }
+}
+
+// Convenience wrapper for pages that are fully migrated (read-only pages
+// so far: index.html, venly-find-a-space.html, venly-venue.html) — fetches
+// both in parallel. Pages migrating just one piece at a time (e.g. the
+// admin, currently venues-only) should call the specific one they need
+// instead, so an unmigrated feature's cache stays untouched.
+async function venlyBootstrap() {
+  await Promise.all([venlyBootstrapVenues(), venlyBootstrapFilters()]);
+}
+
+// Maps a saved-venue-form object (camelCase, as used throughout the admin
+// and host dashboard) to a real venues table row (snake_case). Deliberately
+// omits host_user_id — Users/Accounts aren't migrated to Supabase yet, so
+// the old demo user ids aren't real profile UUIDs and would fail the
+// foreign key. Venues save with host_email/host_name/host_phone in the
+// meantime (same "will link once they sign up" pattern the app already
+// used), and host_user_id gets wired up properly once Users is migrated.
+function _venueToDbRow(v) {
+  return {
+    name: v.name,
+    type: v.type,
+    region: v.region,
+    district: v.district,
+    address: v.address,
+    capacity: v.capacity,
+    website: v.website,
+    price_from: (v.priceFrom !== '' && v.priceFrom != null) ? Number(v.priceFrom) : null,
+    price_to: (v.priceTo !== '' && v.priceTo != null) ? Number(v.priceTo) : null,
+    plan: v.plan,
+    host_email: v.hostEmail,
+    host_name: v.hostName,
+    host_phone: v.hostPhone,
+    enquiry_email: v.enquiryEmail,
+    description: v.description,
+    is_live: v.isLive,
+    subscription_status: v.subscriptionStatus,
+    photos: v.photos || [],
+    features: v.features || [],
+    event_types: v.eventTypes || [],
+    featured_home: !!v.featuredHome,
+    featured_occasion: !!v.featuredOccasion,
+    discount_percent: v.discountPercent || 0,
+    discount_code: v.discountCode || '',
+  };
 }
 
 function getAllVenues() {
