@@ -336,6 +336,17 @@ nav { background: var(--white); border-bottom: 1px solid var(--border); display:
         <p>We sent a confirmation link to <strong id="signup-email-confirm"></strong>. Click it to activate your account and get started.</p>
         <div style="font-size:12px;color:var(--text-muted);margin-top:8px">Didn't get it? Check your spam folder or <button onclick="showToast('Resent confirmation email')" style="background:none;border:none;color:var(--red);font-size:12px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;padding:0">resend the email</button></div>
       </div>
+
+      <!-- Shown instead of signup-success when Supabase's "Confirm email"
+           setting is off — signup returns a real session immediately, so
+           there's nothing to click, just a normal welcome + redirect. -->
+      <div class="auth-success" id="signup-success-instant" style="display:none">
+        <div class="success-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h3>You're all set!</h3>
+        <p>Welcome to Venly — redirecting you to your dashboard...</p>
+      </div>
     </div>
 
     <!-- RESET PASSWORD PANEL -->
@@ -548,25 +559,40 @@ function handleSignup() {
   var initials = fname.charAt(0).toUpperCase() + lname.charAt(0).toUpperCase();
 
   if (SUPABASE_READY) {
-    // LIVE MODE — real Supabase auth + profile creation (profile auto-created by DB trigger)
+    // LIVE MODE — real Supabase auth + profile creation (profile auto-created
+    // by the handle_new_user() DB trigger, which reads raw_user_meta_data.name
+    // and .phone — must match the keys sent here exactly).
     sb.auth.signUp({
       email: email,
       password: pw,
       options: {
         data: {
-          first_name: fname,
-          last_name: lname,
-          phone: phone,
-          role: 'user'
+          name: fname + ' ' + lname,
+          phone: phone
         }
       }
     }).then(function(res) {
       setLoading('signup-btn','signup-btn-text', false);
       if (res.error) { showToast(res.error.message); return; }
-      document.getElementById('signup-email-confirm').textContent = email;
+
       document.getElementById('signup-form-wrap').style.display = 'none';
-      document.getElementById('signup-success').style.display = 'block';
-      // Note: user needs to verify email before they can log in
+
+      if (res.data && res.data.session) {
+        // "Confirm email" is off in Supabase Auth settings — signUp()
+        // returned a real session immediately, so the person is already
+        // logged in. No link to click; just welcome them and move on.
+        // NOTE: this is the "instantly signed up" part — actually sending
+        // a welcome email is separate, not-yet-built infrastructure (a DB
+        // trigger or Edge Function calling Resend), not something Supabase
+        // Auth does on its own.
+        document.getElementById('signup-success-instant').style.display = 'block';
+        setTimeout(function() { window.location.href = 'venly-dashboard.html'; }, 1200);
+      } else {
+        // "Confirm email" is still on — fall back to the original flow so
+        // nothing breaks if that setting hasn't been changed yet.
+        document.getElementById('signup-email-confirm').textContent = email;
+        document.getElementById('signup-success').style.display = 'block';
+      }
     });
   } else {
     // DEMO MODE — saves to localStorage so admin dashboard can read it
