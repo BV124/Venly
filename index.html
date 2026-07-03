@@ -442,6 +442,15 @@ section { padding: 80px 48px; }
     window.venlyReady = (typeof venlyBootstrap === 'function')
       ? Promise.all([venlyBootstrap(), venlyBootstrapBlog()])
       : Promise.resolve();
+
+    // If Supabase is connected but a fetch genuinely failed, say so — don't
+    // let the page silently look "normal" while showing incomplete data.
+    window.venlyReady.then(function() {
+      if (typeof venlyFetchFailed !== 'function') return;
+      if (venlyFetchFailed('venues') || venlyFetchFailed('filters') || venlyFetchFailed('blog')) {
+        venlyShowLoadError();
+      }
+    });
   </script>
 </head>
 <body>

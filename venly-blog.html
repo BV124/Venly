@@ -257,8 +257,13 @@ function renderPosts(filter) {
   const allPosts = getPostsForDisplay();
   const filtered = filter === 'all' ? allPosts : allPosts.filter(p => p.cat === filter);
 
+  var fetchFailed = typeof venlyFetchFailed === 'function' && venlyFetchFailed('blog');
+  if (fetchFailed && typeof venlyShowLoadError === 'function') venlyShowLoadError();
+
   if (filtered.length === 0) {
-    grid.innerHTML = `<div class="no-posts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>No posts in this category yet — check back soon!</p></div>`;
+    grid.innerHTML = fetchFailed
+      ? `<div class="no-posts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 8v4M12 16h.01M12 22c5.5 0 10-4.5 10-10S17.5 2 12 2 2 6.5 2 12s4.5 10 10 10z"/></svg><p>Couldn't load posts right now — please refresh, or try again shortly.</p></div>`
+      : `<div class="no-posts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>No posts in this category yet — check back soon!</p></div>`;
     return;
   }
 

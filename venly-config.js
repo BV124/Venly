@@ -195,8 +195,11 @@ var VENLY_SPACE_TYPE_KEY_MAP = {
 
 function getVenlyFilters() {
   var merged;
-  if (SUPABASE_READY && _venlyCache.filters) {
-    merged = _venlyCache.filters;
+  if (SUPABASE_READY) {
+    // Never fall back to demo defaults once live — an empty-but-valid
+    // shape instead, so callers can safely read .regions etc. without
+    // crashing, but never see fake placeholder options.
+    merged = _venlyCache.filters || { regions: [], districtsByRegion: {}, amenities: [], eventsByType: {}, blogCategories: [], trendingChips: [] };
   } else {
     var stored = JSON.parse(localStorage.getItem('venly_filters') || 'null');
     merged = stored
@@ -263,7 +266,23 @@ var VENLY_MAX_OCCASION_PER_TYPE = 4;     // slots per space type in "For all occ
 // migrating pages to Supabase one at a time can't ever break a page we
 // haven't gotten to yet.
 // ============================================================
-var _venlyCache = { venues: null, filters: null, blog: null };
+var _venlyCache = { venues: null, filters: null, blog: null, venuesError: false, filtersError: false, blogError: false };
+
+// Shows a persistent, visible banner when live data genuinely failed to
+// load (Supabase connected, but the fetch itself errored — network issue,
+// RLS misconfiguration, Supabase downtime, etc). Deliberately NOT used in
+// demo mode, where showing placeholder content is the expected, correct
+// behaviour, not an error. Safe to call more than once — only ever shows
+// one banner at a time.
+function venlyShowLoadError(message) {
+  if (document.getElementById('venly-load-error-banner')) return;
+  var banner = document.createElement('div');
+  banner.id = 'venly-load-error-banner';
+  banner.setAttribute('role', 'alert');
+  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#fdf0ef;color:#c2332a;border-bottom:1px solid #f5c4c0;padding:12px 20px;text-align:center;font-size:14px;font-family:Inter,sans-serif;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,0.08)';
+  banner.textContent = message || "Something didn't load correctly — please refresh the page, or try again shortly.";
+  document.body.insertBefore(banner, document.body.firstChild);
+}
 
 function _mapVenueFromDb(row) {
   return {
@@ -323,8 +342,10 @@ async function venlyBootstrapVenues() {
     var venuesRes = await sb.from('venues').select('*').order('created_at', { ascending: false });
     if (venuesRes.error) throw venuesRes.error;
     _venlyCache.venues = venuesRes.data.map(_mapVenueFromDb);
+    _venlyCache.venuesError = false;
   } catch (e) {
-    console.error('venlyBootstrapVenues failed, falling back to local data:', e);
+    console.error('venlyBootstrapVenues failed:', e);
+    _venlyCache.venuesError = true;
   }
 }
 
@@ -334,8 +355,10 @@ async function venlyBootstrapFilters() {
     var filtersRes = await sb.from('site_filters').select('*').eq('id', 1).single();
     if (filtersRes.error) throw filtersRes.error;
     _venlyCache.filters = _mapFiltersFromDb(filtersRes.data);
+    _venlyCache.filtersError = false;
   } catch (e) {
-    console.error('venlyBootstrapFilters failed, falling back to local data:', e);
+    console.error('venlyBootstrapFilters failed:', e);
+    _venlyCache.filtersError = true;
   }
 }
 
@@ -365,17 +388,30 @@ async function venlyBootstrapBlog() {
     var res = await sb.from('blog_posts').select('*').order('created_at', { ascending: false });
     if (res.error) throw res.error;
     _venlyCache.blog = res.data.map(_mapBlogPostFromDbPublic);
+    _venlyCache.blogError = false;
   } catch (e) {
-    console.error('venlyBootstrapBlog failed, falling back to local data:', e);
+    console.error('venlyBootstrapBlog failed:', e);
+    _venlyCache.blogError = true;
   }
 }
 
-// Returns real posts once bootstrapped, or null if not ready/not live —
-// callers (venly-blog.html, venly-blog-post.html) fall back to their own
-// local demo posts array when this returns null, same pattern as every
-// other page.
+// Checks whether a live fetch genuinely failed (as opposed to demo mode,
+// where there's nothing to "fail" — placeholder content is expected).
+// Call this after venlyReady resolves; pages use it to decide whether to
+// show venlyShowLoadError() instead of rendering anything.
+function venlyFetchFailed(resource) {
+  return SUPABASE_READY && !!_venlyCache[resource + 'Error'];
+}
+
+// Returns real posts once bootstrapped. Returns null ONLY in demo mode,
+// which is the signal callers (venly-blog.html, venly-blog-post.html,
+// index.html) use to fall back to their own local demo posts array. Once
+// live, this always returns an array — possibly empty, if the fetch
+// failed — callers should check venlyFetchFailed('blog') to tell "genuinely
+// no posts yet" apart from "the fetch errored", rather than silently
+// showing demo content either way.
 function getVenlyBlogPosts() {
-  if (SUPABASE_READY && _venlyCache.blog) return _venlyCache.blog;
+  if (SUPABASE_READY) return _venlyCache.blog || [];
   return null;
 }
 
@@ -426,7 +462,7 @@ function _venueToDbRow(v) {
 }
 
 function getAllVenues() {
-  if (SUPABASE_READY && _venlyCache.venues) return _venlyCache.venues;
+  if (SUPABASE_READY) return _venlyCache.venues || []; // never fall back to demo data once live — an empty result + venuesError flag instead
   var fromStorage = JSON.parse(localStorage.getItem('venly_venues') || 'null');
   return fromStorage || VENLY_SEED_VENUES;
 }

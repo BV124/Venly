@@ -506,10 +506,16 @@ function loadVenue() {
   loadedVenue = findVenueFromUrl();
 
   if (!loadedVenue) {
+    var fetchFailed = typeof venlyFetchFailed === 'function' && venlyFetchFailed('venues');
+    if (fetchFailed && typeof venlyShowLoadError === 'function') {
+      venlyShowLoadError("This venue couldn't be loaded — please refresh the page, or try again shortly.");
+    }
     // No matching venue — show a clear not-found state rather than fake content
-    document.getElementById('venue-title').textContent = 'Venue not found';
-    document.getElementById('breadcrumb-current').textContent = 'Not found';
-    document.getElementById('venue-desc').textContent = 'This listing may have been removed or the link is incorrect. Try browsing all spaces instead.';
+    document.getElementById('venue-title').textContent = fetchFailed ? "Couldn't load this venue" : 'Venue not found';
+    document.getElementById('breadcrumb-current').textContent = fetchFailed ? 'Loading error' : 'Not found';
+    document.getElementById('venue-desc').textContent = fetchFailed
+      ? 'Something went wrong loading this listing. Please refresh the page, or try again shortly.'
+      : 'This listing may have been removed or the link is incorrect. Try browsing all spaces instead.';
     document.getElementById('meta-pills').innerHTML = '';
     document.getElementById('amenities-section').style.display = 'none';
     document.getElementById('suitable-for-section').style.display = 'none';

@@ -559,6 +559,15 @@ nav {
   <script src="venly-shared.js"></script>
   <script>
     window.venlyReady = (typeof venlyBootstrap === 'function') ? venlyBootstrap() : Promise.resolve();
+
+    // If Supabase is connected but a fetch genuinely failed, say so — don't
+    // let the page silently look "normal" while showing incomplete data.
+    window.venlyReady.then(function() {
+      if (typeof venlyFetchFailed !== 'function') return;
+      if (venlyFetchFailed('filters')) {
+        venlyShowLoadError();
+      }
+    });
   </script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

@@ -1811,14 +1811,22 @@ function _mapProfileFromDb(p, idx) {
   };
 }
 
+// Tracks whether each live data source genuinely failed to load (as
+// opposed to demo mode, where there's nothing to fail). Checked after
+// each bootstrap so a failed fetch shows an explicit error instead of
+// silently substituting seed/demo data.
+var _adminLoadErrors = { users: false, messages: false, blog: false, pageViews: false };
+
 async function adminBootstrapUsers() {
   if (!SUPABASE_READY) return;
   try {
     var res = await sb.from('profiles').select('*').order('created_at', { ascending: false });
     if (res.error) throw res.error;
     _adminUsersCache = res.data.map(_mapProfileFromDb);
+    _adminLoadErrors.users = false;
   } catch (e) {
-    console.error('adminBootstrapUsers failed, falling back to local data:', e);
+    console.error('adminBootstrapUsers failed:', e);
+    _adminLoadErrors.users = true;
   }
 }
 
@@ -1869,7 +1877,7 @@ async function updateUser(id, patch) {
 }
 
 function getAllUsers() {
-  if (SUPABASE_READY && _adminUsersCache) return _adminUsersCache;
+  if (SUPABASE_READY) return _adminUsersCache || []; // never fall back to seed data once live — empty + error banner instead
 
   var overrides = getUserOverrides();
   var seeded = seedUsers.map(function(u) {
@@ -1913,8 +1921,8 @@ function getAllAccounts() {
   // LIVE MODE: an "account" isn't a separate entity — it's just a profile
   // with role = 'Host'. No seed data, no overrides; real profiles table.
   var baseAccounts;
-  if (SUPABASE_READY && _adminUsersCache) {
-    baseAccounts = _adminUsersCache
+  if (SUPABASE_READY) {
+    baseAccounts = (_adminUsersCache || [])
       .filter(function(u) { return u.role === 'Host'; })
       .map(function(u) { return { id: u.id, name: u.name, email: u.email, phone: u.phone, joined: u.joined, status: u.status, color: u.color, initials: u.initials }; });
   } else {
@@ -2327,13 +2335,15 @@ async function adminBootstrapMessages() {
     _adminMessagesCache = contactMsgs.concat(enquiries).sort(function(a, b) {
       return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
     });
+    _adminLoadErrors.messages = false;
   } catch (e) {
-    console.error('adminBootstrapMessages failed, falling back to local data:', e);
+    console.error('adminBootstrapMessages failed:', e);
+    _adminLoadErrors.messages = true;
   }
 }
 
 function getAllMessages() {
-  if (SUPABASE_READY && _adminMessagesCache) return _adminMessagesCache;
+  if (SUPABASE_READY) return _adminMessagesCache || []; // never fall back to demo data once live — empty + error banner instead
 
   var contactMsgs = JSON.parse(localStorage.getItem('venly_contact_messages') || '[]').map(function(m) {
     return {
@@ -2674,8 +2684,10 @@ async function adminBootstrapPageViews() {
       thisMonthPageviews: monthlyPageviews[mk] || 0,
       thisMonthVenueViews: monthlyVenueViews[mk] || 0,
     };
+    _adminLoadErrors.pageViews = false;
   } catch (e) {
-    console.error('adminBootstrapPageViews failed, falling back to local data:', e);
+    console.error('adminBootstrapPageViews failed:', e);
+    _adminLoadErrors.pageViews = true;
   }
 }
 
@@ -2685,10 +2697,10 @@ function buildAnalyticsStats() {
 
   var pageviewsTotal, pageviewsThisMonth, venueviewsThisMonth, enquiries, enquiriesThisMonth;
 
-  if (SUPABASE_READY && _adminPageViewsCache) {
-    pageviewsTotal = _adminPageViewsCache.total;
-    pageviewsThisMonth = _adminPageViewsCache.thisMonthPageviews;
-    venueviewsThisMonth = _adminPageViewsCache.thisMonthVenueViews;
+  if (SUPABASE_READY) {
+    pageviewsTotal = _adminPageViewsCache ? _adminPageViewsCache.total : 0;
+    pageviewsThisMonth = _adminPageViewsCache ? _adminPageViewsCache.thisMonthPageviews : 0;
+    venueviewsThisMonth = _adminPageViewsCache ? _adminPageViewsCache.thisMonthVenueViews : 0;
   } else {
     var pageviews = JSON.parse(localStorage.getItem('venly_analytics_pageviews') || '{"total":0,"monthly":{}}');
     var venueviewsMonthly = JSON.parse(localStorage.getItem('venly_analytics_venueviews_monthly') || '{}');
@@ -2697,8 +2709,8 @@ function buildAnalyticsStats() {
     venueviewsThisMonth = venueviewsMonthly[mk] || 0;
   }
 
-  if (SUPABASE_READY && _adminMessagesCache) {
-    enquiries = _adminMessagesCache.filter(function(m) { return m.source === 'venue'; });
+  if (SUPABASE_READY) {
+    enquiries = _adminMessagesCache ? _adminMessagesCache.filter(function(m) { return m.source === 'venue'; }) : [];
   } else {
     enquiries = JSON.parse(localStorage.getItem('venly_enquiries') || '[]').map(function(e) { return { createdAt: e.createdAt }; });
   }
@@ -2761,8 +2773,8 @@ function renderAnalyticsChart(metric) {
   });
 
   var store;
-  if (SUPABASE_READY && _adminPageViewsCache) {
-    store = isPageviews ? _adminPageViewsCache.monthlyPageviews : _adminPageViewsCache.monthlyVenueViews;
+  if (SUPABASE_READY) {
+    store = _adminPageViewsCache ? (isPageviews ? _adminPageViewsCache.monthlyPageviews : _adminPageViewsCache.monthlyVenueViews) : {};
   } else {
     store = isPageviews
       ? (JSON.parse(localStorage.getItem('venly_analytics_pageviews') || '{"monthly":{}}').monthly || {})
@@ -2846,13 +2858,15 @@ async function adminBootstrapBlog() {
     var res = await sb.from('blog_posts').select('*').order('created_at', { ascending: false });
     if (res.error) throw res.error;
     _adminBlogCache = res.data.map(_mapBlogPostFromDb);
+    _adminLoadErrors.blog = false;
   } catch (e) {
-    console.error('adminBootstrapBlog failed, falling back to local data:', e);
+    console.error('adminBootstrapBlog failed:', e);
+    _adminLoadErrors.blog = true;
   }
 }
 
 function getAllBlogPosts() {
-  if (SUPABASE_READY && _adminBlogCache) return _adminBlogCache;
+  if (SUPABASE_READY) return _adminBlogCache || []; // never fall back to seed data once live — empty + error banner instead
   var fromStorage = JSON.parse(localStorage.getItem('venly_blog_posts') || 'null');
   return fromStorage || SEED_BLOG_POSTS;
 }
@@ -5230,6 +5244,16 @@ buildAnalyticsVenuesTable();
 renderAnalyticsChart('pageviews');
 initCrmAccess();
 applyAdminAccessRestrictions();
+
+// If Supabase is connected but one or more fetches genuinely failed, say
+// so clearly rather than silently showing empty tables that look like
+// "there's just no data" — those are very different situations for
+// someone managing the site to walk into unannounced.
+var anyLoadError = (typeof venlyFetchFailed === 'function' && (venlyFetchFailed('venues') || venlyFetchFailed('filters')))
+  || _adminLoadErrors.users || _adminLoadErrors.blog || _adminLoadErrors.messages || _adminLoadErrors.pageViews;
+if (anyLoadError && typeof venlyShowLoadError === 'function') {
+  venlyShowLoadError("Some data didn't load correctly — the numbers and lists on this page may be incomplete. Please refresh, or try again shortly.");
+}
 });
 
 // loadSupabaseUsers()/loadSupabaseVenues() above were early, read-only

@@ -357,7 +357,21 @@ function loadPost() {
   var id = params.get('id');
   var posts = getPostsForDisplay();
   var post = posts.find(function(p) { return String(p.id) === String(id); }) || posts[0];
-  if (!post) return; // no posts at all yet — nothing to render
+
+  if (!post) {
+    var fetchFailed = typeof venlyFetchFailed === 'function' && venlyFetchFailed('blog');
+    if (fetchFailed && typeof venlyShowLoadError === 'function') venlyShowLoadError();
+    document.title = 'Venly — ' + (fetchFailed ? "Couldn't load this post" : 'Post not found');
+    document.getElementById('breadcrumb-title').textContent = fetchFailed ? 'Loading error' : 'Not found';
+    document.getElementById('post-title').textContent = fetchFailed ? "Couldn't load this post" : 'Post not found';
+    document.getElementById('post-cat').textContent = '';
+    document.getElementById('post-date').textContent = '';
+    document.getElementById('post-read').textContent = '';
+    document.getElementById('post-body').innerHTML = '<p>' + (fetchFailed
+      ? 'Something went wrong loading this post. Please refresh the page, or try again shortly.'
+      : 'This post may have been removed or the link is incorrect. <a href="venly-blog.html">Browse all posts</a> instead.') + '</p>';
+    return;
+  }
 
   document.title = 'Venly — ' + post.title;
   document.getElementById('breadcrumb-title').textContent = post.title;
