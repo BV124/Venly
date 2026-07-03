@@ -93,6 +93,42 @@ function renderNav(options) {
 
   injectMobileNavStyles();
   setupMobileNavToggle();
+
+  // The Admin button above only shows if the caller explicitly passes
+  // { admin: true } — which no page does, since nobody wires that up per
+  // page. Instead, check the real logged-in user's actual profile role
+  // and insert the button afterward if they genuinely are an Admin. Runs
+  // after the nav is already on the page, so this never blocks the first
+  // paint — the button just appears a moment later once we know for sure.
+  if (loggedIn) _checkAndShowAdminButton();
+}
+
+async function _checkAndShowAdminButton() {
+  if (!SUPABASE_READY) return;
+  try {
+    var user = await getCurrentUser();
+    if (!user) return;
+    var res = await sb.from('profiles').select('role').eq('id', user.id).maybeSingle();
+    if (res.error || !res.data || res.data.role !== 'Admin') return;
+
+    document.querySelectorAll('.dnav-account, .mnav-auth').forEach(function(container) {
+      if (container.querySelector('.venly-admin-nav-btn')) return; // already added
+      var dashboardBtn = Array.prototype.find.call(container.querySelectorAll('button'), function(b) {
+        return b.textContent.trim() === 'My Dashboard';
+      });
+      if (!dashboardBtn) return;
+
+      var isMobile = container.classList.contains('mnav-auth');
+      var adminBtn = document.createElement('button');
+      adminBtn.className = 'btn btn-primary venly-admin-nav-btn' + (isMobile ? ' mnav-btn' : '');
+      if (!isMobile) adminBtn.style.cssText = 'font-size:13px;padding:7px 16px';
+      adminBtn.textContent = 'Admin';
+      adminBtn.onclick = function() { window.location.href = 'venly-admin.html'; };
+      dashboardBtn.insertAdjacentElement('afterend', adminBtn);
+    });
+  } catch (e) {
+    console.error('_checkAndShowAdminButton failed:', e);
+  }
 }
 
 // ============================================================
