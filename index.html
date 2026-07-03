@@ -435,11 +435,13 @@ section { padding: 80px 48px; }
   <script src="venly-config.js"></script>
   <script src="venly-shared.js"></script>
   <script>
-    // Kicks off the real Supabase fetch (venues + filters) as early as
-    // possible. Every render function below that needs venue/filter data
-    // waits on this same promise instead of assuming it's already there —
-    // in demo mode this resolves instantly and changes nothing.
-    window.venlyReady = (typeof venlyBootstrap === 'function') ? venlyBootstrap() : Promise.resolve();
+    // Kicks off the real Supabase fetch (venues + filters + blog) as early
+    // as possible. Every render function below that needs this data waits
+    // on this same promise instead of assuming it's already there — in
+    // demo mode this resolves instantly and changes nothing.
+    window.venlyReady = (typeof venlyBootstrap === 'function')
+      ? Promise.all([venlyBootstrap(), venlyBootstrapBlog()])
+      : Promise.resolve();
   </script>
 </head>
 <body>
@@ -1269,11 +1271,16 @@ section { padding: 80px 48px; }
   ];
 
   function getHomeBlogPosts() {
+    var real = (typeof getVenlyBlogPosts === 'function') ? getVenlyBlogPosts() : null;
+    if (real) {
+      // Only show posts explicitly selected for the homepage in the admin —
+      // no automatic backfill with other recent posts. RLS already limits
+      // this to published posts only.
+      return real.filter(function(p) { return p.featured; }).slice(0, 3);
+    }
+
     var stored = JSON.parse(localStorage.getItem('venly_blog_posts') || 'null');
     if (!stored || !stored.length) return FALLBACK_HOME_POSTS;
-
-    // Only show posts that are both published AND explicitly selected for the
-    // homepage in the admin — no automatic backfill with other recent posts.
     var featured = stored.filter(function(p) { return p.published && p.featured; });
     return featured.slice(0, 3);
   }
@@ -1299,7 +1306,8 @@ section { padding: 80px 48px; }
 
     grid.innerHTML = posts.map(function(p) {
       var img = p.img || 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80';
-      var meta = (p.date || '') + (p.date && p.readTime ? ' · ' : '') + (p.readTime || '');
+      var displayDate = p.date || (p.createdAt ? formatHomeBlogDate(p.createdAt) : '');
+      var meta = displayDate + (displayDate && p.readTime ? ' · ' : '') + (p.readTime || '');
       return '<div class="space-card" onclick="window.location.href=\'venly-blog-post.html?id=' + p.id + '\'" style="cursor:pointer;display:flex;flex-direction:column">' +
         '<div class="card-img" style="height:200px;position:relative;overflow:hidden">' +
           '<img src="' + img + '" alt="' + (p.title || '') + '" style="width:100%;height:100%;object-fit:cover;transition:transform 0.3s" />' +
@@ -1318,7 +1326,13 @@ section { padding: 80px 48px; }
     }).join('');
   }
 
-  renderHomeBlog();
+  function formatHomeBlogDate(iso) {
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var d = new Date(iso);
+    return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+  }
+
+  window.venlyReady.then(renderHomeBlog);
 })();
 </script>
 

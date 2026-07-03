@@ -149,6 +149,9 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="venly-config.js"></script>
   <script src="venly-shared.js"></script>
+  <script>
+    window.venlyReady = (typeof venlyBootstrapBlog === 'function') ? venlyBootstrapBlog() : Promise.resolve();
+  </script>
 </head>
 <body>
 
@@ -204,21 +207,55 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
 <script>renderFooter(); trackPageView();</script>
 
 <script>
-const posts = [
-  { cat: 'tips', title: '5 Things to Check Before Booking a Venue', excerpt: 'From parking to noise restrictions, these are the questions every event planner should ask before signing anything.', img: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80', badge: 'HOSTING TIPS' },
-  { cat: 'event', title: 'The Best Event Spaces in Auckland Right Now', excerpt: 'We rounded up the most unique, versatile, and downright stunning event spaces listed on Venly this month.', img: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&q=80', badge: 'EVENT SPACE' },
-  { cat: 'shoot', title: 'Why Your Next Shoot Needs a Proper Location', excerpt: 'Shooting in a carpark or your lounge isn\'t cutting it anymore. Here\'s why dedicated shoot locations are worth every cent.', img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80', badge: 'SHOOT LOCATION' },
-  { cat: 'meeting', title: 'Stop Booking Coffee Shops for Meetings', excerpt: 'Noisy, cramped, and embarrassing to clients. It\'s time to upgrade to a proper meeting space. Here\'s how to find one fast.', img: 'https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=600&q=80', badge: 'MEETING SPACE' },
-  { cat: 'guides', title: 'How to List Your Space on Venly in 10 Minutes', excerpt: 'A step-by-step walkthrough of getting your space live, looking great, and in front of the right people as fast as possible.', img: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=600&q=80', badge: 'GUIDE' },
-  { cat: 'news', title: 'Venly Launches in New Zealand', excerpt: 'We\'re live! Here\'s everything you need to know about what Venly is, who it\'s for, and where we\'re headed next.', img: 'https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=600&q=80', badge: 'VENLY NEWS' },
-  { cat: 'event', title: 'Planning a 21st? Here\'s What to Look For in a Venue', excerpt: 'It\'s one of the biggest nights of someone\'s life. Don\'t leave the venue to chance — here\'s your no-stress checklist.', img: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&q=80', badge: 'EVENT SPACE' },
-  { cat: 'tips', title: 'How Lighting Can Make or Break Your Event', excerpt: 'Harsh fluorescents or warm ambience? The difference is massive. A quick guide to getting the lighting right every time.', img: 'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=600&q=80', badge: 'HOSTING TIPS' },
-  { cat: 'shoot', title: 'Natural Light vs Studio: What\'s Right for Your Shoot?', excerpt: 'Both have their place. Knowing which suits your brief can save you hours of editing and thousands of dollars in post.', img: 'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=600&q=80', badge: 'SHOOT LOCATION' },
+// Real category values (as stored by the admin's blog editor) mapped to
+// the short filter-pill codes this page's UI already uses.
+var BLOG_CATEGORY_TO_PILL = {
+  'EVENT SPACE': 'event',
+  'MEETING SPACE': 'meeting',
+  'SHOOT LOCATION': 'shoot',
+  'HOSTING TIPS': 'tips',
+  'VENLY NEWS': 'news',
+  'GUIDE': 'guides',
+};
+
+// Demo posts — used until Supabase is connected, or as a fallback if the
+// real fetch fails. Kept as the original mock data, just renamed.
+var DEMO_POSTS = [
+  { cat: 'tips', title: '5 Things to Check Before Booking a Venue', excerpt: 'From parking to noise restrictions, these are the questions every event planner should ask before signing anything.', img: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80', badge: 'HOSTING TIPS', id: 'demo-0' },
+  { cat: 'event', title: 'The Best Event Spaces in Auckland Right Now', excerpt: 'We rounded up the most unique, versatile, and downright stunning event spaces listed on Venly this month.', img: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&q=80', badge: 'EVENT SPACE', id: 'demo-1' },
+  { cat: 'shoot', title: 'Why Your Next Shoot Needs a Proper Location', excerpt: 'Shooting in a carpark or your lounge isn\'t cutting it anymore. Here\'s why dedicated shoot locations are worth every cent.', img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80', badge: 'SHOOT LOCATION', id: 'demo-2' },
+  { cat: 'meeting', title: 'Stop Booking Coffee Shops for Meetings', excerpt: 'Noisy, cramped, and embarrassing to clients. It\'s time to upgrade to a proper meeting space. Here\'s how to find one fast.', img: 'https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=600&q=80', badge: 'MEETING SPACE', id: 'demo-3' },
+  { cat: 'guides', title: 'How to List Your Space on Venly in 10 Minutes', excerpt: 'A step-by-step walkthrough of getting your space live, looking great, and in front of the right people as fast as possible.', img: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=600&q=80', badge: 'GUIDE', id: 'demo-4' },
+  { cat: 'news', title: 'Venly Launches in New Zealand', excerpt: 'We\'re live! Here\'s everything you need to know about what Venly is, who it\'s for, and where we\'re headed next.', img: 'https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=600&q=80', badge: 'VENLY NEWS', id: 'demo-5' },
+  { cat: 'event', title: 'Planning a 21st? Here\'s What to Look For in a Venue', excerpt: 'It\'s one of the biggest nights of someone\'s life. Don\'t leave the venue to chance — here\'s your no-stress checklist.', img: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&q=80', badge: 'EVENT SPACE', id: 'demo-6' },
+  { cat: 'tips', title: 'How Lighting Can Make or Break Your Event', excerpt: 'Harsh fluorescents or warm ambience? The difference is massive. A quick guide to getting the lighting right every time.', img: 'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=600&q=80', badge: 'HOSTING TIPS', id: 'demo-7' },
+  { cat: 'shoot', title: 'Natural Light vs Studio: What\'s Right for Your Shoot?', excerpt: 'Both have their place. Knowing which suits your brief can save you hours of editing and thousands of dollars in post.', img: 'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=600&q=80', badge: 'SHOOT LOCATION', id: 'demo-8' },
 ];
+
+// Real posts, once bootstrapped — mapped into the same {cat, title,
+// excerpt, img, badge, id} shape DEMO_POSTS already uses, so renderPosts()
+// below doesn't need to know or care which source it's working with.
+function getPostsForDisplay() {
+  var real = (typeof getVenlyBlogPosts === 'function') ? getVenlyBlogPosts() : null;
+  if (!real) return DEMO_POSTS;
+  return real
+    .filter(function(p) { return p.title; }) // guard against any malformed rows
+    .map(function(p) {
+      return {
+        id: p.id,
+        cat: BLOG_CATEGORY_TO_PILL[p.category] || 'tips',
+        title: p.title,
+        excerpt: p.excerpt,
+        img: p.img,
+        badge: p.category,
+      };
+    });
+}
 
 function renderPosts(filter) {
   const grid = document.getElementById('blog-grid');
-  const filtered = filter === 'all' ? posts : posts.filter(p => p.cat === filter);
+  const allPosts = getPostsForDisplay();
+  const filtered = filter === 'all' ? allPosts : allPosts.filter(p => p.cat === filter);
 
   if (filtered.length === 0) {
     grid.innerHTML = `<div class="no-posts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>No posts in this category yet — check back soon!</p></div>`;
@@ -226,7 +263,7 @@ function renderPosts(filter) {
   }
 
   grid.innerHTML = filtered.map(p => `
-    <div class="blog-card" onclick="window.location.href='venly-blog-post.html?id=' + filtered.indexOf(p)">
+    <div class="blog-card" onclick="window.location.href='venly-blog-post.html?id=${p.id}'">
       <div class="blog-card-img">
         <img src="${p.img}" alt="${p.title}" loading="lazy" />
         <span class="card-cat-badge">${p.badge}</span>
@@ -249,7 +286,7 @@ function filterCat(cat, btn) {
   renderPosts(cat);
 }
 
-renderPosts('all');
+window.venlyReady.then(function() { renderPosts('all'); });
 </script>
 </body>
 </html>

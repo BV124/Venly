@@ -9,6 +9,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="venly-config.js"></script>
 <script src="venly-shared.js"></script>
+<script>
+  window.venlyReady = (typeof venlyBootstrapBlog === 'function') ? venlyBootstrapBlog() : Promise.resolve();
+</script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -192,9 +195,48 @@ footer { background: #111; color: #fff; }
 <script>renderFooter(); trackPageView();</script>
 
 <script>
-const posts = [
+// Converts a post's structured content blocks (paragraph/heading/quote/
+// list) into HTML — mirrors blocksToHtml() in venly-admin.html exactly,
+// so a post renders identically here and in the admin's live preview.
+function blocksToHtml(blocks) {
+  if (!blocks || blocks.length === 0) return '';
+  return blocks.map(function(b) {
+    if (b.type === 'paragraph') {
+      return b.text ? '<p>' + escapeHtmlBlog(b.text) + '</p>' : '';
+    }
+    if (b.type === 'heading') {
+      return b.text ? '<h2>' + escapeHtmlBlog(b.text) + '</h2>' : '';
+    }
+    if (b.type === 'quote') {
+      return b.text ? '<blockquote>' + escapeHtmlBlog(b.text) + '</blockquote>' : '';
+    }
+    if (b.type === 'list') {
+      var items = (b.items || []).filter(function(i) { return i && i.trim(); });
+      if (items.length === 0) return '';
+      return '<ul>' + items.map(function(i) { return '<li>' + escapeHtmlBlog(i) + '</li>'; }).join('') + '</ul>';
+    }
+    return '';
+  }).join('');
+}
+
+function escapeHtmlBlog(str) {
+  var div = document.createElement('div');
+  div.textContent = str == null ? '' : str;
+  return div.innerHTML;
+}
+
+function formatBlogDate(iso) {
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var d = iso ? new Date(iso) : new Date();
+  return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+// Demo posts — used until Supabase is connected, or as a fallback if the
+// real fetch fails. Kept as the original mock data, just renamed and
+// given string ids (matching the format real UUID ids will have).
+const DEMO_POSTS = [
   {
-    id: 0,
+    id: 'demo-0',
     title: 'How to Choose the Perfect Space for Your Next Event',
     cat: 'HOSTING TIPS',
     date: '12 Jun 2025',
@@ -223,7 +265,7 @@ const posts = [
     `
   },
   {
-    id: 1,
+    id: 'demo-1',
     title: '5 Things to Check Before Booking a Venue',
     cat: 'HOSTING TIPS',
     date: '8 Jun 2025',
@@ -244,7 +286,7 @@ const posts = [
     `
   },
   {
-    id: 2,
+    id: 'demo-2',
     title: 'The Best Event Spaces in Auckland Right Now',
     cat: 'EVENT SPACE',
     date: '5 Jun 2025',
@@ -264,7 +306,7 @@ const posts = [
     `
   },
   {
-    id: 3,
+    id: 'demo-3',
     title: 'Stop Booking Coffee Shops for Meetings',
     cat: 'MEETING SPACE',
     date: '1 Jun 2025',
@@ -290,10 +332,32 @@ const posts = [
   },
 ];
 
+// Real posts, once bootstrapped — mapped into the same {id, title, cat,
+// date, read, img, body} shape DEMO_POSTS already uses.
+function getPostsForDisplay() {
+  var real = (typeof getVenlyBlogPosts === 'function') ? getVenlyBlogPosts() : null;
+  if (!real) return DEMO_POSTS;
+  return real
+    .filter(function(p) { return p.title; })
+    .map(function(p) {
+      return {
+        id: p.id,
+        title: p.title,
+        cat: p.category,
+        date: formatBlogDate(p.createdAt),
+        read: p.readTime,
+        img: p.img,
+        body: blocksToHtml(p.blocks),
+      };
+    });
+}
+
 function loadPost() {
   var params = new URLSearchParams(window.location.search);
-  var id = parseInt(params.get('id') || '0');
-  var post = posts.find(function(p) { return p.id === id; }) || posts[0];
+  var id = params.get('id');
+  var posts = getPostsForDisplay();
+  var post = posts.find(function(p) { return String(p.id) === String(id); }) || posts[0];
+  if (!post) return; // no posts at all yet — nothing to render
 
   document.title = 'Venly — ' + post.title;
   document.getElementById('breadcrumb-title').textContent = post.title;
@@ -306,7 +370,7 @@ function loadPost() {
   document.getElementById('post-body').innerHTML = post.body;
 
   // Load more posts (exclude current)
-  var others = posts.filter(function(p) { return p.id !== id; }).slice(0, 3);
+  var others = posts.filter(function(p) { return String(p.id) !== String(post.id); }).slice(0, 3);
   document.getElementById('more-grid').innerHTML = others.map(function(p) {
     return '<div class="blog-card" onclick="window.location.href=\'venly-blog-post.html?id=' + p.id + '\'">' +
       '<div class="blog-card-img"><img src="' + p.img + '" alt="' + p.title + '" loading="lazy" />' +
@@ -323,7 +387,7 @@ function copyLink() {
   showToast('Link copied!');
 }
 
-loadPost();
+window.venlyReady.then(loadPost);
 </script>
 </body>
 </html>

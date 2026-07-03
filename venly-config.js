@@ -263,7 +263,7 @@ var VENLY_MAX_OCCASION_PER_TYPE = 4;     // slots per space type in "For all occ
 // migrating pages to Supabase one at a time can't ever break a page we
 // haven't gotten to yet.
 // ============================================================
-var _venlyCache = { venues: null, filters: null };
+var _venlyCache = { venues: null, filters: null, blog: null };
 
 function _mapVenueFromDb(row) {
   return {
@@ -337,6 +337,46 @@ async function venlyBootstrapFilters() {
   } catch (e) {
     console.error('venlyBootstrapFilters failed, falling back to local data:', e);
   }
+}
+
+// Public-facing blog data — separate from the admin's own _adminBlogCache
+// (defined locally in venly-admin.html, which includes drafts). RLS
+// already restricts anon/logged-out sessions to published=true rows, so
+// no extra filtering is needed here — whatever comes back is safe to show.
+function _mapBlogPostFromDbPublic(row) {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    category: row.category,
+    createdAt: row.created_at,
+    views: row.views || 0,
+    featured: row.featured,
+    img: row.cover_image || '',
+    excerpt: row.excerpt || '',
+    readTime: row.read_time || '4 min read',
+    blocks: row.blocks || [],
+  };
+}
+
+async function venlyBootstrapBlog() {
+  if (!SUPABASE_READY) return;
+  try {
+    var res = await sb.from('blog_posts').select('*').order('created_at', { ascending: false });
+    if (res.error) throw res.error;
+    _venlyCache.blog = res.data.map(_mapBlogPostFromDbPublic);
+  } catch (e) {
+    console.error('venlyBootstrapBlog failed, falling back to local data:', e);
+  }
+}
+
+// Returns real posts once bootstrapped, or null if not ready/not live —
+// callers (venly-blog.html, venly-blog-post.html) fall back to their own
+// local demo posts array when this returns null, same pattern as every
+// other page.
+function getVenlyBlogPosts() {
+  if (SUPABASE_READY && _venlyCache.blog) return _venlyCache.blog;
+  return null;
 }
 
 // Convenience wrapper for pages that are fully migrated (read-only pages
