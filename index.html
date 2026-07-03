@@ -1377,15 +1377,17 @@ populateHeroRegionOptions();
     if (logo) logo.style.color = '#e03a2f';
     // Nav links white
     nav.querySelectorAll('ul a').forEach(function(a) { a.style.color = 'rgba(255,255,255,0.92)'; });
-    // Login button — white outline, white text, semi-transparent bg on hover
-    var outline = nav.querySelector('.btn-outline');
-    if (outline) {
+    // Outline buttons (Login when logged out; My Dashboard + Log out when
+    // logged in) — white outline, white text, semi-transparent bg on hover.
+    // Uses querySelectorAll since there can now be more than one of these.
+    var outlineBtns = nav.querySelectorAll('.btn-outline');
+    outlineBtns.forEach(function(outline) {
       outline.style.color = '#fff';
       outline.style.borderColor = 'rgba(255,255,255,0.7)';
       outline.style.background = 'rgba(255,255,255,0.12)';
       outline.onmouseover = function() { this.style.background = 'rgba(255,255,255,0.22)'; };
       outline.onmouseout = function() { this.style.background = 'rgba(255,255,255,0.12)'; };
-    }
+    });
     // Hamburger icon white (only when the menu is closed — once open,
     // the nav forces itself solid and the bars switch back to dark via CSS)
     nav.querySelectorAll('.mnav-toggle span').forEach(function(span) {
@@ -1402,15 +1404,15 @@ populateHeroRegionOptions();
     if (logo) logo.style.color = '#e03a2f';
     // Links back to default
     nav.querySelectorAll('ul a').forEach(function(a) { a.style.color = ''; });
-    // Login button back to default
-    var outline = nav.querySelector('.btn-outline');
-    if (outline) {
+    // Outline buttons back to default
+    var outlineBtnsReset = nav.querySelectorAll('.btn-outline');
+    outlineBtnsReset.forEach(function(outline) {
       outline.style.color = '';
       outline.style.borderColor = '';
       outline.style.background = '';
       outline.onmouseover = null;
       outline.onmouseout = null;
-    }
+    });
     // Hamburger back to dark
     nav.querySelectorAll('.mnav-toggle span').forEach(function(span) {
       span.style.background = '';
