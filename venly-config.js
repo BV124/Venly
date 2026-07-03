@@ -194,13 +194,18 @@ var VENLY_SPACE_TYPE_KEY_MAP = {
 };
 
 function getVenlyFilters() {
-  var stored = JSON.parse(localStorage.getItem('venly_filters') || 'null');
-  var merged = stored
-    ? Object.assign({}, VENLY_DEFAULT_FILTERS, stored, {
-        eventsByType: Object.assign({}, VENLY_DEFAULT_FILTERS.eventsByType, stored.eventsByType || {}),
-        districtsByRegion: Object.assign({}, VENLY_DEFAULT_FILTERS.districtsByRegion, stored.districtsByRegion || {})
-      })
-    : JSON.parse(JSON.stringify(VENLY_DEFAULT_FILTERS));
+  var merged;
+  if (SUPABASE_READY && _venlyCache.filters) {
+    merged = _venlyCache.filters;
+  } else {
+    var stored = JSON.parse(localStorage.getItem('venly_filters') || 'null');
+    merged = stored
+      ? Object.assign({}, VENLY_DEFAULT_FILTERS, stored, {
+          eventsByType: Object.assign({}, VENLY_DEFAULT_FILTERS.eventsByType, stored.eventsByType || {}),
+          districtsByRegion: Object.assign({}, VENLY_DEFAULT_FILTERS.districtsByRegion, stored.districtsByRegion || {})
+        })
+      : JSON.parse(JSON.stringify(VENLY_DEFAULT_FILTERS));
+  }
 
   // Derive eventsBySpaceType from eventsByType every time, rather than
   // storing it separately — this guarantees it can never go stale or
@@ -240,7 +245,94 @@ var VENLY_SEED_VENUES = [
 var VENLY_MAX_TRENDING_HOME_VENUES = 8;  // total slots in the "Trending Spaces" grid
 var VENLY_MAX_OCCASION_PER_TYPE = 4;     // slots per space type in "For all occasions"
 
+// ============================================================
+// LIVE DATA CACHE — bridges "Supabase queries are async" with
+// "every page in this site calls getAllVenues()/getVenlyFilters()
+// synchronously, dozens of times, without awaiting anything".
+//
+// Rather than rewriting every call site to be async (huge, risky, and
+// would need to happen everywhere at once), pages that are ready to go
+// live call `await venlyBootstrap()` ONCE at the top of their init code.
+// That fetches real data from Supabase into this cache. getAllVenues()/
+// getVenlyFilters() then read from the cache instead of localStorage —
+// but ONLY once it's actually populated.
+//
+// IMPORTANT: a page that never calls venlyBootstrap() behaves exactly as
+// it always has (falls through to the localStorage/seed-data path below),
+// even now that SUPABASE_READY is true. This is deliberate — it means
+// migrating pages to Supabase one at a time can't ever break a page we
+// haven't gotten to yet.
+// ============================================================
+var _venlyCache = { venues: null, filters: null };
+
+function _mapVenueFromDb(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    type: row.type,
+    region: row.region,
+    district: row.district,
+    address: row.address,
+    capacity: row.capacity,
+    website: row.website,
+    priceFrom: row.price_from,
+    priceTo: row.price_to,
+    plan: row.plan,
+    hits: row.hits,
+    hostUserId: row.host_user_id,
+    hostEmail: row.host_email,
+    hostName: row.host_name,
+    hostPhone: row.host_phone,
+    enquiryEmail: row.enquiry_email,
+    effectiveEnquiryEmail: row.enquiry_email || row.host_email,
+    description: row.description,
+    isLive: row.is_live,
+    subscriptionStatus: row.subscription_status,
+    createdBy: row.created_by,
+    photos: row.photos || [],
+    features: row.features || [],
+    eventTypes: row.event_types || [],
+    featuredHome: row.featured_home,
+    featuredOccasion: row.featured_occasion,
+    discountPercent: row.discount_percent,
+    discountCode: row.discount_code,
+    lat: row.lat,
+    lng: row.lng,
+  };
+}
+
+function _mapFiltersFromDb(row) {
+  if (!row) return null;
+  return {
+    regions: row.regions || [],
+    districtsByRegion: row.districts_by_region || {},
+    amenities: row.amenities || [],
+    eventsByType: row.events_by_type || {},
+    blogCategories: row.blog_categories || [],
+    trendingChips: row.trending_chips || [],
+  };
+}
+
+// Call once, at the top of a page's init code, before anything that
+// reads venues or filters. Safe to call multiple times (re-fetches fresh
+// data each time) and safe to call in demo mode (does nothing).
+async function venlyBootstrap() {
+  if (!SUPABASE_READY) return;
+  try {
+    var venuesRes = await sb.from('venues').select('*').order('created_at', { ascending: false });
+    if (venuesRes.error) throw venuesRes.error;
+    _venlyCache.venues = venuesRes.data.map(_mapVenueFromDb);
+
+    var filtersRes = await sb.from('site_filters').select('*').eq('id', 1).single();
+    if (filtersRes.error) throw filtersRes.error;
+    _venlyCache.filters = _mapFiltersFromDb(filtersRes.data);
+  } catch (e) {
+    console.error('venlyBootstrap failed, falling back to local data:', e);
+  }
+}
+
 function getAllVenues() {
+  if (SUPABASE_READY && _venlyCache.venues) return _venlyCache.venues;
   var fromStorage = JSON.parse(localStorage.getItem('venly_venues') || 'null');
   return fromStorage || VENLY_SEED_VENUES;
 }

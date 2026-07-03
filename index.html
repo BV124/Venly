@@ -434,6 +434,13 @@ section { padding: 80px 48px; }
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="venly-config.js"></script>
   <script src="venly-shared.js"></script>
+  <script>
+    // Kicks off the real Supabase fetch (venues + filters) as early as
+    // possible. Every render function below that needs venue/filter data
+    // waits on this same promise instead of assuming it's already there —
+    // in demo mode this resolves instantly and changes nothing.
+    window.venlyReady = (typeof venlyBootstrap === 'function') ? venlyBootstrap() : Promise.resolve();
+  </script>
 </head>
 <body>
 
@@ -626,6 +633,7 @@ section { padding: 80px 48px; }
 // here via the same shared getVenlyFilters() data everything else uses —
 // so a change made once in the admin shows up here automatically.
 (function() {
+  window.venlyReady.then(function() {
   var track = document.getElementById('ja-chips-track');
   if (!track || typeof getVenlyFilters !== 'function') return;
   var chips = (getVenlyFilters().trendingChips || []);
@@ -647,6 +655,7 @@ section { padding: 80px 48px; }
   track.innerHTML =
     chips.map(function(c, idx) { return chipHtml(c, false, idx); }).join('') +
     chips.map(function(c, idx) { return chipHtml(c, true, idx); }).join('');
+  });
 })();
 </script>
 
@@ -656,6 +665,7 @@ section { padding: 80px 48px; }
 // reads the same shared getAllVenues() data everything else uses, so a
 // change made once in the admin shows up here automatically.
 (function() {
+  window.venlyReady.then(function() {
   var grid = document.getElementById('ja-grid');
   if (!grid || typeof getAllVenues !== 'function') return;
 
@@ -703,6 +713,7 @@ section { padding: 80px 48px; }
     div.textContent = str == null ? '' : str;
     return div.innerHTML;
   }
+  });
 })();
 </script>
 
@@ -904,6 +915,7 @@ section { padding: 80px 48px; }
 // toggle), one row per space type — same shared getAllVenues() data used
 // everywhere else, so a change made once in the admin shows up here too.
 (function() {
+  window.venlyReady.then(function() {
   if (typeof getAllVenues !== 'function') return;
 
   var CATEGORY_TYPE = { event: 'Event space', meeting: 'Meeting space', shoot: 'Shoot Location' };
@@ -942,6 +954,7 @@ section { padding: 80px 48px; }
     div.textContent = str == null ? '' : str;
     return div.innerHTML;
   }
+  });
 })();
 </script>
 
@@ -950,7 +963,12 @@ section { padding: 80px 48px; }
 // no controls needed — purely ambient). The section heading + each row
 // fade in as they scroll into view, same "always live" reverse-on-scroll
 // pattern used elsewhere on this page.
+//
+// Chained onto the same venlyReady promise as the render script above —
+// promise .then() callbacks fire in the order they were attached, so this
+// is guaranteed to run AFTER the slides above exist, not before.
 (function() {
+  window.venlyReady.then(function() {
   function updateLinkForSlide(slideshow, slide) {
     var link = slideshow.closest('.sts-slideshow-link');
     if (!link || !slide) return;
@@ -998,6 +1016,7 @@ section { padding: 80px 48px; }
 
   observer.observe(title);
   rows.forEach(function(row) { observer.observe(row); });
+  });
 })();
 </script>
 
@@ -1352,7 +1371,7 @@ function populateHeroRegionOptions() {
   }).join('');
   select.innerHTML = '<option value="" disabled selected>Select a region</option>' + optionsHtml;
 }
-populateHeroRegionOptions();
+window.venlyReady.then(populateHeroRegionOptions);
 </script>
 
 <script>
