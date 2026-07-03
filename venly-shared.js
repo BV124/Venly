@@ -14,10 +14,6 @@ function renderNav(options) {
   var active = options.activePage || '';
   var loggedIn = options.loggedIn || !!localStorage.getItem('venly_current_user');
   var isAdmin = options.admin || false;
-  var user = JSON.parse(localStorage.getItem('venly_current_user') || 'null');
-  var initials = user && user.name
-    ? user.name.split(' ').map(function(n) { return n[0]; }).join('').toUpperCase().slice(0,2)
-    : 'BV';
 
   var links = [
     { href: 'index.html',              label: 'Home',         key: 'home' },
@@ -34,9 +30,8 @@ function renderNav(options) {
   var navRight = loggedIn
     ? '<div class="nav-right">' +
         '<div class="dnav-account">' +
-          '<span style="font-size:13px;color:var(--text-muted)">Profile</span>' +
-          '<div class="avatar" style="width:34px;height:34px;border-radius:50%;background:var(--red);color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="window.location.href=\'venly-dashboard.html\'">' + initials + '</div>' +
-          (isAdmin ? '<button class="btn btn-primary" onclick="window.location.href=\'venly-admin.html\'" style="font-size:13px;padding:7px 16px">Admin dashboard</button>' : '') +
+          '<button class="btn btn-outline" onclick="window.location.href=\'venly-dashboard.html\'" style="font-size:13px;padding:7px 16px">My Dashboard</button>' +
+          (isAdmin ? '<button class="btn btn-primary" onclick="window.location.href=\'venly-admin.html\'" style="font-size:13px;padding:7px 16px">Admin</button>' : '') +
           '<button class="btn btn-outline" onclick="signOut()" style="font-size:13px;padding:7px 16px">Log out</button>' +
         '</div>' +
       '</div>'
@@ -55,11 +50,8 @@ function renderNav(options) {
 
   var mobileAuth = loggedIn
     ? '<div class="mnav-auth">' +
-        '<a href="venly-dashboard.html" class="mnav-link" style="display:flex;align-items:center;gap:10px">' +
-          '<span style="width:28px;height:28px;border-radius:50%;background:var(--red);color:#fff;font-size:11px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">' + initials + '</span>' +
-          'Profile' +
-        '</a>' +
-        (isAdmin ? '<a href="venly-admin.html" class="mnav-link">Admin dashboard</a>' : '') +
+        '<button class="btn btn-outline mnav-btn" onclick="window.location.href=\'venly-dashboard.html\'">My Dashboard</button>' +
+        (isAdmin ? '<button class="btn btn-primary mnav-btn" onclick="window.location.href=\'venly-admin.html\'">Admin</button>' : '') +
         '<button class="btn btn-outline mnav-btn" onclick="signOut()">Log out</button>' +
       '</div>'
     : '<div class="mnav-auth">' +
