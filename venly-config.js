@@ -386,7 +386,7 @@ async function incrementVenueViews(venueId) {
 
   if (typeof SUPABASE_READY !== 'undefined' && SUPABASE_READY) {
     try {
-      await sb.rpc('increment_page_hits', { venue_id_input: venueId });
+      await sb.rpc('increment_venue_hits', { venue_id_input: venueId });
     } catch (e) {
       console.error('incrementVenueViews (live) failed:', e);
     }
