@@ -118,6 +118,7 @@ nav { background: var(--white); border-bottom: 1px solid var(--border); display:
 
 /* RESET PANEL */
 #panel-reset { padding: 32px; display: none; }
+#panel-newpassword { padding: 32px; }
 #panel-reset.active { display: block; }
 
 /* SUPABASE NOTE */
@@ -261,12 +262,12 @@ nav { background: var(--white); border-bottom: 1px solid var(--border); display:
         <div class="form-row-2">
           <div class="form-group">
             <label class="form-label">First name</label>
-            <input class="form-input" type="text" id="signup-fname" placeholder="Braedyn" />
+            <input class="form-input" type="text" id="signup-fname" placeholder="Jane" />
             <div class="form-error" id="signup-fname-err">Required</div>
           </div>
           <div class="form-group">
             <label class="form-label">Last name</label>
-            <input class="form-input" type="text" id="signup-lname" placeholder="Veysi" />
+            <input class="form-input" type="text" id="signup-lname" placeholder="Smith" />
             <div class="form-error" id="signup-lname-err">Required</div>
           </div>
         </div>
@@ -355,6 +356,50 @@ nav { background: var(--white); border-bottom: 1px solid var(--border); display:
       </div>
     </div>
 
+    <!-- NEW PASSWORD — shown automatically after clicking the link in a
+         password reset email (see the PASSWORD_RECOVERY listener below) -->
+    <div id="panel-newpassword" style="display:none">
+      <div class="auth-heading">Set a new password</div>
+      <div class="auth-subheading">Choose a new password for your account.</div>
+
+      <div id="newpw-form-wrap">
+        <div class="form-group">
+          <label class="form-label">New password</label>
+          <div class="form-input-wrap">
+            <input class="form-input" type="password" id="newpw-password" placeholder="Min. 8 characters" />
+            <button class="form-input-icon" onclick="togglePw('newpw-password', this)" tabindex="-1" aria-label="Show password">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="form-error" id="newpw-password-err">Password must be at least 8 characters</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Confirm new password</label>
+          <div class="form-input-wrap">
+            <input class="form-input" type="password" id="newpw-confirm" placeholder="••••••••" />
+            <button class="form-input-icon" onclick="togglePw('newpw-confirm', this)" tabindex="-1" aria-label="Show password">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="form-error" id="newpw-confirm-err">Passwords do not match</div>
+        </div>
+
+        <button class="btn-submit" id="newpw-btn" onclick="handleNewPassword()">
+          <span id="newpw-btn-text">Update password</span>
+        </button>
+      </div>
+
+      <!-- NEW PASSWORD SUCCESS -->
+      <div class="auth-success" id="newpw-success" style="display:none">
+        <div class="success-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h3>Password updated</h3>
+        <p>You're all set. Redirecting you to your dashboard...</p>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -368,6 +413,7 @@ function switchTab(tab) {
   });
   document.getElementById('panel-reset').classList.remove('active');
   document.getElementById('panel-reset').style.display = 'none';
+  document.getElementById('panel-newpassword').style.display = 'none';
 }
 
 function togglePw(inputId, btn) {
@@ -605,6 +651,57 @@ function handleReset() {
     showToast('Reset link sent to ' + email);
     setTimeout(hideReset, 1500);
   }
+}
+
+// ---- SET NEW PASSWORD (after clicking the link in a reset email) ----
+// Supabase signs the person in with a temporary "recovery" session when
+// they land back here from the email link, and fires a PASSWORD_RECOVERY
+// auth event — that's our cue to show this panel instead of the normal
+// login form. See the onAuthStateChange listener further down.
+function showNewPasswordPanel() {
+  ['login','signup'].forEach(function(t) {
+    document.getElementById('tab-' + t).classList.remove('active');
+    document.getElementById('panel-' + t).classList.remove('active');
+  });
+  document.getElementById('panel-reset').style.display = 'none';
+  document.getElementById('panel-reset').classList.remove('active');
+  document.getElementById('panel-newpassword').style.display = 'block';
+}
+
+function handleNewPassword() {
+  clearErrors();
+  var pw = document.getElementById('newpw-password').value;
+  var confirm = document.getElementById('newpw-confirm').value;
+  var valid = true;
+  if (pw.length < 8) { showError('newpw-password','newpw-password-err'); valid = false; }
+  if (pw !== confirm) { showError('newpw-confirm','newpw-confirm-err'); valid = false; }
+  if (!valid) return;
+
+  setLoading('newpw-btn','newpw-btn-text', true);
+
+  if (SUPABASE_READY) {
+    sb.auth.updateUser({ password: pw }).then(function(res) {
+      setLoading('newpw-btn','newpw-btn-text', false);
+      if (res.error) { showToast(res.error.message); return; }
+      document.getElementById('newpw-form-wrap').style.display = 'none';
+      document.getElementById('newpw-success').style.display = 'block';
+      setTimeout(function() { window.location.href = 'venly-dashboard.html'; }, 1500);
+    });
+  } else {
+    // DEMO MODE — nothing to actually update without a real session
+    setTimeout(function() {
+      setLoading('newpw-btn','newpw-btn-text', false);
+      document.getElementById('newpw-form-wrap').style.display = 'none';
+      document.getElementById('newpw-success').style.display = 'block';
+      setTimeout(function() { window.location.href = 'venly-dashboard.html'; }, 1500);
+    }, 900);
+  }
+}
+
+if (SUPABASE_READY) {
+  sb.auth.onAuthStateChange(function(event) {
+    if (event === 'PASSWORD_RECOVERY') showNewPasswordPanel();
+  });
 }
 
 // ---- TOAST ----
