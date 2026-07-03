@@ -822,12 +822,10 @@ tbody tr:last-child td { border-bottom: none; }
   <script src="venly-config.js"></script>
   <script src="venly-shared.js"></script>
   <script>
-    // Venues only for now — Filters/Users/Blog/Accounts/Messages/Analytics
-    // still run on localStorage until each gets migrated in turn. Using
-    // venlyBootstrapVenues() specifically (not the combined venlyBootstrap)
-    // means this can't accidentally start showing real Filters data before
-    // the Filters admin page's SAVE functions are also ready for it.
-    window.venlyReady = (typeof venlyBootstrapVenues === 'function') ? venlyBootstrapVenues() : Promise.resolve();
+    // Venues + Filters are both fully migrated (read+write) now — Users/
+    // Blog/Accounts/Messages/Analytics still run on localStorage until each
+    // gets migrated in turn.
+    window.venlyReady = (typeof venlyBootstrap === 'function') ? venlyBootstrap() : Promise.resolve();
   </script>
 </head>
 <body>
@@ -3116,7 +3114,25 @@ function getFilters() {
   return getVenlyFilters();
 }
 
-function saveFilters(filters) {
+async function saveFilters(filters) {
+  if (SUPABASE_READY) {
+    var dbRow = {
+      regions: filters.regions || [],
+      districts_by_region: filters.districtsByRegion || {},
+      amenities: filters.amenities || [],
+      events_by_type: filters.eventsByType || {},
+      blog_categories: filters.blogCategories || [],
+      trending_chips: filters.trendingChips || [],
+    };
+    var res = await sb.from('site_filters').update(dbRow).eq('id', 1);
+    if (res.error) {
+      showToast('Could not save filters: ' + res.error.message);
+      return false;
+    }
+    await venlyBootstrapFilters(); // refresh the cache so every page reflects this change
+    return true;
+  }
+
   try {
     localStorage.setItem('venly_filters', JSON.stringify(filters));
     return true;
@@ -3169,7 +3185,7 @@ function setByPath(obj, path, value) {
   target[last] = value;
 }
 
-function addFilterItem(listPath, containerId) {
+async function addFilterItem(listPath, containerId) {
   var input = document.getElementById(containerId + '-add-input');
   var value = input.value.trim();
   if (!value) return;
@@ -3190,7 +3206,7 @@ function addFilterItem(listPath, containerId) {
     filters.districtsByRegion[value] = [];
   }
 
-  if (saveFilters(filters)) {
+  if (await saveFilters(filters)) {
     input.value = '';
     renderEditableTagList(containerId, listPath);
     if (listPath === 'regions') {
@@ -3229,7 +3245,7 @@ function removeFilterItem(listPath, idx, containerId) {
 }
 
 // Step 2: only runs once the user has explicitly confirmed
-function performFilterRemoval(listPath, idx, containerId, itemName) {
+async function performFilterRemoval(listPath, idx, containerId, itemName) {
   var filters = getFilters();
   var list = getByPath(filters, listPath);
   list.splice(idx, 1);
@@ -3240,7 +3256,7 @@ function performFilterRemoval(listPath, idx, containerId, itemName) {
     delete filters.districtsByRegion[itemName];
   }
 
-  if (saveFilters(filters)) {
+  if (await saveFilters(filters)) {
     renderEditableTagList(containerId, listPath);
     if (listPath === 'regions') {
       renderRegionSelect();
@@ -3386,7 +3402,7 @@ function renderTrendingValueOptions() {
   }).join('');
 }
 
-function addTrendingChip() {
+async function addTrendingChip() {
   var labelInput = document.getElementById('trending-add-label');
   var typeSelect = document.getElementById('trending-add-type');
   var valueSelect = document.getElementById('trending-add-value');
@@ -3401,7 +3417,7 @@ function addTrendingChip() {
   filters.trendingChips = filters.trendingChips || [];
   filters.trendingChips.push({ label: label, filterType: filterType, value: value });
 
-  if (saveFilters(filters)) {
+  if (await saveFilters(filters)) {
     labelInput.value = '';
     renderTrendingChipsList();
     showToast('Added "' + label + '"');
@@ -3418,10 +3434,10 @@ function removeTrendingChip(idx) {
 
   var confirmBtn = document.getElementById('confirm-delete-btn');
   confirmBtn.textContent = 'Remove';
-  confirmBtn.onclick = function() {
+  confirmBtn.onclick = async function() {
     var f = getFilters();
     f.trendingChips.splice(idx, 1);
-    if (saveFilters(f)) {
+    if (await saveFilters(f)) {
       renderTrendingChipsList();
       showToast('Removed "' + chip.label + '"');
     }
