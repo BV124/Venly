@@ -695,8 +695,8 @@ nav {
     <div class="map-container" id="map-container">
       <div id="leaflet-map"></div>
       <div class="map-legend" id="map-legend" style="display:none">
-        <span><span class="dot" style="background:#ffffff;border:1.5px solid #d8d8d8"></span> Standard listing</span>
-        <span><span class="dot" style="background:var(--red)"></span> Premium listing</span>
+        <span><span class="dot" style="background:#1a1a1a"></span> Standard listing</span>
+        <span><span class="dot" style="background:var(--red)"></span> ★ Premium listing</span>
       </div>
       <div class="map-empty" id="map-empty" style="display:none">No spaces match your filters in this area</div>
     </div>
@@ -864,13 +864,21 @@ function clearMarkers() {
 }
 
 function makePinIcon(premium) {
-  const fill = premium ? '#e03a2f' : '#ffffff';
-  const stroke = premium ? '#ffffff' : '#d8d8d8';
+  const fill = premium ? '#e03a2f' : '#1a1a1a';
+  const stroke = '#ffffff';
+
+  // Premium pins get a small star baked into the head of the pin, so
+  // they're identifiable at a glance — not just by colour, which also
+  // helps anyone who has trouble distinguishing red from dark grey.
+  const star = premium
+    ? '<path d="M12,7.1 L13.1,9.9 L16,10.1 L13.7,12 L14.5,14.8 L12,13.2 L9.5,14.8 L10.3,12 L8,10.1 L10.9,9.9 Z" fill="#ffffff"/>'
+    : '';
 
   return L.divIcon({
     className: 'map-pin-icon',
-    html: `<svg width="26" height="34" viewBox="0 0 24 30" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.18)); transition: transform 0.15s ease;">
-      <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 18 12 18s12-9 12-18c0-6.6-5.4-12-12-12z" fill="${fill}" stroke="${stroke}" stroke-width="1"/>
+    html: `<svg width="26" height="34" viewBox="0 0 24 30" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.22)); transition: transform 0.15s ease;">
+      <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 18 12 18s12-9 12-18c0-6.6-5.4-12-12-12z" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>
+      ${star}
     </svg>`,
     iconSize: [26, 34],
     iconAnchor: [13, 34],
