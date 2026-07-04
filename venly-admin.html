@@ -28,16 +28,20 @@ nav {
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 32px;
 }
-.logo { font-size: 20px; font-weight: 700; color: var(--red); letter-spacing: -0.5px; }
+.logo { font-size: 20px; font-weight: 700; color: var(--red); letter-spacing: -0.5px; text-decoration: none; }
+.nav-links { display: flex; gap: 32px; list-style: none; }
+.nav-links a { color: var(--text); font-size: 14px; transition: color 0.15s; }
+.nav-links a:hover { color: var(--red); }
 .nav-right { display: flex; align-items: center; gap: 12px; }
-.nav-badge { background: #fff0ef; color: var(--red); border: 1px solid #f5c4bf; border-radius: 20px; font-size: 11px; font-weight: 600; padding: 3px 10px; }
-.nav-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--red); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.btn { border-radius: var(--radius-sm); padding: 9px 22px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; font-family: 'Inter', sans-serif; border: 2px solid var(--red); }
+.btn-primary { background: var(--red); color: #fff; }
+.btn-primary:hover { background: var(--red-dark); }
+.btn-outline { background: transparent; color: var(--red); }
+.btn-outline:hover { background: var(--red-light); }
 .btn-sm { border-radius: var(--radius-sm); padding: 7px 16px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; border: none; transition: all 0.15s; }
 .btn-sm:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-red { background: var(--red); color: #fff; }
 .btn-red:hover { background: var(--red-dark); }
-.btn-outline-sm { background: transparent; color: var(--red); border: 1.5px solid var(--red) !important; }
-.btn-outline-sm:hover { background: var(--red-light); }
 
 /* ---- SIDEBAR ---- */
 .sidebar {
@@ -833,18 +837,8 @@ tbody tr:last-child td { border-bottom: none; }
 <body>
 
 <!-- NAV -->
-<nav>
-  <div style="display:flex;align-items:center;gap:12px">
-    <a class="logo" href="index.html">Venly.</a>
-    <span class="nav-badge">Admin</span>
-  </div>
-  <div class="nav-right">
-    <span style="font-size:12px;color:var(--text-muted)">Braedyn Veysi</span>
-    <div class="nav-avatar">BV</div>
-    <a href="venly-dashboard.html"><button class="btn-sm btn-outline-sm">User dashboard</button></a>
-    <button class="btn-sm btn-red">Log out</button>
-  </div>
-</nav>
+<div id="venly-nav"></div>
+<script>renderNav({ activePage: 'admin', loggedIn: true });</script>
 
 <!-- SIDEBAR -->
 <div class="sidebar">
