@@ -912,8 +912,8 @@ tbody tr:last-child td { border-bottom: none; }
       <div class="stat-card">
         <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
         <div class="stat-label">Total Venues</div>
-        <div class="stat-value">24</div>
-        <div class="stat-change up">↑ 3 this month</div>
+        <div class="stat-value" id="stat-total-venues">0</div>
+        <div class="stat-change up" id="stat-venues-change" style="color:var(--text-muted)">Live &amp; currently paying</div>
       </div>
       <div class="stat-card">
         <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
@@ -2135,6 +2135,13 @@ function buildUsersTable() {
   var statEl = document.getElementById('stat-total-users');
   if (statEl) statEl.textContent = users.length;
 
+  var changeEl = document.getElementById('stat-users-change');
+  if (changeEl) {
+    var mk = _analyticsMonthKey();
+    var newThisMonth = users.filter(function(u) { return u.joinedRaw && u.joinedRaw.slice(0, 7) === mk; }).length;
+    changeEl.textContent = '↑ ' + newThisMonth + ' this month';
+  }
+
   if (!tbody) return;
   tbody.innerHTML = users.map(function(u, i) {
     var badgeClass = u.status === 'New' ? 'badge-new' : u.status === 'Active' ? 'badge-active' : 'badge-inactive';
@@ -2266,6 +2273,7 @@ function showSection(name, btn) {
   if (btn) btn.classList.add('active');
   if (name === 'overview') {
     buildOverviewRevenueStat();
+    buildOverviewVenuesStat();
     renderRevenueTrendChart('revenue-chart', 'overview-revenue-chart-wrap', 'overview-revenue-subtitle', 'NZD · Last 6 months');
   }
   if (name === 'stats') {
@@ -2541,6 +2549,20 @@ function buildOverviewRevenueStat() {
   var total = venues.reduce(function(sum, v) { return sum + getVenueMonthlyRevenue(v); }, 0);
   el.textContent = '$' + total.toLocaleString();
   recordRevenueSnapshot(total);
+}
+
+// "Total Venues" specifically means live AND currently paying — not just
+// every venue record that exists (which would include drafts, cancelled
+// listings, and anything an admin created but hasn't published). No fake
+// "this month" delta here, same reasoning as Monthly Revenue: a venue's
+// activation date isn't tracked separately from when it was first
+// created, so a real month-over-month figure isn't something we can
+// honestly compute yet.
+function buildOverviewVenuesStat() {
+  var el = document.getElementById('stat-total-venues');
+  if (!el) return;
+  var count = getAllVenues().filter(function(v) { return v.isLive && v.subscriptionStatus === 'active'; }).length;
+  el.textContent = count.toLocaleString();
 }
 
 // Takes a live reading of current MRR and stores it against the current
@@ -4352,6 +4374,7 @@ function confirmCancelSubscription() {
         }
       }
       if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
+    if (typeof buildOverviewVenuesStat === 'function') buildOverviewVenuesStat();
       if (typeof buildAccountsTable === 'function') buildAccountsTable();
       if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
       if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
@@ -4376,6 +4399,7 @@ async function reactivateVenue() {
     if (v2) renderVenueStatusBanner(v2);
     buildVenuesTable();
     if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
+    if (typeof buildOverviewVenuesStat === 'function') buildOverviewVenuesStat();
     if (typeof buildAccountsTable === 'function') buildAccountsTable();
     if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
     if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
@@ -4393,6 +4417,7 @@ async function reactivateVenue() {
     updateVenueLiveHelper();
     renderVenueStatusBanner(v);
     if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
+    if (typeof buildOverviewVenuesStat === 'function') buildOverviewVenuesStat();
     if (typeof buildAccountsTable === 'function') buildAccountsTable();
     if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
     if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
@@ -4587,6 +4612,7 @@ async function saveVenue() {
     closeVenueEditor();
     buildVenuesTable();
     if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
+    if (typeof buildOverviewVenuesStat === 'function') buildOverviewVenuesStat();
     if (typeof buildAccountsTable === 'function') buildAccountsTable();
     if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
     if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
@@ -4632,6 +4658,7 @@ async function saveVenue() {
       : 'Venue saved — will link once ' + hostEmail + ' signs up');
     closeVenueEditor();
     if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
+    if (typeof buildOverviewVenuesStat === 'function') buildOverviewVenuesStat();
     if (typeof buildAccountsTable === 'function') buildAccountsTable();
     if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
     if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
@@ -4685,6 +4712,7 @@ function deleteVenueWithConfirm(venueId) {
       buildVenuesTable();
       if (typeof buildAccountsTable === 'function') buildAccountsTable();
       if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
+    if (typeof buildOverviewVenuesStat === 'function') buildOverviewVenuesStat();
       if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
       if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
       if (typeof buildAnalyticsStats === 'function') buildAnalyticsStats();
@@ -4709,6 +4737,7 @@ function deleteVenueWithConfirm(venueId) {
     buildVenuesTable();
     if (typeof buildAccountsTable === 'function') buildAccountsTable();
     if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
+    if (typeof buildOverviewVenuesStat === 'function') buildOverviewVenuesStat();
     if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
     if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
     if (typeof buildAnalyticsStats === 'function') buildAnalyticsStats();
@@ -5255,6 +5284,7 @@ buildVenuesTable();
 buildAccountsTable();
 buildMessagesList();
 buildOverviewRevenueStat();
+buildOverviewVenuesStat();
 renderRevenueTrendChart('revenue-chart', 'overview-revenue-chart-wrap', 'overview-revenue-subtitle', 'NZD · Last 6 months');
 buildStatsPageStats();
 buildPlanDistribution();
