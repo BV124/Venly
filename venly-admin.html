@@ -4351,6 +4351,10 @@ function confirmCancelSubscription() {
           renderVenueStatusBanner(v);
         }
       }
+      if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
+      if (typeof buildAccountsTable === 'function') buildAccountsTable();
+      if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
+      if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
     }
     closeConfirmDelete();
     confirmBtn.textContent = 'Remove'; // restore default label for the delete-item flow
@@ -4371,6 +4375,10 @@ async function reactivateVenue() {
     updateVenueLiveHelper();
     if (v2) renderVenueStatusBanner(v2);
     buildVenuesTable();
+    if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
+    if (typeof buildAccountsTable === 'function') buildAccountsTable();
+    if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
+    if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
     showToast('Venue reactivated and live again');
     return;
   }
@@ -4384,6 +4392,10 @@ async function reactivateVenue() {
     document.getElementById('ven-live-toggle').classList.add('on');
     updateVenueLiveHelper();
     renderVenueStatusBanner(v);
+    if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
+    if (typeof buildAccountsTable === 'function') buildAccountsTable();
+    if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
+    if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
     showToast('Venue reactivated and live again');
   }
 }
@@ -4578,6 +4590,8 @@ async function saveVenue() {
     if (typeof buildAccountsTable === 'function') buildAccountsTable();
     if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
     if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
+    if (typeof buildAnalyticsStats === 'function') buildAnalyticsStats();
+    if (typeof buildAnalyticsVenuesTable === 'function') buildAnalyticsVenuesTable();
     return;
   }
 
@@ -4621,6 +4635,8 @@ async function saveVenue() {
     if (typeof buildAccountsTable === 'function') buildAccountsTable();
     if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
     if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
+    if (typeof buildAnalyticsStats === 'function') buildAnalyticsStats();
+    if (typeof buildAnalyticsVenuesTable === 'function') buildAnalyticsVenuesTable();
   }
 }
 
@@ -4671,6 +4687,8 @@ function deleteVenueWithConfirm(venueId) {
       if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
       if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
       if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
+      if (typeof buildAnalyticsStats === 'function') buildAnalyticsStats();
+      if (typeof buildAnalyticsVenuesTable === 'function') buildAnalyticsVenuesTable();
       closeConfirmDelete();
       confirmBtn.textContent = 'Remove';
       showToast(isPaying ? 'Venue deleted — subscription cancelled' : 'Venue deleted');
@@ -4693,6 +4711,8 @@ function deleteVenueWithConfirm(venueId) {
     if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
     if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
     if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
+    if (typeof buildAnalyticsStats === 'function') buildAnalyticsStats();
+    if (typeof buildAnalyticsVenuesTable === 'function') buildAnalyticsVenuesTable();
     closeConfirmDelete();
     confirmBtn.textContent = 'Remove';
     showToast(isPaying ? 'Venue deleted — subscription cancelled' : 'Venue deleted');
