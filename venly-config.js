@@ -463,6 +463,8 @@ function _venueToDbRow(v) {
     featured_occasion: !!v.featuredOccasion,
     discount_percent: v.discountPercent || 0,
     discount_code: v.discountCode || '',
+    lat: (v.lat !== '' && v.lat != null) ? Number(v.lat) : null,
+    lng: (v.lng !== '' && v.lng != null) ? Number(v.lng) : null,
   };
 }
 

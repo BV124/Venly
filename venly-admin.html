@@ -1053,6 +1053,17 @@ tbody tr:last-child td { border-bottom: none; }
                 <input type="text" id="ven-address" placeholder="123 Queen St, Auckland" />
               </div>
             </div>
+            <div class="editor-row">
+              <div class="editor-field">
+                <label>Latitude <span style="font-weight:400;text-transform:none;color:#bbb">(for the Find a Space map)</span></label>
+                <input type="text" id="ven-lat" placeholder="-36.8485" />
+              </div>
+              <div class="editor-field">
+                <label>Longitude <span style="font-weight:400;text-transform:none;color:#bbb">(for the Find a Space map)</span></label>
+                <input type="text" id="ven-lng" placeholder="174.7633" />
+              </div>
+            </div>
+            <div class="filter-card-note" style="margin:-8px 0 14px">Without these, the venue still shows in search results and lists — it just won't have a pin on the map. Right-click a location on <a href="https://www.google.com/maps" target="_blank" rel="noopener">Google Maps</a> and the coordinates are the first thing in the popup.</div>
             <div class="editor-field">
               <label>Description <span style="font-weight:400;text-transform:none;color:#bbb">(shown on the venue's public page)</span></label>
               <textarea id="ven-description" placeholder="Describe the space — what makes it special, what it's great for..."></textarea>
@@ -4519,6 +4530,8 @@ function openVenueEditor(venueId) {
 
     document.getElementById('ven-name').value = venue.name || '';
     document.getElementById('ven-address').value = venue.address || '';
+    document.getElementById('ven-lat').value = (venue.lat != null) ? venue.lat : '';
+    document.getElementById('ven-lng').value = (venue.lng != null) ? venue.lng : '';
     document.getElementById('ven-type').value = venue.type || 'Event space';
     document.getElementById('ven-plan').value = venue.plan || 'Basic';
     document.getElementById('ven-region').value = venue.region || '';
@@ -4552,6 +4565,8 @@ function openVenueEditor(venueId) {
     heading.textContent = 'New venue';
     document.getElementById('ven-name').value = '';
     document.getElementById('ven-address').value = '';
+    document.getElementById('ven-lat').value = '';
+    document.getElementById('ven-lng').value = '';
     document.getElementById('ven-type').value = 'Event space';
     document.getElementById('ven-plan').value = 'Basic';
     populateVenueDistrictOptions();
@@ -4610,6 +4625,8 @@ async function saveVenue() {
   var venueData = {
     name: name,
     address: document.getElementById('ven-address').value.trim(),
+    lat: document.getElementById('ven-lat').value.trim() ? Number(document.getElementById('ven-lat').value.trim()) : null,
+    lng: document.getElementById('ven-lng').value.trim() ? Number(document.getElementById('ven-lng').value.trim()) : null,
     type: document.getElementById('ven-type').value,
     plan: document.getElementById('ven-plan').value,
     region: document.getElementById('ven-region').value,

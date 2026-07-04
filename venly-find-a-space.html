@@ -719,27 +719,52 @@ nav {
 <script>renderFooter(); trackPageView();</script>
 
 <script>
-// NOTE: these are still demo listings, not real venues from Supabase.
-// Every other page (homepage, venue detail page) now reads real venues
-// via getAllVenues() — this page's filter OPTIONS do too (see
-// updateChipAvailability() below) — but the actual pins/cards here still
-// come from this hardcoded array specifically because they carry lat/lng
-// map coordinates, which real venue records don't have populated yet.
-// Switching this over needs one of: geocoding venue addresses into
-// lat/lng at creation time, or a fallback design for venues without
-// coordinates (show the card, skip the pin). Worth tackling as its own
-// task rather than folding it into this pass.
-const spaces = [
-  { name: "Brads – Shoot Location", type: "Shoot Location", region: "Auckland", district: "Auckland City", capacity: "1 – 100", premium: true, img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80", events: ["Photography","Commercial","Content Creation"], lat: -36.8485, lng: 174.7633 }, // Auckland CBD
-  { name: "Brads – Meeting Space", type: "Meeting space", region: "Auckland", district: "Auckland City", capacity: "20 – 380", premium: true, img: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&q=80", events: ["Boardroom","Conference","Training","Workshop"], lat: -36.8600, lng: 174.7700 }, // Parnell area
-  { name: "Brads Warehouse", type: "Event space", region: "Auckland", district: "Auckland City", capacity: "20 – 506", premium: true, img: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&q=80", events: ["Wedding","21st Party","Corporate Event","Product Launch","Gala / Awards","Live Performance"], lat: -36.8420, lng: 174.7550 }, // Ponsonby area
-  { name: "Okahu – Meeting Space", type: "Meeting space", region: "Auckland", district: "Auckland City", capacity: "1 – 100", premium: true, img: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80", events: ["Boardroom","Conference","Interview Room","Coworking"], lat: -36.8550, lng: 174.7800 }, // Newmarket area
-  { name: "Okahu – Shoot Location", type: "Shoot Location", region: "Auckland", district: "Auckland City", capacity: "1 – 100", premium: true, img: "https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=600&q=80", events: ["Film & TV","Photography","Commercial","Podcast / Recording"], lat: -36.8650, lng: 174.7650 }, // Grafton area
-  { name: "Okahu", type: "Event space", region: "Auckland", district: "Auckland City", capacity: "1 – 350", premium: false, img: "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=600&q=80", events: ["Wedding","21st Party","Private Party","Corporate Event","Market / Expo"], lat: -36.8400, lng: 174.7700 }, // Mt Eden area
-  { name: "North Shore Event Space", type: "Event space", region: "Auckland", district: "North Shore", capacity: "40 – 500", premium: true, img: "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80", events: ["Corporate Event","Gala / Awards","Product Launch","18th Party","21st Party"], lat: -36.7900, lng: 174.7450 }, // North Shore (Takapuna)
-  { name: "City Meeting Room", type: "Meeting space", region: "Auckland", district: "Auckland City", capacity: "2 – 20", premium: false, img: "https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=600&q=80", events: ["Boardroom","Interview Room","Training","Workshop"], lat: -36.8500, lng: 174.7680 }, // City fringe
+// Demo listings — used until Supabase is connected, or as a fallback if
+// the real fetch fails. Kept as the original mock data, just renamed.
+const DEMO_SPACES = [
+  { name: "Brads – Shoot Location", type: "Shoot Location", region: "Auckland", district: "Auckland City", capacity: "1 – 100", premium: true, img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80", events: ["Photography","Commercial","Content Creation"], lat: -36.8485, lng: 174.7633 },
+  { name: "Brads – Meeting Space", type: "Meeting space", region: "Auckland", district: "Auckland City", capacity: "20 – 380", premium: true, img: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&q=80", events: ["Boardroom","Conference","Training","Workshop"], lat: -36.8600, lng: 174.7700 },
+  { name: "Brads Warehouse", type: "Event space", region: "Auckland", district: "Auckland City", capacity: "20 – 506", premium: true, img: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&q=80", events: ["Wedding","21st Party","Corporate Event","Product Launch","Gala / Awards","Live Performance"], lat: -36.8420, lng: 174.7550 },
+  { name: "Okahu – Meeting Space", type: "Meeting space", region: "Auckland", district: "Auckland City", capacity: "1 – 100", premium: true, img: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80", events: ["Boardroom","Conference","Interview Room","Coworking"], lat: -36.8550, lng: 174.7800 },
+  { name: "Okahu – Shoot Location", type: "Shoot Location", region: "Auckland", district: "Auckland City", capacity: "1 – 100", premium: true, img: "https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=600&q=80", events: ["Film & TV","Photography","Commercial","Podcast / Recording"], lat: -36.8650, lng: 174.7650 },
+  { name: "Okahu", type: "Event space", region: "Auckland", district: "Auckland City", capacity: "1 – 350", premium: false, img: "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=600&q=80", events: ["Wedding","21st Party","Private Party","Corporate Event","Market / Expo"], lat: -36.8400, lng: 174.7700 },
+  { name: "North Shore Event Space", type: "Event space", region: "Auckland", district: "North Shore", capacity: "40 – 500", premium: true, img: "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80", events: ["Corporate Event","Gala / Awards","Product Launch","18th Party","21st Party"], lat: -36.7900, lng: 174.7450 },
+  { name: "City Meeting Room", type: "Meeting space", region: "Auckland", district: "Auckland City", capacity: "2 – 20", premium: false, img: "https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=600&q=80", events: ["Boardroom","Interview Room","Training","Workshop"], lat: -36.8500, lng: 174.7680 },
 ];
 
+// Real venues, mapped into the exact same shape as DEMO_SPACES above, so
+// none of the card/map/filter rendering code below needs to know or care
+// which source it's working with. Venues without lat/lng are deliberately
+// left with those keys OMITTED (not null) — drawMarkers() already checks
+// `s.lat !== undefined`, so they still show as cards, just without a pin.
+var spaces = DEMO_SPACES;
+
+function getSpacesForDisplay() {
+  var real = (typeof getAllVenues === 'function') ? getAllVenues() : null;
+  if (!SUPABASE_READY || !real) return DEMO_SPACES;
+
+  return real.map(function(v) {
+    var mapped = {
+      id: v.id,
+      name: v.name,
+      type: v.type,
+      region: v.region,
+      district: v.district,
+      capacity: v.capacity,
+      premium: v.plan === 'Premium',
+      img: (v.photos && v.photos[0]) || 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&q=80',
+      events: v.eventTypes || [],
+    };
+    if (v.lat != null && v.lng != null) {
+      mapped.lat = v.lat;
+      mapped.lng = v.lng;
+    }
+    return mapped;
+  });
+}
+</script>
+
+<script>
 function renderCards(list) {
   renderMapPins(list);
   renderCardGrid(list);
@@ -934,7 +959,7 @@ function drawMarkers(list, opts) {
         <img src="${s.img}" alt="${s.name}" />
         <div class="gmap-tooltip-name">${s.name}</div>
         <div class="gmap-tooltip-meta">${s.type} · ${s.district}</div>
-        <a href="venly-venue.html?name=${encodeURIComponent(s.name)}" class="gmap-tooltip-link">View space →</a>
+        <a href="venly-venue.html?${s.id ? 'id=' + encodeURIComponent(s.id) : 'name=' + encodeURIComponent(s.name)}" class="gmap-tooltip-link">View space →</a>
       </div>
     `);
 
@@ -1224,13 +1249,12 @@ function toggleFav(btn) {
 }
 
 // Initial chip build + read URL params from homepage search.
-// Deferred until venlyReady resolves, since the chip options come from
-// getVenlyFilters() (real Supabase data once bootstrap completes) — see
-// index.html for the same pattern. Note: the actual listings below still
-// come from the local `spaces` demo array, not real venues yet — see the
-// comment above that array for why (map pins need lat/lng, which real
-// venue records don't have populated yet).
+// Deferred until venlyReady resolves, since both the filter options and
+// the listings themselves now come from real Supabase data (see
+// getSpacesForDisplay() above) — falls back to DEMO_SPACES automatically
+// if Supabase isn't connected or the fetch fails.
 window.venlyReady.then(function() {
+spaces = getSpacesForDisplay();
 updateChipAvailability();
 (function() {
   var params = new URLSearchParams(window.location.search);
