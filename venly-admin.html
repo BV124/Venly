@@ -2761,10 +2761,15 @@ async function adminBootstrapPageViews() {
     sixMonthsAgo.setDate(1);
     sixMonthsAgo.setHours(0, 0, 0, 0);
 
-    var totalRes = await sb.from('page_views').select('id', { count: 'exact', head: true }).is('venue_id', null);
+    // These two don't depend on each other — running them together instead
+    // of one-after-the-other roughly halves this function's wait time.
+    var results = await Promise.all([
+      sb.from('page_views').select('id', { count: 'exact', head: true }).is('venue_id', null),
+      sb.from('page_views').select('venue_id, created_at').gte('created_at', sixMonthsAgo.toISOString()),
+    ]);
+    var totalRes = results[0];
+    var rangeRes = results[1];
     if (totalRes.error) throw totalRes.error;
-
-    var rangeRes = await sb.from('page_views').select('venue_id, created_at').gte('created_at', sixMonthsAgo.toISOString());
     if (rangeRes.error) throw rangeRes.error;
 
     var monthlyPageviews = {};
@@ -5375,7 +5380,12 @@ function saveCrmActivity() {
 // bootstrap functions are defined in this same file (above), so they're
 // combined with the head's venues/filters bootstrap right here rather
 // than in <head>, where they wouldn't exist yet.
-Promise.all([window.venlyReady, adminBootstrapUsers(), adminBootstrapBlog(), adminBootstrapMessages(), adminBootstrapPageViews()]).then(function() {
+// TIER 1 — everything except page_views, which is kept separate below.
+// page_views can grow the largest over time (every page load anywhere on
+// the site adds a row to it), so waiting for it before showing anything
+// meant the whole dashboard felt only as fast as its slowest table, even
+// though almost nothing else here actually depends on it.
+Promise.all([window.venlyReady, adminBootstrapUsers(), adminBootstrapBlog(), adminBootstrapMessages()]).then(function() {
 buildUsersTable();
 buildRecentSignups();
 buildBlogTable();
@@ -5390,21 +5400,27 @@ renderRevenueTrendChart('revenue-chart', 'overview-revenue-chart-wrap', 'overvie
 buildStatsPageStats();
 buildPlanDistribution();
 renderRevenueTrendChart('stats-revenue-chart', 'stats-revenue-chart-wrap', 'stats-revenue-subtitle', 'Monthly NZD · Last 6 months');
-buildAnalyticsStats();
-buildAnalyticsVenuesTable();
-renderAnalyticsChart('pageviews');
+buildAnalyticsStats();       // enquiries/favourites/venue-views show real numbers now; pageviews-specific figures fill in once Tier 2 lands just below
+buildAnalyticsVenuesTable(); // doesn't actually depend on page_views at all
 initCrmAccess();
 applyAdminAccessRestrictions();
 
-// If Supabase is connected but one or more fetches genuinely failed, say
-// so clearly rather than silently showing empty tables that look like
-// "there's just no data" — those are very different situations for
-// someone managing the site to walk into unannounced.
-var anyLoadError = (typeof venlyFetchFailed === 'function' && (venlyFetchFailed('venues') || venlyFetchFailed('filters')))
-  || _adminLoadErrors.users || _adminLoadErrors.blog || _adminLoadErrors.messages || _adminLoadErrors.pageViews;
-if (anyLoadError && typeof venlyShowLoadError === 'function') {
+var tier1LoadError = (typeof venlyFetchFailed === 'function' && (venlyFetchFailed('venues') || venlyFetchFailed('filters')))
+  || _adminLoadErrors.users || _adminLoadErrors.blog || _adminLoadErrors.messages;
+if (tier1LoadError && typeof venlyShowLoadError === 'function') {
   venlyShowLoadError("Some data didn't load correctly — the numbers and lists on this page may be incomplete. Please refresh, or try again shortly.");
 }
+});
+
+// TIER 2 — page_views specifically, resolved independently so it can
+// never hold up everything above. Updates just the two figures that
+// actually need it once it's ready.
+adminBootstrapPageViews().then(function() {
+  buildAnalyticsStats();
+  renderAnalyticsChart('pageviews');
+  if (_adminLoadErrors.pageViews && typeof venlyShowLoadError === 'function') {
+    venlyShowLoadError("Some data didn't load correctly — the numbers and lists on this page may be incomplete. Please refresh, or try again shortly.");
+  }
 });
 
 // loadSupabaseUsers()/loadSupabaseVenues() above were early, read-only
