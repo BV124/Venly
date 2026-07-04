@@ -565,6 +565,9 @@ section { padding: 80px 48px; }
 .ja-tile-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
 .ja-tile-name { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.3; }
 .ja-tile-meta { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--text-muted); }
+.ja-tile-skeleton { cursor: default; }
+.ja-tile-skeleton:hover { transform: none; box-shadow: none; }
+.ja-tile-skeleton .ja-tile-row { background: #eee; border-radius: 4px; height: 14px; width: 55%; margin-bottom: 0; }
 
 @media (max-width: 1100px) {
   .ja-grid { grid-template-columns: repeat(3, 1fr); }
@@ -689,7 +692,18 @@ section { padding: 80px 48px; }
   // Safety net: if nothing's been selected yet in the admin, fall back to
   // showing venues rather than an empty section.
   var venues = (selected.length ? selected : all).slice(0, MAX);
-  if (!venues.length) return;
+
+  if (!venues.length) {
+    // Same idea as For All Occasions' empty slideshows — a plain grey box
+    // that holds the section's shape, rather than the grid collapsing to
+    // nothing (which is what happens if this div is just left empty).
+    var skeletonTile = '<div class="ja-tile ja-tile-skeleton">' +
+      '<div class="ja-tile-img"></div>' +
+      '<div class="ja-tile-info"><div class="ja-tile-row"></div></div>' +
+    '</div>';
+    grid.innerHTML = skeletonTile.repeat(4);
+    return;
+  }
 
   grid.innerHTML = venues.map(function(v) {
     var img = (v.photos && v.photos[0]) ? v.photos[0] : FALLBACK_IMG;
