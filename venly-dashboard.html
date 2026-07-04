@@ -1402,14 +1402,23 @@ function showToast(msg) {
 
 // ---- SUPABASE DATA LOADING ----
 async function loadUserProfile() {
-  if (!SUPABASE_READY) return; // demo mode uses hardcoded data
-  const user = await getCurrentUser();
-  if (!user) return;
-  const { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).single();
-  if (profile) {
-    document.getElementById('name').value = (profile.first_name || '') + ' ' + (profile.last_name || '');
-    document.getElementById('email').value = profile.email || '';
-    document.getElementById('phone').value = profile.phone || '';
+  if (!SUPABASE_READY) return; // demo mode uses the hardcoded placeholder values already in the HTML
+  try {
+    const user = await getCurrentUser();
+    if (!user) return;
+    const { data: profile, error } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+    if (error) throw error;
+    if (profile) {
+      // profiles has a single 'name' column, not first_name/last_name —
+      // this used to read fields that don't exist, which silently blanked
+      // the name field out a moment after the page's hardcoded placeholder
+      // briefly showed, looking like the name "disappeared".
+      document.getElementById('name').value = profile.name || '';
+      document.getElementById('email').value = profile.email || '';
+      document.getElementById('phone').value = profile.phone || '';
+    }
+  } catch (e) {
+    console.error('loadUserProfile failed:', e);
   }
 }
 
