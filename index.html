@@ -435,21 +435,29 @@ section { padding: 80px 48px; }
   <script src="venly-config.js"></script>
   <script src="venly-shared.js"></script>
   <script>
-    // Kicks off the real Supabase fetch (venues + filters + blog) as early
-    // as possible. Every render function below that needs this data waits
-    // on this same promise instead of assuming it's already there — in
-    // demo mode this resolves instantly and changes nothing.
-    window.venlyReady = (typeof venlyBootstrap === 'function')
-      ? Promise.all([venlyBootstrap(), venlyBootstrapBlog()])
-      : Promise.resolve();
+    // Two independent tracks, not one combined gate: venues+filters is
+    // what the trending sections/hero dropdown actually need, and blog
+    // posts are only needed by the homepage's "From the Blog" widget.
+    // These used to be bundled into one Promise.all, which meant venue
+    // cards were waiting on blog posts to finish fetching too, even
+    // though they have nothing to do with each other — if blog content
+    // (which can be a fair bit larger, with full rich-text blocks) was
+    // slow, venue cards sat there for no reason. Splitting these means
+    // each piece of the page renders the moment its own data is ready.
+    window.venlyReady = (typeof venlyBootstrap === 'function') ? venlyBootstrap() : Promise.resolve();
+    window.venlyBlogReady = (typeof venlyBootstrapBlog === 'function') ? venlyBootstrapBlog() : Promise.resolve();
 
     // If Supabase is connected but a fetch genuinely failed, say so — don't
     // let the page silently look "normal" while showing incomplete data.
     window.venlyReady.then(function() {
       if (typeof venlyFetchFailed !== 'function') return;
-      if (venlyFetchFailed('venues') || venlyFetchFailed('filters') || venlyFetchFailed('blog')) {
+      if (venlyFetchFailed('venues') || venlyFetchFailed('filters')) {
         venlyShowLoadError();
       }
+    });
+    window.venlyBlogReady.then(function() {
+      if (typeof venlyFetchFailed !== 'function') return;
+      if (venlyFetchFailed('blog')) venlyShowLoadError();
     });
   </script>
 </head>
@@ -1355,7 +1363,7 @@ section { padding: 80px 48px; }
     return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
   }
 
-  window.venlyReady.then(renderHomeBlog);
+  window.venlyBlogReady.then(renderHomeBlog);
 })();
 </script>
 
