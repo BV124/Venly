@@ -317,6 +317,7 @@ function _mapVenueFromDb(row) {
     discountCode: row.discount_code,
     lat: row.lat,
     lng: row.lng,
+    createdAt: row.created_at,
   };
 }
 
