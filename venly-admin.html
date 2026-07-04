@@ -937,8 +937,8 @@ tbody tr:last-child td { border-bottom: none; }
 
     <div class="two-col">
       <div class="chart-wrap">
-        <div class="chart-title">New venues per month</div>
-        <div class="chart-subtitle">Last 6 months</div>
+        <div class="chart-title">Net venues per month</div>
+        <div class="chart-subtitle">Created minus removed · Last 6 months</div>
         <div id="new-venues-chart-wrap"><div class="bar-chart" id="users-chart"></div></div>
       </div>
       <div class="chart-wrap">
@@ -2274,7 +2274,7 @@ function showSection(name, btn) {
   if (name === 'overview') {
     buildOverviewRevenueStat();
     buildOverviewVenuesStat();
-    renderNewVenuesChart();
+    renderNetVenuesChart();
     renderRevenueTrendChart('revenue-chart', 'overview-revenue-chart-wrap', 'overview-revenue-subtitle', 'NZD · Last 6 months');
   }
   if (name === 'stats') {
@@ -2566,30 +2566,72 @@ function buildOverviewVenuesStat() {
   el.textContent = count.toLocaleString();
 }
 
-// Buckets real venues by their actual created_at month — genuinely real
-// now that createdAt is mapped onto venue objects (see _mapVenueFromDb in
-// venly-config.js). Same "no data yet" fallback pattern as the revenue
-// trend charts, for months before any venues existed.
-function renderNewVenuesChart() {
+// Net change = venues created minus venues deleted, per month. Deletions
+// are read from venue_deletion_log (see 08_venue_deletion_log.sql and the
+// logging call in deleteVenueWithConfirm) — a deleted venue's own row is
+// gone, so without that log there'd be nothing left to count for the
+// "removed" side of this. Async because live mode needs a real fetch for
+// that log; every caller fires this without awaiting it, same as the
+// other chart builders — nothing sequences after it that depends on
+// this specific completion.
+async function renderNetVenuesChart() {
   var wrap = document.getElementById('new-venues-chart-wrap');
   if (!wrap) return;
 
-  var monthly = {};
+  var created = {};
   getAllVenues().forEach(function(v) {
     if (!v.createdAt) return;
     var key = v.createdAt.slice(0, 7);
-    monthly[key] = (monthly[key] || 0) + 1;
+    created[key] = (created[key] || 0) + 1;
   });
 
-  var data = getLast6MonthsChartData(monthly);
-  var hasData = data.some(function(d) { return d.val > 0; });
+  var deleted = {};
+  if (SUPABASE_READY) {
+    try {
+      var res = await sb.from('venue_deletion_log').select('deleted_at');
+      if (res.error) throw res.error;
+      res.data.forEach(function(row) {
+        var key = row.deleted_at.slice(0, 7);
+        deleted[key] = (deleted[key] || 0) + 1;
+      });
+    } catch (e) {
+      console.error('renderNetVenuesChart: could not load deletion log:', e);
+    }
+  } else {
+    JSON.parse(localStorage.getItem('venly_venue_deletion_log') || '[]').forEach(function(entry) {
+      var key = (entry.deletedAt || '').slice(0, 7);
+      if (key) deleted[key] = (deleted[key] || 0) + 1;
+    });
+  }
 
-  if (!hasData) {
-    wrap.innerHTML = '<div class="filter-card-note" style="margin:0;padding:24px 0;text-align:center">No venues created yet this period.</div>';
+  var monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var now = new Date();
+  var data = [];
+  for (var i = 5; i >= 0; i--) {
+    var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    var key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    data.push({ label: monthNames[d.getMonth()], val: (created[key] || 0) - (deleted[key] || 0) });
+  }
+
+  var hasActivity = data.some(function(d) { return d.val !== 0; });
+  if (!hasActivity) {
+    wrap.innerHTML = '<div class="filter-card-note" style="margin:0;padding:24px 0;text-align:center">No venue activity yet this period.</div>';
     return;
   }
-  wrap.innerHTML = '<div class="bar-chart" id="users-chart"></div>';
-  renderBarChart('users-chart', data, '#f5c4bf');
+
+  // Bar height reflects magnitude; colour + the signed label (+3, -2, 0)
+  // carry the actual direction, since a shared upward-growing bar chart
+  // can't cleanly show bars extending below a zero line without a bigger
+  // layout change to the chart container itself.
+  var maxAbs = Math.max.apply(null, data.map(function(d) { return Math.abs(d.val); })) || 1;
+  wrap.innerHTML = '<div class="bar-chart" id="users-chart">' +
+    data.map(function(d) {
+      var h = Math.max(4, Math.round((Math.abs(d.val) / maxAbs) * 120));
+      var color = d.val > 0 ? '#f5c4bf' : d.val < 0 ? '#e8827a' : '#e8e8e8';
+      var signedLabel = d.val > 0 ? ('+' + d.val) : String(d.val);
+      return '<div class="bar-col"><div class="bar-val">' + signedLabel + '</div><div class="bar" style="height:' + h + 'px;background:' + color + '" title="' + signedLabel + '"></div><div class="bar-label">' + d.label + '</div></div>';
+    }).join('') +
+  '</div>';
 }
 
 // Takes a live reading of current MRR and stores it against the current
@@ -4402,7 +4444,7 @@ function confirmCancelSubscription() {
       }
       if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
     if (typeof buildOverviewVenuesStat === 'function') buildOverviewVenuesStat();
-    if (typeof renderNewVenuesChart === 'function') renderNewVenuesChart();
+    if (typeof renderNetVenuesChart === 'function') renderNetVenuesChart();
       if (typeof buildAccountsTable === 'function') buildAccountsTable();
       if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
       if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
@@ -4428,7 +4470,7 @@ async function reactivateVenue() {
     buildVenuesTable();
     if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
     if (typeof buildOverviewVenuesStat === 'function') buildOverviewVenuesStat();
-    if (typeof renderNewVenuesChart === 'function') renderNewVenuesChart();
+    if (typeof renderNetVenuesChart === 'function') renderNetVenuesChart();
     if (typeof buildAccountsTable === 'function') buildAccountsTable();
     if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
     if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
@@ -4447,7 +4489,7 @@ async function reactivateVenue() {
     renderVenueStatusBanner(v);
     if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
     if (typeof buildOverviewVenuesStat === 'function') buildOverviewVenuesStat();
-    if (typeof renderNewVenuesChart === 'function') renderNewVenuesChart();
+    if (typeof renderNetVenuesChart === 'function') renderNetVenuesChart();
     if (typeof buildAccountsTable === 'function') buildAccountsTable();
     if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
     if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
@@ -4643,7 +4685,7 @@ async function saveVenue() {
     buildVenuesTable();
     if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
     if (typeof buildOverviewVenuesStat === 'function') buildOverviewVenuesStat();
-    if (typeof renderNewVenuesChart === 'function') renderNewVenuesChart();
+    if (typeof renderNetVenuesChart === 'function') renderNetVenuesChart();
     if (typeof buildAccountsTable === 'function') buildAccountsTable();
     if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
     if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
@@ -4690,7 +4732,7 @@ async function saveVenue() {
     closeVenueEditor();
     if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
     if (typeof buildOverviewVenuesStat === 'function') buildOverviewVenuesStat();
-    if (typeof renderNewVenuesChart === 'function') renderNewVenuesChart();
+    if (typeof renderNetVenuesChart === 'function') renderNetVenuesChart();
     if (typeof buildAccountsTable === 'function') buildAccountsTable();
     if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
     if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
@@ -4740,12 +4782,16 @@ function deleteVenueWithConfirm(venueId) {
         showToast('Could not delete venue: ' + delRes.error.message);
         return;
       }
+      // Log the deletion event itself — once the row above is gone, there's
+      // nothing left to count for "Net venues per month", so this is what
+      // that chart's "removed" side actually reads from.
+      await sb.from('venue_deletion_log').insert({ venue_name: venue.name });
       await venlyBootstrapVenues();
       buildVenuesTable();
       if (typeof buildAccountsTable === 'function') buildAccountsTable();
       if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
-    if (typeof buildOverviewVenuesStat === 'function') buildOverviewVenuesStat();
-    if (typeof renderNewVenuesChart === 'function') renderNewVenuesChart();
+      if (typeof buildOverviewVenuesStat === 'function') buildOverviewVenuesStat();
+      if (typeof renderNetVenuesChart === 'function') renderNetVenuesChart();
       if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
       if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
       if (typeof buildAnalyticsStats === 'function') buildAnalyticsStats();
@@ -4767,11 +4813,14 @@ function deleteVenueWithConfirm(venueId) {
 
     var updated = getAllVenues().filter(function(v) { return v.id !== venueId; });
     saveAllVenues(updated);
+    var deletionLog = JSON.parse(localStorage.getItem('venly_venue_deletion_log') || '[]');
+    deletionLog.push({ venueName: venue.name, deletedAt: new Date().toISOString() });
+    localStorage.setItem('venly_venue_deletion_log', JSON.stringify(deletionLog));
     buildVenuesTable();
     if (typeof buildAccountsTable === 'function') buildAccountsTable();
     if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
     if (typeof buildOverviewVenuesStat === 'function') buildOverviewVenuesStat();
-    if (typeof renderNewVenuesChart === 'function') renderNewVenuesChart();
+    if (typeof renderNetVenuesChart === 'function') renderNetVenuesChart();
     if (typeof buildStatsPageStats === 'function') buildStatsPageStats();
     if (typeof buildPlanDistribution === 'function') buildPlanDistribution();
     if (typeof buildAnalyticsStats === 'function') buildAnalyticsStats();
@@ -5319,7 +5368,7 @@ buildAccountsTable();
 buildMessagesList();
 buildOverviewRevenueStat();
 buildOverviewVenuesStat();
-renderNewVenuesChart();
+renderNetVenuesChart();
 renderRevenueTrendChart('revenue-chart', 'overview-revenue-chart-wrap', 'overview-revenue-subtitle', 'NZD · Last 6 months');
 buildStatsPageStats();
 buildPlanDistribution();
@@ -5349,7 +5398,7 @@ if (anyLoadError && typeof venlyShowLoadError === 'function') {
 // Superseded now that venues has real Supabase read+write wiring — not
 // calling them until Users gets the same treatment.
 
-// New venues per month is real now (renderNewVenuesChart, called earlier
+// Net venues per month is real now (renderNetVenuesChart, called earlier
 // in this init sequence) — the hardcoded fake version that used to render
 // here after it, silently overwriting the real one, has been removed.
 // Revenue charts are real now (renderRevenueTrendChart, called earlier in
