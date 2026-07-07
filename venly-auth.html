@@ -668,7 +668,7 @@ function handleReset() {
   }
   if (SUPABASE_READY) {
     sb.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/venly-auth.html'
+      redirectTo: window.location.origin + '/reset-password.html'
     }).then(function() {
       showToast('Reset link sent to ' + email);
       setTimeout(hideReset, 1500);
