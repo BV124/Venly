@@ -575,6 +575,20 @@ function handleSignup() {
       setLoading('signup-btn','signup-btn-text', false);
       if (res.error) { showToast(res.error.message); return; }
 
+      // Send the welcome email (fire-and-forget — never block signup on it).
+      // Calls the resend-email Edge Function directly. Any failure is logged
+      // but doesn't affect the user's signup.
+      try {
+        fetch(VENLY_CONFIG.supabaseUrl + '/functions/v1/resend-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + VENLY_CONFIG.supabaseKey
+          },
+          body: JSON.stringify({ email: email, name: fname + ' ' + lname })
+        }).catch(function(e) { console.error('Welcome email failed:', e); });
+      } catch (e) { console.error('Welcome email failed:', e); }
+
       document.getElementById('signup-form-wrap').style.display = 'none';
 
       if (res.data && res.data.session) {
