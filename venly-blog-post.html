@@ -143,7 +143,7 @@ footer { background: #111; color: #fff; }
       <span class="post-meta-dot"></span>
       <span id="post-read">5 min read</span>
       <span class="post-meta-dot"></span>
-      <span>By Venly Team</span>
+      <span>by the Venly team</span>
     </div>
     <div class="post-body" id="post-body"></div>
     <div class="post-share">
@@ -162,18 +162,7 @@ footer { background: #111; color: #fff; }
   <div class="sidebar-sticky">
     <div class="sidebar-card">
       <h3>More posts</h3>
-      <a href="venly-blog-post.html?id=1" class="related-post">
-        <div class="related-img"><img src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=200&q=70" alt="" /></div>
-        <div><div class="related-title">5 Things to Check Before Booking a Venue</div><div class="related-cat">Hosting Tips</div></div>
-      </a>
-      <a href="venly-blog-post.html?id=2" class="related-post">
-        <div class="related-img"><img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=200&q=70" alt="" /></div>
-        <div><div class="related-title">The Best Event Spaces in Auckland Right Now</div><div class="related-cat">Event Space</div></div>
-      </a>
-      <a href="venly-blog-post.html?id=3" class="related-post">
-        <div class="related-img"><img src="https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=200&q=70" alt="" /></div>
-        <div><div class="related-title">Stop Booking Coffee Shops for Meetings</div><div class="related-cat">Meeting Space</div></div>
-      </a>
+      <div id="sidebar-posts"></div>
     </div>
     <div class="cta-card">
       <h3>Have a space?</h3>
@@ -347,7 +336,8 @@ function getPostsForDisplay() {
         date: formatBlogDate(p.createdAt),
         read: p.readTime,
         img: p.img,
-        body: blocksToHtml(p.blocks),
+        excerpt: p.excerpt || '',
+        body: (p.blocks && p.blocks.length > 0) ? blocksToHtml(p.blocks) : (p.content || ''),
       };
     });
 }
@@ -383,7 +373,18 @@ function loadPost() {
   document.getElementById('post-read').textContent = post.read;
   document.getElementById('post-body').innerHTML = post.body;
 
-  // Load more posts (exclude current)
+  // Sidebar "More posts" — real posts, excluding current, max 3
+  var sidebarPosts = posts.filter(function(p) { return String(p.id) !== String(post.id); }).slice(0, 3);
+  document.getElementById('sidebar-posts').innerHTML = sidebarPosts.length === 0
+    ? '<p style="font-size:13px;color:var(--text-muted)">No other posts yet.</p>'
+    : sidebarPosts.map(function(p) {
+      return '<a href="venly-blog-post.html?id=' + p.id + '" class="related-post">' +
+        '<div class="related-img"><img src="' + (p.img || '') + '" alt="" /></div>' +
+        '<div><div class="related-title">' + p.title + '</div><div class="related-cat">' + (p.cat || '') + '</div></div>' +
+      '</a>';
+    }).join('');
+
+  // "Keep reading" grid at bottom — real posts, excluding current, max 3
   var others = posts.filter(function(p) { return String(p.id) !== String(post.id); }).slice(0, 3);
   document.getElementById('more-grid').innerHTML = others.map(function(p) {
     return '<div class="blog-card" onclick="window.location.href=\'venly-blog-post.html?id=' + p.id + '\'">' +
