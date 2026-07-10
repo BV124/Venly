@@ -329,7 +329,7 @@ function renderFeaturedSlideshow() {
       '<div class="featured-body">' +
         '<div class="featured-label">Featured Read</div>' +
         '<div class="featured-title">' + p.title + '</div>' +
-        '<div class="featured-excerpt">' + truncate(p.excerpt, 30) + '</div>' +
+        '<div class="featured-excerpt">' + truncate(p.excerpt, 45) + '</div>' +
         '<button class="read-btn">Read the story <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>' +
       '</div>' +
     '</div>';
@@ -340,6 +340,10 @@ function renderFeaturedSlideshow() {
       return '<button class="slide-dot' + (i === 0 ? ' active' : '') + '" onclick="goToSlide(' + i + ')" aria-label="Go to slide ' + (i + 1) + '"></button>';
     }).join('');
     startSlideshow(posts.length);
+
+    // Pause on hover, resume on leave
+    container.addEventListener('mouseenter', function() { clearInterval(slideInterval); });
+    container.addEventListener('mouseleave', function() { startSlideshow(posts.length); });
   }
 }
 
