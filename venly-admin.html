@@ -1335,10 +1335,6 @@ tbody tr:last-child td { border-bottom: none; }
               <button type="button" class="use-url-toggle" onclick="toggleUrlInput()" id="use-url-toggle-btn">or paste an image URL instead</button>
               <input type="text" id="ed-img" placeholder="https://images.unsplash.com/..." oninput="updateHeroPreviewFromUrl()" style="display:none" />
             </div>
-            <div class="editor-field">
-              <label>Excerpt <span style="font-weight:400;text-transform:none;color:#bbb">(shown on blog listing card)</span></label>
-              <textarea id="ed-excerpt" placeholder="A short 1-2 sentence summary that appears on the blog grid..."></textarea>
-            </div>
           </div>
 
           <div class="editor-card">
@@ -3142,7 +3138,6 @@ function openBlogEditor(postId) {
     document.getElementById('ed-category').value = post.category || 'HOSTING TIPS';
     document.getElementById('ed-read').value = post.readTime || '4 min read';
     document.getElementById('ed-img').value = post.img || '';
-    document.getElementById('ed-excerpt').value = post.excerpt || '';
     document.getElementById('ed-published-toggle').classList.toggle('on', !!post.published);
     document.getElementById('ed-featured-toggle').classList.toggle('on', !!post.featured);
 
@@ -3154,7 +3149,6 @@ function openBlogEditor(postId) {
     document.getElementById('ed-category').value = 'HOSTING TIPS';
     document.getElementById('ed-read').value = '4 min read';
     document.getElementById('ed-img').value = '';
-    document.getElementById('ed-excerpt').value = '';
     document.getElementById('ed-published-toggle').classList.remove('on');
     document.getElementById('ed-featured-toggle').classList.remove('on');
     currentBlocks = [];
@@ -3369,12 +3363,21 @@ async function saveBlogPost() {
   var published = document.getElementById('ed-published-toggle').classList.contains('on');
   var featured = document.getElementById('ed-featured-toggle').classList.contains('on');
 
+  // Auto-generate excerpt from the first paragraph block
+  var autoExcerpt = '';
+  for (var i = 0; i < currentBlocks.length; i++) {
+    if (currentBlocks[i].type === 'paragraph' && currentBlocks[i].text && currentBlocks[i].text.trim()) {
+      autoExcerpt = currentBlocks[i].text.trim();
+      break;
+    }
+  }
+
   var postData = {
     title: title,
     category: document.getElementById('ed-category').value,
     readTime: document.getElementById('ed-read').value.trim() || '4 min read',
     img: document.getElementById('ed-img').value.trim(),
-    excerpt: document.getElementById('ed-excerpt').value.trim(),
+    excerpt: autoExcerpt,
     published: published,
     featured: featured,
     blocks: currentBlocks,
