@@ -30,22 +30,15 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
 .btn-primary { background: var(--red); color: #fff; }
 .btn-primary:hover { background: var(--red-dark); }
 
-/* FEATURED SLIDESHOW */
-.featured-wrap { padding: 40px 80px 64px; max-width: 1200px; margin: 0 auto; }
-.featured-slideshow { position: relative; overflow: hidden; border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 4px 24px rgba(0,0,0,0.07); }
-.featured-slide {
-  display: grid; grid-template-columns: 1fr 1fr;
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  opacity: 0; transition: opacity 0.5s ease;
-  pointer-events: none; cursor: pointer;
-}
-.featured-slide.active { position: relative; opacity: 1; pointer-events: auto; }
-.featured-slide:hover .featured-img img { transform: scale(1.04); }
+/* PAGE HEADER */
+.page-header { padding: 56px 80px 0; max-width: 1200px; margin: 0 auto; }
+.blog-eyebrow { display: inline-flex; align-items: center; gap: 8px; background: var(--text); color: #fff; font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 20px; margin-bottom: 20px; letter-spacing: 0.02em; }
+.blog-eyebrow::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
+.page-header h1 { font-size: clamp(26px, 3vw, 32px); font-weight: 800; color: var(--text); letter-spacing: -0.5px; margin-bottom: 12px; line-height: 1.05; }
+.page-header p { font-size: 15px; color: var(--text-muted); max-width: 440px; line-height: 1.7; margin-bottom: 48px; }
 
-.slide-dots { display: flex; justify-content: center; gap: 8px; padding-top: 20px; }
-.slide-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--border); background: transparent; cursor: pointer; transition: all 0.2s; padding: 0; }
-.slide-dot.active { background: var(--red); border-color: var(--red); }
-.slide-dot:hover { border-color: var(--red); }
+/* FEATURED POST */
+.featured-wrap { padding: 0 80px 64px; max-width: 1200px; margin: 0 auto; }
 .featured-card {
   display: grid; grid-template-columns: 1fr 1fr;
   border-radius: 20px; overflow: hidden;
@@ -65,6 +58,15 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
 .read-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--red); color: #fff; border: none; border-radius: 28px; padding: 12px 24px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.15s, transform 0.15s; width: fit-content; }
 .read-btn:hover { background: var(--red-dark); transform: translateX(2px); }
 .read-btn svg { width: 16px; height: 16px; }
+
+/* SLIDESHOW */
+.featured-slideshow { position: relative; }
+.featured-card { display: none; }
+.featured-card.active { display: grid; }
+.slide-dots { display: flex; justify-content: center; gap: 8px; padding-top: 20px; }
+.slide-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--border); background: transparent; cursor: pointer; transition: all 0.2s; padding: 0; }
+.slide-dot.active { background: var(--red); border-color: var(--red); }
+.slide-dot:hover { border-color: var(--red); }
 
 /* CATEGORY FILTERS */
 .filters-section { padding: 0 80px 40px; max-width: 1200px; margin: 0 auto; }
@@ -96,12 +98,13 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
 /* Category pills scroll */
 @media (max-width: 768px) {
   /* Reduce the generous desktop side padding so content isn't squeezed */
-  .featured-wrap { padding: 24px 20px 40px; }
+  .page-header { padding: 40px 20px 0; }
+  .featured-wrap { padding: 0 20px 40px; }
   .filters-section { padding: 0 20px 32px; }
   .blog-grid-wrap { padding: 0 20px 56px; }
 
   /* Featured post stacks instead of squeezing into a 2-column grid */
-  .featured-slide { grid-template-columns: 1fr; }
+  .featured-card { grid-template-columns: 1fr; }
   .featured-img { height: 220px; }
   .featured-body { padding: 28px 24px; }
   .featured-title { font-size: 22px; }
@@ -116,6 +119,10 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
   .cat-pill { flex-shrink: 0; font-size: 12px; padding: 6px 14px; }
   .blog-card-title { font-size: 14px; }
   footer { padding: 40px 20px 20px; }
+}
+@media (max-width: 400px) {
+  .page-header h1 { font-size: 26px; }
+  
 }
 
 /* ============================================================
@@ -160,11 +167,15 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
 <div id="venly-nav"></div>
 <script>renderNav({ activePage: "blog", loggedIn: !!localStorage.getItem("venly_current_user") });</script>
 
-<!-- FEATURED SLIDESHOW -->
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <h1>Read all about it<span style="color:var(--red)">.</span></h1>
+  <p>Space tips, hosting guides, and the odd bit of Venly news. Grab a coffee and have a scroll.</p>
+</div>
+
+<!-- FEATURED POST SLIDESHOW -->
 <div class="featured-wrap">
-  <div class="featured-slideshow" id="featured-slideshow">
-    <!-- Slides rendered by JS -->
-  </div>
+  <div class="featured-slideshow" id="featured-slideshow"></div>
   <div class="slide-dots" id="slide-dots"></div>
 </div>
 
@@ -287,11 +298,8 @@ var currentSlide = 0;
 
 function getFeaturedPosts() {
   var allPosts = getPostsForDisplay();
-  // Posts with featured: true from the DB (homepage featured toggle)
   var featured = allPosts.filter(function(p) { return p.featured; });
-  // Fallback: if none are marked featured, take the first 3
   if (featured.length === 0) featured = allPosts.slice(0, 3);
-  // Cap at 3
   return featured.slice(0, 3);
 }
 
@@ -306,7 +314,7 @@ function renderFeaturedSlideshow() {
   }
 
   container.innerHTML = posts.map(function(p, i) {
-    return '<div class="featured-slide' + (i === 0 ? ' active' : '') + '" onclick="window.location.href=\'venly-blog-post.html?id=' + p.id + '\'">' +
+    return '<div class="featured-card' + (i === 0 ? ' active' : '') + '" onclick="window.location.href=\'venly-blog-post.html?id=' + p.id + '\'">' +
       '<div class="featured-img">' +
         '<img src="' + (p.img || '') + '" alt="' + p.title + '" />' +
         '<span class="featured-cat-badge">' + (p.badge || '') + '</span>' +
@@ -320,18 +328,16 @@ function renderFeaturedSlideshow() {
     '</div>';
   }).join('');
 
-  dotsContainer.innerHTML = posts.map(function(p, i) {
-    return '<button class="slide-dot' + (i === 0 ? ' active' : '') + '" onclick="goToSlide(' + i + ')" aria-label="Go to slide ' + (i + 1) + '"></button>';
-  }).join('');
-
-  // Only auto-cycle if there's more than 1 slide
   if (posts.length > 1) {
+    dotsContainer.innerHTML = posts.map(function(p, i) {
+      return '<button class="slide-dot' + (i === 0 ? ' active' : '') + '" onclick="goToSlide(' + i + ')" aria-label="Go to slide ' + (i + 1) + '"></button>';
+    }).join('');
     startSlideshow(posts.length);
   }
 }
 
 function goToSlide(index) {
-  var slides = document.querySelectorAll('.featured-slide');
+  var slides = document.querySelectorAll('.featured-card');
   var dots = document.querySelectorAll('.slide-dot');
   if (index < 0 || index >= slides.length) return;
 
@@ -341,10 +347,8 @@ function goToSlide(index) {
   slides[currentSlide].classList.add('active');
   dots[currentSlide].classList.add('active');
 
-  // Reset the timer so it doesn't jump right after a manual click
-  var total = slides.length;
   clearInterval(slideInterval);
-  startSlideshow(total);
+  startSlideshow(slides.length);
 }
 
 function startSlideshow(total) {
