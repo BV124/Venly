@@ -15,6 +15,20 @@
   --bg: #f7f7f5; --white: #ffffff; --radius: 16px; --radius-sm: 8px;
 }
 body { font-family: 'Inter', sans-serif; color: var(--text); font-size: 15px; line-height: 1.6; background: var(--bg); min-height: 100vh; }
+a { text-decoration: none; color: inherit; }
+
+/* NAV */
+nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 48px; height: 64px; }
+.logo { font-size: 22px; font-weight: 700; color: var(--red); letter-spacing: -0.5px; }
+.nav-links { display: flex; gap: 36px; list-style: none; }
+.nav-links a { color: var(--text); font-size: 14px; text-decoration: none; transition: color 0.15s; }
+.nav-links a:hover, .nav-links a.active { color: var(--red); font-weight: 600; }
+.nav-right { display: flex; gap: 12px; }
+.btn { border-radius: var(--radius-sm); padding: 9px 22px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; border: 2px solid var(--red); transition: all 0.15s; }
+.btn-outline { background: transparent; color: var(--red); }
+.btn-outline:hover { background: var(--red-light); }
+.btn-primary { background: var(--red); color: #fff; }
+.btn-primary:hover { background: var(--red-dark); }
 
 /* ─── Page header ──────────────────────────────────────────── */
 .page-header { text-align: center; padding: 56px 20px 8px; }
