@@ -404,49 +404,7 @@ textarea { resize: none; min-height: 90px; }
 <div class="similar-section">
   <div class="similar-title">View other spaces</div>
   <div class="similar-subtitle">You might also like these spaces on Venly</div>
-  <div class="similar-grid">
-    <div class="space-card" onclick="window.location.href='venly-venue.html'">
-      <div class="card-img">
-        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80" alt="Okahu Meeting Space" loading="lazy" />
-        <span class="badge-type">Meeting space</span>
-        <span class="badge-premium">Premium</span>
-      </div>
-      <div class="card-body">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start">
-          <div class="card-name">Okahu – Meeting Space</div>
-          <button class="card-fav" onclick="event.stopPropagation();toggleCardFav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg></button>
-        </div>
-        <div class="card-meta"><span>Auckland City, Auckland</span><span>Capacity 1 – 100</span></div>
-      </div>
-    </div>
-    <div class="space-card" onclick="window.location.href='venly-venue.html'">
-      <div class="card-img">
-        <img src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&q=80" alt="Brads Meeting Space" loading="lazy" />
-        <span class="badge-type">Meeting space</span>
-        <span class="badge-premium">Premium</span>
-      </div>
-      <div class="card-body">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start">
-          <div class="card-name">Brads – Meeting Space</div>
-          <button class="card-fav" onclick="event.stopPropagation();toggleCardFav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg></button>
-        </div>
-        <div class="card-meta"><span>Auckland City, Auckland</span><span>Capacity 20 – 380</span></div>
-      </div>
-    </div>
-    <div class="space-card" onclick="window.location.href='venly-venue.html'">
-      <div class="card-img">
-        <img src="https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=600&q=80" alt="Okahu" loading="lazy" />
-        <span class="badge-type">Event space</span>
-      </div>
-      <div class="card-body">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start">
-          <div class="card-name">Okahu</div>
-          <button class="card-fav" onclick="event.stopPropagation();toggleCardFav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg></button>
-        </div>
-        <div class="card-meta"><span>Auckland City, Auckland</span><span>Capacity 1 – 350</span></div>
-      </div>
-    </div>
-  </div>
+  <div class="similar-grid" id="similar-grid"></div>
 </div>
 
 <div id="venly-footer"></div>
@@ -656,7 +614,66 @@ function renderGallery() {
   }
 }
 
-window.venlyReady.then(loadVenue);
+function escapeHtmlVenue(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderSimilarSpaces() {
+  if (typeof getAllVenues !== 'function') return;
+  var all = getAllVenues().filter(function(v) { return v.isLive && v.photos && v.photos[0]; });
+  var currentId = loadedVenue ? loadedVenue.id : null;
+  var currentType = loadedVenue ? loadedVenue.type : '';
+
+  // Prefer same type, exclude current venue
+  var others = all.filter(function(v) { return v.id !== currentId; });
+  var sameType = others.filter(function(v) { return v.type === currentType; });
+  // Take up to 3: same type first, fill with others if needed
+  var picks = sameType.slice(0, 3);
+  if (picks.length < 3) {
+    var remaining = others.filter(function(v) { return v.type !== currentType; });
+    picks = picks.concat(remaining.slice(0, 3 - picks.length));
+  }
+
+  var grid = document.getElementById('similar-grid');
+  if (!grid) return;
+
+  if (picks.length === 0) {
+    grid.closest('.similar-section').style.display = 'none';
+    return;
+  }
+
+  grid.innerHTML = picks.map(function(v) {
+    var img = v.photos[0];
+    var premiumBadge = v.plan === 'Premium' ? '<span class="badge-premium">Premium</span>' : '';
+    var location = [v.district, v.region].filter(Boolean).join(', ');
+    var favActive = (typeof isVenueFavourited === 'function' && isVenueFavourited(v.id));
+    return '<div class="space-card" onclick="window.location.href=\'venly-venue.html?id=' + encodeURIComponent(v.id) + '\'" style="cursor:pointer">' +
+      '<div class="card-img">' +
+        '<img src="' + img + '" alt="' + escapeHtmlVenue(v.name) + '" loading="lazy" />' +
+        '<span class="badge-type">' + escapeHtmlVenue(v.type) + '</span>' +
+        premiumBadge +
+      '</div>' +
+      '<div class="card-body">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start">' +
+          '<div class="card-name">' + escapeHtmlVenue(v.name) + '</div>' +
+          '<button class="card-fav' + (favActive ? ' active' : '') + '" onclick="event.stopPropagation();event.preventDefault();toggleVenueFavourite(\'' + v.id + '\');toggleCardFav(this)">' +
+            '<svg viewBox="0 0 24 24" fill="' + (favActive ? '#e03a2f' : 'none') + '" stroke="' + (favActive ? '#e03a2f' : 'currentColor') + '" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>' +
+          '</button>' +
+        '</div>' +
+        '<div class="card-meta">' +
+          '<span>' + escapeHtmlVenue(location) + '</span>' +
+          (v.capacity ? '<span>Capacity ' + escapeHtmlVenue(v.capacity) + '</span>' : '') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+window.venlyReady.then(function() {
+  loadVenue();
+  renderSimilarSpaces();
+});
 
 function openLightbox(idx) {
   currentPhoto = idx;
