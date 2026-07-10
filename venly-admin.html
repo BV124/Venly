@@ -1043,21 +1043,17 @@ tbody tr:last-child td { border-bottom: none; }
                 <input type="text" id="ven-name" placeholder="e.g. The Rooftop at Britomart" />
               </div>
               <div class="editor-field">
-                <label>Address</label>
-                <input type="text" id="ven-address" placeholder="123 Queen St, Auckland" />
+                <label>Address <span style="font-weight:400;text-transform:none;color:#bbb">(used to place the pin on the Find a Space map)</span></label>
+                <div style="display:flex;gap:8px">
+                  <input type="text" id="ven-address" placeholder="123 Queen St, Auckland CBD, Auckland" style="flex:1" />
+                  <button type="button" class="btn-secondary" onclick="geocodeAddress()" style="white-space:nowrap;padding:8px 16px;font-size:12px;font-weight:600;border-radius:6px;border:1.5px solid var(--border);background:var(--white);cursor:pointer;transition:all 0.15s" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='inherit'">📍 Locate</button>
+                </div>
+                <input type="hidden" id="ven-lat" />
+                <input type="hidden" id="ven-lng" />
+                <div id="geocode-status" style="font-size:12px;color:var(--text-muted);margin-top:6px"></div>
               </div>
             </div>
-            <div class="editor-row">
-              <div class="editor-field">
-                <label>Latitude <span style="font-weight:400;text-transform:none;color:#bbb">(for the Find a Space map)</span></label>
-                <input type="text" id="ven-lat" placeholder="-36.8485" />
-              </div>
-              <div class="editor-field">
-                <label>Longitude <span style="font-weight:400;text-transform:none;color:#bbb">(for the Find a Space map)</span></label>
-                <input type="text" id="ven-lng" placeholder="174.7633" />
-              </div>
-            </div>
-            <div class="filter-card-note" style="margin:-8px 0 14px">Without these, the venue still shows in search results and lists — it just won't have a pin on the map. Right-click a location on <a href="https://www.google.com/maps" target="_blank" rel="noopener">Google Maps</a> and the coordinates are the first thing in the popup.</div>
+            <div class="filter-card-note" style="margin:-8px 0 14px">Enter the full street address and click <strong>Locate</strong> to place a pin on the map. Without an address, the venue still shows in search results — it just won't have a map pin.</div>
             <div class="editor-field">
               <label>Description <span style="font-weight:400;text-transform:none;color:#bbb">(shown on the venue's public page)</span></label>
               <textarea id="ven-description" placeholder="Describe the space — what makes it special, what it's great for..."></textarea>
@@ -4534,6 +4530,14 @@ function openVenueEditor(venueId) {
     document.getElementById('ven-address').value = venue.address || '';
     document.getElementById('ven-lat').value = (venue.lat != null) ? venue.lat : '';
     document.getElementById('ven-lng').value = (venue.lng != null) ? venue.lng : '';
+    var geoStatus = document.getElementById('geocode-status');
+    if (venue.lat && venue.lng) {
+      geoStatus.innerHTML = '✓ Map pin set (' + venue.lat + ', ' + venue.lng + ')';
+      geoStatus.style.color = '#22c55e';
+    } else {
+      geoStatus.textContent = 'No map pin yet — enter an address and click Locate.';
+      geoStatus.style.color = 'var(--text-muted)';
+    }
     document.getElementById('ven-type').value = venue.type || 'Event space';
     document.getElementById('ven-plan').value = venue.plan || 'Basic';
     document.getElementById('ven-region').value = venue.region || '';
@@ -4569,6 +4573,7 @@ function openVenueEditor(venueId) {
     document.getElementById('ven-address').value = '';
     document.getElementById('ven-lat').value = '';
     document.getElementById('ven-lng').value = '';
+    document.getElementById('geocode-status').textContent = '';
     document.getElementById('ven-type').value = 'Event space';
     document.getElementById('ven-plan').value = 'Basic';
     populateVenueDistrictOptions();
@@ -4610,6 +4615,42 @@ function closeVenueEditor() {
   document.getElementById('venue-editor-view').style.display = 'none';
   document.getElementById('venues-list-view').style.display = 'block';
   buildVenuesTable();
+}
+
+// ─── Geocode address → lat/lng via OpenStreetMap Nominatim ──────────────
+async function geocodeAddress() {
+  var address = document.getElementById('ven-address').value.trim();
+  var status = document.getElementById('geocode-status');
+  if (!address) { status.textContent = 'Please enter an address first.'; status.style.color = 'var(--red)'; return; }
+
+  status.textContent = 'Locating...';
+  status.style.color = 'var(--text-muted)';
+
+  try {
+    // Bias toward New Zealand for better results
+    var query = address + (address.toLowerCase().includes('new zealand') ? '' : ', New Zealand');
+    var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=nz&q=' + encodeURIComponent(query);
+    var res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    var results = await res.json();
+
+    if (results && results.length > 0) {
+      var lat = parseFloat(results[0].lat).toFixed(6);
+      var lng = parseFloat(results[0].lon).toFixed(6);
+      document.getElementById('ven-lat').value = lat;
+      document.getElementById('ven-lng').value = lng;
+      status.innerHTML = '✓ Found: <strong>' + results[0].display_name.split(',').slice(0, 3).join(', ') + '</strong> (' + lat + ', ' + lng + ')';
+      status.style.color = '#22c55e';
+    } else {
+      document.getElementById('ven-lat').value = '';
+      document.getElementById('ven-lng').value = '';
+      status.textContent = 'Could not find that address. Try adding more detail (e.g. suburb, city).';
+      status.style.color = 'var(--red)';
+    }
+  } catch (e) {
+    console.error('Geocode error:', e);
+    status.textContent = 'Geocoding failed — please check your connection and try again.';
+    status.style.color = 'var(--red)';
+  }
 }
 
 async function saveVenue() {
