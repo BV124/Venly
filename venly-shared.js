@@ -487,8 +487,9 @@ function toggleVenueFavourite(venueId) {
         }
         console.log('[Venly] Saving favourite:', { venueId: venueId, userId: user.id, action: nowFav ? 'add' : 'remove' });
         if (nowFav) {
-          var insRes = await sb.from('favourites').upsert({ user_id: user.id, venue_id: venueId });
-          if (insRes.error) console.error('[Venly] Favourite INSERT failed:', insRes.error);
+          var insRes = await sb.from('favourites').insert({ user_id: user.id, venue_id: venueId });
+          if (insRes.error && insRes.error.code === '23505') { console.log('[Venly] Already favourited'); }
+          else if (insRes.error) console.error('[Venly] Favourite INSERT failed:', insRes.error);
           else console.log('[Venly] Favourite saved OK');
         } else {
           var delRes = await sb.from('favourites').delete().eq('user_id', user.id).eq('venue_id', venueId);
