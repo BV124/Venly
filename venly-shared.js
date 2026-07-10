@@ -30,7 +30,7 @@ function renderNav(options) {
   var navRight = loggedIn
     ? '<div class="nav-right">' +
         '<div class="dnav-account">' +
-          '<button class="btn btn-outline" onclick="window.location.href=\'venly-dashboard.html\'" style="font-size:13px;padding:7px 16px">My Dashboard</button>' +
+          '<button class="btn btn-outline" onclick="window.location.href=\'venly-dashboard.html\'" style="font-size:13px;padding:7px 16px">My Profile</button>' +
           (isAdmin ? '<button class="btn btn-primary" onclick="window.location.href=\'venly-admin.html\'" style="font-size:13px;padding:7px 16px">Admin</button>' : '') +
           '<button class="btn btn-outline" onclick="signOut()" style="font-size:13px;padding:7px 16px">Log out</button>' +
         '</div>' +
@@ -50,7 +50,7 @@ function renderNav(options) {
 
   var mobileAuth = loggedIn
     ? '<div class="mnav-auth">' +
-        '<button class="btn btn-outline mnav-btn" onclick="window.location.href=\'venly-dashboard.html\'">My Dashboard</button>' +
+        '<button class="btn btn-outline mnav-btn" onclick="window.location.href=\'venly-dashboard.html\'">My Profile</button>' +
         (isAdmin ? '<button class="btn btn-primary mnav-btn" onclick="window.location.href=\'venly-admin.html\'">Admin</button>' : '') +
         '<button class="btn btn-outline mnav-btn" onclick="signOut()">Log out</button>' +
       '</div>'
@@ -114,7 +114,7 @@ async function _checkAndShowAdminButton() {
     document.querySelectorAll('.dnav-account, .mnav-auth').forEach(function(container) {
       if (container.querySelector('.venly-admin-nav-btn')) return; // already added
       var dashboardBtn = Array.prototype.find.call(container.querySelectorAll('button'), function(b) {
-        return b.textContent.trim() === 'My Dashboard';
+        return b.textContent.trim() === 'My Profile';
       });
       if (!dashboardBtn) return;
 
