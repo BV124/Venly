@@ -131,7 +131,7 @@ footer { background: #111; color: #fff; }
 </div>
 
 <div class="post-hero">
-  <img id="post-hero-img" src="" alt="" />
+  <img id="post-hero-img" src="" alt="" fetchpriority="high" />
 </div>
 
 <div class="post-wrap">
@@ -338,11 +338,56 @@ function getPostsForDisplay() {
     });
 }
 
+// Upgrade image quality for hero display — replaces low-res params
+// with high-res ones for Unsplash URLs, or returns the URL as-is for
+// Supabase Storage URLs (which are already full quality).
+function upgradeImageUrl(url) {
+  if (!url) return '';
+  // Unsplash: bump to w=1600 q=85
+  if (url.indexOf('unsplash.com') !== -1) {
+    return url.replace(/[?&]w=\d+/g, '').replace(/[?&]q=\d+/g, '')
+      + (url.indexOf('?') === -1 ? '?' : '&') + 'w=1600&q=85';
+  }
+  return url;
+}
+
+// Fast path: fetch just the one post we need directly from Supabase,
+// instead of waiting for the full blog list to load. Falls back to the
+// full list if the direct fetch fails or we're in demo mode.
+async function fastFetchPost(id) {
+  if (typeof sb === 'undefined' || !SUPABASE_READY || !id) return null;
+  try {
+    var res = await sb.from('blog_posts').select('*').eq('id', id).single();
+    if (res.error || !res.data) return null;
+    var row = res.data;
+    return {
+      id: row.id,
+      title: row.title,
+      cat: row.category,
+      date: formatBlogDate(row.created_at),
+      read: row.read_time || '4 min read',
+      img: row.cover_image || '',
+      excerpt: row.excerpt || '',
+      body: (row.blocks && row.blocks.length > 0) ? blocksToHtml(row.blocks) : (row.content || ''),
+    };
+  } catch (e) {
+    console.error('fastFetchPost failed:', e);
+    return null;
+  }
+}
+
 function loadPost() {
   var params = new URLSearchParams(window.location.search);
   var id = params.get('id');
-  var posts = getPostsForDisplay();
-  var post = posts.find(function(p) { return String(p.id) === String(id); }) || posts[0];
+
+  // Try fast single-post fetch first, then fall back to full list
+  var fastPromise = fastFetchPost(id);
+  var fullPromise = window.venlyReady.then(function() { return null; });
+
+  Promise.all([fastPromise, fullPromise]).then(function(results) {
+    var fastPost = results[0];
+    var posts = getPostsForDisplay();
+    var post = fastPost || posts.find(function(p) { return String(p.id) === String(id); }) || posts[0];
 
   if (!post) {
     var fetchFailed = typeof venlyFetchFailed === 'function' && venlyFetchFailed('blog');
@@ -361,7 +406,7 @@ function loadPost() {
 
   document.title = 'Venly — ' + post.title;
   document.getElementById('breadcrumb-title').textContent = post.title;
-  document.getElementById('post-hero-img').src = post.img;
+  document.getElementById('post-hero-img').src = upgradeImageUrl(post.img);
   document.getElementById('post-hero-img').alt = post.title;
   document.getElementById('post-cat').textContent = post.cat;
   document.getElementById('post-title').textContent = post.title;
@@ -391,6 +436,8 @@ function loadPost() {
       '<div class="read-more">Read more →</div>' +
       '</div></div>';
   }).join('');
+
+  }); // end Promise.all
 }
 
 function copyLink() {
@@ -398,7 +445,7 @@ function copyLink() {
   showToast('Link copied!');
 }
 
-window.venlyReady.then(loadPost);
+loadPost();
 </script>
 </body>
 </html>
