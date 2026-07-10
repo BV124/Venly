@@ -4676,7 +4676,21 @@ async function saveVenue() {
     var matchedProfile = _adminUsersCache
       ? _adminUsersCache.find(function(u) { return u.email && u.email.toLowerCase() === hostEmail.toLowerCase(); })
       : null;
-    venueData.hostUserId = matchedProfile ? matchedProfile.id : null;
+
+    // Use the manually-set host_user_id if present (from the venue editor's
+    // hidden field), otherwise fall back to matching by email. This ensures
+    // the admin's explicit selection is never silently overwritten.
+    var existingHostId = document.getElementById('ven-host-user-id').value || null;
+    venueData.hostUserId = existingHostId || (matchedProfile ? matchedProfile.id : null);
+
+    // If we matched a profile, ensure their role is set to 'Host' so they
+    // can see the venue on their dashboard and RLS policies grant access.
+    var linkedProfileId = venueData.hostUserId;
+    if (linkedProfileId) {
+      try {
+        await sb.from('profiles').update({ role: 'Host' }).eq('id', linkedProfileId);
+      } catch (e) { console.error('Could not update host role:', e); }
+    }
 
     var prevStatus = existing ? existing.subscriptionStatus : 'none';
     if (isLive) {
