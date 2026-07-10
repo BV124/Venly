@@ -427,9 +427,9 @@ function getVenlyBlogPosts() {
 // instead, so an unmigrated feature's cache stays untouched.
 async function venlyBootstrap() {
   await Promise.all([venlyBootstrapVenues(), venlyBootstrapFilters()]);
-  // Sync favourites after venues are loaded but before pages render cards
+  // Sync favourites in parallel — don't block page rendering on it
   if (typeof syncFavouritesFromSupabase === 'function') {
-    await syncFavouritesFromSupabase();
+    syncFavouritesFromSupabase(); // no await — runs in background
   }
 }
 

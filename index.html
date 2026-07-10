@@ -539,10 +539,16 @@ section { padding: 80px 48px; }
   gap: 24px;
 }
 
+@keyframes tileIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .ja-tile {
   display: block; text-decoration: none; color: inherit;
   border-radius: var(--radius); overflow: hidden;
   border: 1px solid var(--border); background: var(--white);
+  animation: tileIn 0.4s ease both;
   transition: transform 0.2s, box-shadow 0.2s;
 }
 .ja-tile:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
@@ -710,13 +716,13 @@ section { padding: 80px 48px; }
     return;
   }
 
-  grid.innerHTML = venues.filter(function(v) { return v.photos && v.photos[0]; }).map(function(v) {
+  grid.innerHTML = venues.filter(function(v) { return v.photos && v.photos[0]; }).map(function(v, i) {
     var img = v.photos[0];
     var typeLabel = TYPE_LABELS[v.type] || v.type || '';
     var premiumBadge = v.plan === 'Premium' ? '<span class="badge-premium">Premium</span>' : '';
     var location = [v.district, v.region].filter(Boolean).join(', ');
     return '' +
-    '<a href="venly-venue.html?id=' + encodeURIComponent(v.id) + '" class="ja-tile">' +
+    '<a href="venly-venue.html?id=' + encodeURIComponent(v.id) + '" class="ja-tile" style="animation-delay:' + (i * 0.08) + 's">' +
       '<div class="ja-tile-img">' +
         '<img src="' + img + '" alt="' + escapeHtmlHome(v.name) + '" loading="lazy" />' +
         premiumBadge +
