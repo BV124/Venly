@@ -696,9 +696,7 @@ section { padding: 80px 48px; }
 
   var all = getAllVenues().filter(function(v) { return v.isLive; });
   var selected = all.filter(function(v) { return v.featuredHome; });
-  // Safety net: if nothing's been selected yet in the admin, fall back to
-  // showing venues rather than an empty section.
-  var venues = (selected.length ? selected : all).slice(0, MAX);
+  var venues = selected.slice(0, MAX);
 
   if (!venues.length) {
     // Same idea as For All Occasions' empty slideshows — a plain grey box
@@ -712,8 +710,8 @@ section { padding: 80px 48px; }
     return;
   }
 
-  grid.innerHTML = venues.map(function(v) {
-    var img = (v.photos && v.photos[0]) ? v.photos[0] : FALLBACK_IMG;
+  grid.innerHTML = venues.filter(function(v) { return v.photos && v.photos[0]; }).map(function(v) {
+    var img = v.photos[0];
     var typeLabel = TYPE_LABELS[v.type] || v.type || '';
     var premiumBadge = v.plan === 'Premium' ? '<span class="badge-premium">Premium</span>' : '';
     var location = [v.district, v.region].filter(Boolean).join(', ');
@@ -963,13 +961,12 @@ section { padding: 80px 48px; }
 
     var ofType = all.filter(function(v) { return v.type === spaceType; });
     var selected = ofType.filter(function(v) { return v.featuredOccasion; });
-    // Safety net: if nothing's been selected yet in the admin for this
-    // space type, fall back to showing whatever exists of that type.
-    var venues = (selected.length ? selected : ofType).slice(0, MAX);
+    var venues = selected.slice(0, MAX);
     if (!venues.length) return;
 
     slideshow.innerHTML = venues.map(function(v, idx) {
-      var img = (v.photos && v.photos[0]) ? v.photos[0] : FALLBACK_IMG;
+      var img = (v.photos && v.photos[0]) ? v.photos[0] : '';
+      if (!img) return '';
       var activeClass = idx === 0 ? ' active' : '';
       return '<img class="sts-slide' + activeClass + '" src="' + img + '" alt="' + escapeHtmlOccasion(v.name) + '" data-venue-id="' + escapeHtmlOccasion(v.id) + '" data-venue-name="' + escapeHtmlOccasion(v.name) + '" />';
     }).join('');
