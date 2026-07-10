@@ -725,7 +725,7 @@ section { padding: 80px 48px; }
       '<div class="ja-tile-info">' +
         '<div class="ja-tile-row">' +
           '<span class="ja-tile-name">' + escapeHtmlHome(v.name) + '</span>' +
-          '<button class="fav-btn' + (isVenueFavourited(v.id) ? ' active' : '') + '" onclick="toggleFav(this, \'' + v.id + '\'); event.stopPropagation();" aria-label="Save to favourites">' +
+          '<button class="fav-btn' + (isVenueFavourited(v.id) ? ' active' : '') + '" onclick="toggleFav(this, \'' + v.id + '\'); event.stopPropagation(); event.preventDefault();" aria-label="Save to favourites">' +
             '<svg viewBox="0 0 24 24" fill="' + (isVenueFavourited(v.id) ? '#e03a2f' : 'none') + '" stroke="' + (isVenueFavourited(v.id) ? '#e03a2f' : 'currentColor') + '" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>' +
           '</button>' +
         '</div>' +
