@@ -893,6 +893,34 @@ async function submitEnquiry() {
   document.getElementById('enquiry-form').style.display = 'none';
   document.getElementById('enquiry-success').style.display = 'block';
   document.getElementById('enquiry-note').textContent = 'No commitment - the host will get back to you shortly.';
+
+  // Send enquiry notification emails (fire-and-forget)
+  if (SUPABASE_READY && loadedVenue) {
+    var hostEmail = loadedVenue.effectiveEnquiryEmail || loadedVenue.hostEmail || loadedVenue.enquiryEmail;
+    var emailPayload = {
+      venueName: loadedVenue.name,
+      enquirerName: name,
+      enquirerEmail: email,
+      enquirerPhone: phone,
+      message: msg
+    };
+
+    // Email to host
+    if (hostEmail) {
+      fetch(VENLY_CONFIG.supabaseUrl + '/functions/v1/resend-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + VENLY_CONFIG.supabaseKey },
+        body: JSON.stringify(Object.assign({ email: hostEmail, name: loadedVenue.hostName || '', type: 'enquiry_host' }, emailPayload))
+      }).catch(function(e) { console.error('Host enquiry email failed:', e); });
+    }
+
+    // Confirmation to user
+    fetch(VENLY_CONFIG.supabaseUrl + '/functions/v1/resend-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + VENLY_CONFIG.supabaseKey },
+      body: JSON.stringify(Object.assign({ email: email, name: name, type: 'enquiry_user' }, emailPayload))
+    }).catch(function(e) { console.error('User enquiry email failed:', e); });
+  }
 }
 
 function resetEnquiry() {
