@@ -790,7 +790,7 @@ function renderCardGrid(list) {
   count.innerHTML = `<strong>${list.length}</strong> space${list.length !== 1 ? 's' : ''} found`;
 
   grid.innerHTML = list.map((s, i) => `
-    <div class="space-card" onclick="goToVenueCard(this, event)" data-venue="${encodeURIComponent(s.name)}"
+    <div class="space-card" onclick="goToVenueCard(this, event)" data-venue="${encodeURIComponent(s.name)}" data-venue-id="${s.id}"
          onmouseenter="previewSpaceOnMap('${escAttr(s.name)}')" onmouseleave="clearMapPreview()" style="cursor:pointer">
       <div class="card-img">
         <img src="${s.img}" alt="${s.name}" loading="lazy" />
@@ -800,8 +800,8 @@ function renderCardGrid(list) {
       <div class="card-body">
         <div class="card-body-top">
           <span class="card-name">${s.name}</span>
-          <button class="fav-btn" onclick="toggleFav(this); event.stopPropagation();" aria-label="Save to favourites">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>
+          <button class="fav-btn${isVenueFavourited(s.id) ? ' active' : ''}" onclick="toggleFav(this, '${s.id}'); event.stopPropagation();" aria-label="Save to favourites">
+            <svg viewBox="0 0 24 24" fill="${isVenueFavourited(s.id) ? '#e03a2f' : 'none'}" stroke="${isVenueFavourited(s.id) ? '#e03a2f' : 'currentColor'}" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>
           </button>
         </div>
         <div class="card-meta">
@@ -1029,8 +1029,11 @@ function clearMapPreview() {
 
 // Navigates to a venue's page when one of the main result cards is clicked
 function goToVenueCard(card, evt) {
+  // Don't navigate if the user clicked the heart/favourite button
+  if (evt && evt.target.closest('.fav-btn')) return;
   const name = card.dataset.venue;
-  window.location.href = 'venly-venue.html' + (name ? '?name=' + name : '');
+  const id = card.dataset.venueId;
+  window.location.href = 'venly-venue.html' + (id ? '?id=' + id : (name ? '?name=' + name : ''));
 }
 
 function renderMapPins(list) {
@@ -1236,10 +1239,16 @@ function clearFilters() {
   updateFiltersTriggerBadge();
 }
 
-function toggleFav(btn) {
-  btn.classList.toggle('active');
+function toggleFav(btn, venueId) {
+  var nowActive;
+  if (venueId && typeof toggleVenueFavourite === 'function') {
+    nowActive = toggleVenueFavourite(venueId);
+  } else {
+    nowActive = !btn.classList.contains('active');
+  }
+  btn.classList.toggle('active', nowActive);
   const svg = btn.querySelector('svg');
-  if (btn.classList.contains('active')) {
+  if (nowActive) {
     svg.setAttribute('fill', '#e03a2f');
     svg.setAttribute('stroke', '#e03a2f');
   } else {

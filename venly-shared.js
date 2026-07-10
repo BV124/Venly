@@ -475,11 +475,22 @@ function toggleVenueFavourite(venueId) {
   if (nowFav) { current[venueId] = true; } else { delete current[venueId]; }
   localStorage.setItem('venly_favourites', JSON.stringify(current));
 
-  if (nowFav) {
-    var counts = JSON.parse(localStorage.getItem('venly_analytics_favourites') || '{}');
-    counts[venueId] = (counts[venueId] || 0) + 1;
-    localStorage.setItem('venly_analytics_favourites', JSON.stringify(counts));
+  // Save to Supabase (fire-and-forget — never block the UI on it)
+  if (typeof sb !== 'undefined' && SUPABASE_READY) {
+    (async function() {
+      try {
+        var userRes = await sb.auth.getUser();
+        var user = userRes.data && userRes.data.user;
+        if (!user) return;
+        if (nowFav) {
+          await sb.from('favourites').upsert({ user_id: user.id, venue_id: venueId });
+        } else {
+          await sb.from('favourites').delete().eq('user_id', user.id).eq('venue_id', venueId);
+        }
+      } catch (e) { console.error('Favourite sync failed:', e); }
+    })();
   }
+
   return nowFav;
 }
 
@@ -516,6 +527,16 @@ document.addEventListener('DOMContentLoaded', async function() {
         email: session.user.email,
         name: (session.user.user_metadata.first_name || '') + ' ' + (session.user.user_metadata.last_name || '')
       }));
+
+      // Sync favourites from Supabase → localStorage so hearts are correct
+      try {
+        var favRes = await sb.from('favourites').select('venue_id').eq('user_id', session.user.id);
+        if (favRes.data) {
+          var favs = {};
+          favRes.data.forEach(function(f) { favs[f.venue_id] = true; });
+          localStorage.setItem('venly_favourites', JSON.stringify(favs));
+        }
+      } catch (e) { console.error('Failed to load favourites:', e); }
     }
   }
 });
