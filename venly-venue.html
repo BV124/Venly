@@ -239,6 +239,24 @@ textarea { resize: none; min-height: 90px; }
   <script>
     window.venlyReady = (typeof venlyBootstrap === 'function') ? venlyBootstrap() : Promise.resolve();
   </script>
+<!-- Leaflet for directions mini map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+.minimap-overlay { display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.5); backdrop-filter:blur(3px); align-items:center; justify-content:center; }
+.minimap-overlay.open { display:flex; }
+.minimap-card { background:var(--white); border-radius:16px; width:90%; max-width:600px; overflow:hidden; box-shadow:0 16px 48px rgba(0,0,0,0.2); animation: mmIn 0.25s ease; }
+@keyframes mmIn { from { opacity:0; transform:scale(0.95) translateY(10px); } to { opacity:1; transform:none; } }
+.minimap-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border); }
+.minimap-header h3 { font-size:15px; font-weight:700; margin:0; }
+.minimap-close { background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:20px; padding:4px 8px; border-radius:6px; transition:all 0.15s; }
+.minimap-close:hover { background:var(--red-light); color:var(--red); }
+.minimap-body { height:350px; position:relative; }
+.minimap-address { padding:14px 20px; font-size:13px; color:var(--text-muted); border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.minimap-directions-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; background:var(--red); color:#fff; border:none; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; text-decoration:none; font-family:'Inter',sans-serif; flex-shrink:0; transition:background 0.15s; }
+.minimap-directions-btn:hover { background:var(--red-dark); }
+.minimap-nocoords { display:flex; align-items:center; justify-content:center; height:100%; color:var(--text-muted); font-size:14px; text-align:center; padding:20px; }
+</style>
 </head>
 <body>
 
@@ -377,11 +395,7 @@ textarea { resize: none; min-height: 90px; }
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
             Copy link
           </button>
-          <button class="share-btn" onclick="showToast('Shared to Facebook')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
-            Share
-          </button>
-          <button class="share-btn" onclick="showToast('Opened in maps')">
+          <button class="share-btn" onclick="openMiniMap()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
             Directions
           </button>
@@ -405,6 +419,26 @@ textarea { resize: none; min-height: 90px; }
   <div class="similar-title">View other spaces</div>
   <div class="similar-subtitle">You might also like these spaces on Venly</div>
   <div class="similar-grid" id="similar-grid"></div>
+</div>
+
+<!-- MINI MAP MODAL -->
+<div class="minimap-overlay" id="minimap-overlay" onclick="if(event.target===this)closeMiniMap()">
+  <div class="minimap-card">
+    <div class="minimap-header">
+      <h3 id="minimap-title">Location</h3>
+      <button class="minimap-close" onclick="closeMiniMap()">✕</button>
+    </div>
+    <div class="minimap-body" id="minimap-body">
+      <div id="minimap" style="width:100%;height:100%"></div>
+    </div>
+    <div class="minimap-address" id="minimap-footer">
+      <span id="minimap-address-text"></span>
+      <a id="minimap-gmaps-link" class="minimap-directions-btn" href="#" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Google Maps
+      </a>
+    </div>
+  </div>
 </div>
 
 <div id="venly-footer"></div>
@@ -673,7 +707,83 @@ function renderSimilarSpaces() {
 window.venlyReady.then(function() {
   loadVenue();
   renderSimilarSpaces();
+  prefillEnquiryForm();
 });
+
+// ─── Pre-fill enquiry form for logged-in users ─────────────────────────
+async function prefillEnquiryForm() {
+  if (typeof sb === 'undefined' || !SUPABASE_READY) return;
+  try {
+    var userRes = await sb.auth.getUser();
+    var user = userRes.data && userRes.data.user;
+    if (!user) return;
+
+    // Try to get the profile for phone number
+    var profileRes = await sb.from('profiles').select('name, phone').eq('id', user.id).maybeSingle();
+    var profile = profileRes.data;
+
+    var nameField = document.getElementById('eq-name');
+    var emailField = document.getElementById('eq-email');
+    var phoneField = document.getElementById('eq-phone');
+
+    if (nameField && !nameField.value) {
+      var name = (profile && profile.name) || user.user_metadata.name || user.user_metadata.full_name || '';
+      if (name) nameField.value = name;
+    }
+    if (emailField && !emailField.value && user.email) {
+      emailField.value = user.email;
+    }
+    if (phoneField && !phoneField.value) {
+      var phone = (profile && profile.phone) || user.user_metadata.phone || '';
+      if (phone) phoneField.value = phone;
+    }
+  } catch (e) { console.error('Prefill failed:', e); }
+}
+
+// ─── Mini Map ──────────────────────────────────────────────────────────
+var miniMapInstance = null;
+
+function openMiniMap() {
+  var overlay = document.getElementById('minimap-overlay');
+  overlay.classList.add('open');
+
+  if (!loadedVenue || !loadedVenue.lat || !loadedVenue.lng) {
+    document.getElementById('minimap').innerHTML = '<div class="minimap-nocoords">📍 No location set for this venue yet.<br>Check back soon!</div>';
+    document.getElementById('minimap-address-text').textContent = loadedVenue ? (loadedVenue.address || loadedVenue.name) : '';
+    document.getElementById('minimap-gmaps-link').style.display = 'none';
+    return;
+  }
+
+  var lat = parseFloat(loadedVenue.lat);
+  var lng = parseFloat(loadedVenue.lng);
+
+  document.getElementById('minimap-title').textContent = loadedVenue.name || 'Location';
+  document.getElementById('minimap-address-text').textContent = loadedVenue.address || [loadedVenue.district, loadedVenue.region].filter(Boolean).join(', ');
+  document.getElementById('minimap-gmaps-link').href = 'https://www.google.com/maps/dir/?api=1&destination=' + lat + ',' + lng;
+  document.getElementById('minimap-gmaps-link').style.display = '';
+
+  // Create or reset the map
+  if (miniMapInstance) {
+    miniMapInstance.remove();
+  }
+
+  setTimeout(function() {
+    miniMapInstance = L.map('minimap', { scrollWheelZoom: false }).setView([lat, lng], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(miniMapInstance);
+
+    var marker = L.marker([lat, lng]).addTo(miniMapInstance);
+    marker.bindPopup('<strong>' + escapeHtmlVenue(loadedVenue.name) + '</strong>').openPopup();
+
+    // Fix tile rendering after modal animation
+    setTimeout(function() { miniMapInstance.invalidateSize(); }, 300);
+  }, 50);
+}
+
+function closeMiniMap() {
+  document.getElementById('minimap-overlay').classList.remove('open');
+}
 
 function openLightbox(idx) {
   currentPhoto = idx;
