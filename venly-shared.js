@@ -481,13 +481,21 @@ function toggleVenueFavourite(venueId) {
       try {
         var userRes = await sb.auth.getUser();
         var user = userRes.data && userRes.data.user;
-        if (!user) return;
-        if (nowFav) {
-          await sb.from('favourites').upsert({ user_id: user.id, venue_id: venueId });
-        } else {
-          await sb.from('favourites').delete().eq('user_id', user.id).eq('venue_id', venueId);
+        if (!user) {
+          console.warn('[Venly] Favourite not saved — no logged-in user. Sign in first.');
+          return;
         }
-      } catch (e) { console.error('Favourite sync failed:', e); }
+        console.log('[Venly] Saving favourite:', { venueId: venueId, userId: user.id, action: nowFav ? 'add' : 'remove' });
+        if (nowFav) {
+          var insRes = await sb.from('favourites').upsert({ user_id: user.id, venue_id: venueId });
+          if (insRes.error) console.error('[Venly] Favourite INSERT failed:', insRes.error);
+          else console.log('[Venly] Favourite saved OK');
+        } else {
+          var delRes = await sb.from('favourites').delete().eq('user_id', user.id).eq('venue_id', venueId);
+          if (delRes.error) console.error('[Venly] Favourite DELETE failed:', delRes.error);
+          else console.log('[Venly] Favourite removed OK');
+        }
+      } catch (e) { console.error('[Venly] Favourite sync exception:', e); }
     })();
   }
 
