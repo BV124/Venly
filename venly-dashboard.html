@@ -1560,9 +1560,12 @@ async function loadFavourites() {
       var imgHtml = img
         ? '<img src="' + img + '" alt="' + escapeHtml(v.name) + '" style="width:100%;height:160px;object-fit:cover;display:block" />'
         : '<div style="width:100%;height:160px;background:#eee;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:13px">No image</div>';
+      var premiumBadge = v.plan === 'Premium' ? '<span style="position:absolute;top:10px;left:10px;background:linear-gradient(135deg,#1a1a1a,#333);color:#fff;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700">Premium</span>' : '';
+      var capacityText = v.capacity ? 'Capacity ' + escapeHtml(v.capacity) : '';
       return '<div style="border-radius:12px;border:1px solid var(--border);overflow:hidden;background:var(--white);cursor:pointer;transition:transform 0.2s,box-shadow 0.2s" onmouseover="this.style.transform=\'translateY(-3px)\';this.style.boxShadow=\'0 8px 24px rgba(0,0,0,0.09)\'" onmouseout="this.style.transform=\'none\';this.style.boxShadow=\'none\'" onclick="window.location.href=\'venly-venue.html?id=' + v.id + '\'">' +
         '<div style="position:relative">' + imgHtml +
           '<span style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,0.92);padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase">' + escapeHtml(v.type || '') + '</span>' +
+          premiumBadge +
         '</div>' +
         '<div style="padding:14px">' +
           '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">' +
@@ -1571,7 +1574,10 @@ async function loadFavourites() {
               '<svg viewBox="0 0 24 24" fill="#e03a2f" stroke="#e03a2f" stroke-width="2" style="width:18px;height:18px"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0l-.9.9-.9-.9a5.5 5.5 0 00-7.8 7.8l8.7 8.7 8.7-8.7a5.5 5.5 0 000-7.8z"/></svg>' +
             '</button>' +
           '</div>' +
-          '<div style="font-size:12px;color:var(--text-muted)">' + escapeHtml([v.district, v.region].filter(Boolean).join(', ')) + '</div>' +
+          '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted)">' +
+            '<span>' + escapeHtml([v.district, v.region].filter(Boolean).join(', ')) + '</span>' +
+            (capacityText ? '<span>' + capacityText + '</span>' : '') +
+          '</div>' +
         '</div>' +
       '</div>';
     }).join('');
