@@ -731,7 +731,7 @@ section { padding: 80px 48px; }
         '</div>' +
         '<div class="ja-tile-meta">' +
           '<span>' + escapeHtmlHome(location) + '</span>' +
-          '<span>Capacity ' + escapeHtmlHome(v.capacity || '—') + '</span>' +
+          (v.capacity ? '<span>Capacity ' + escapeHtmlHome(v.capacity) + '</span>' : '') +
         '</div>' +
       '</div>' +
     '</a>';

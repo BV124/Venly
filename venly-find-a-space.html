@@ -806,7 +806,7 @@ function renderCardGrid(list) {
         </div>
         <div class="card-meta">
           <span>${s.district}, ${s.region}</span>
-          <span>Capacity ${s.capacity}</span>
+          ${s.capacity ? '<span>Capacity ' + s.capacity + '</span>' : ''}
         </div>
       </div>
     </div>
