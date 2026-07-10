@@ -1518,6 +1518,11 @@ async function saveListingToSupabase(listingData) {
   return data;
 }
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 async function loadFavourites() {
   if (!SUPABASE_READY) return;
   const user = await getCurrentUser();
