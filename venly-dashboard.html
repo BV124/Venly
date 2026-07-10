@@ -1429,12 +1429,12 @@ async function loadUserListings() {
   }
   const user = await getCurrentUser();
   if (!user) return;
-  const { data, error } = await sb.from('venues').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+  const { data, error } = await sb.from('venues').select('*').eq('host_user_id', user.id).order('created_at', { ascending: false });
   if (data) {
     listings = data.map(v => ({
       name: v.name,
       type: v.type,
-      hits: v.page_hits || 0,
+      hits: v.hits || 0,
       plan: v.plan || 'Basic',
       status: v.is_live ? 'live' : 'draft',
       subscriptionStatus: v.subscription_status || 'none',
