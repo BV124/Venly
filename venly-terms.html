@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Venly – Terms, Privacy & Cookies</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --red: #e03a2f; --red-light: #fdf0ef; --red-dark: #c2332a;
+  --text: #1a1a1a; --text-muted: #6b6b6b; --border: #e8e8e8;
+  --bg: #f7f7f5; --white: #ffffff; --radius: 16px; --radius-sm: 8px;
+}
+body { font-family: 'Inter', sans-serif; color: var(--text); font-size: 15px; line-height: 1.6; background: var(--bg); min-height: 100vh; }
+
+/* ─── Page header ──────────────────────────────────────────── */
+.page-header { text-align: center; padding: 56px 20px 8px; }
+.page-header h1 { font-size: clamp(26px, 3vw, 32px); font-weight: 800; color: var(--text); letter-spacing: -0.5px; margin-bottom: 16px; line-height: 1; }
+.page-header p { font-size: 16px; color: var(--text-muted); max-width: 500px; margin: 0 auto; line-height: 1.7; }
+
+/* ─── Jump links ───────────────────────────────────────────── */
+.jump-links { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; padding: 24px 20px 40px; }
+.jump-link { display: inline-block; padding: 8px 20px; font-size: 13px; font-weight: 600; border-radius: 100px; border: 1.5px solid var(--border); color: var(--text); text-decoration: none; background: var(--white); transition: all 0.15s; }
+.jump-link:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
+
+/* ─── Content card ─────────────────────────────────────────── */
+.legal-wrap { max-width: 780px; margin: 0 auto 80px; padding: 0 20px; }
+.legal-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 48px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); margin-bottom: 40px; }
+
+/* ─── Section headings ─────────────────────────────────────── */
+.section-label { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.legal-card > h2 { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; line-height: 1.2; }
+.legal-card > .updated { font-size: 13px; color: var(--text-muted); margin-bottom: 32px; }
+
+/* ─── Body text ────────────────────────────────────────────── */
+.legal-card h3 { font-size: 16px; font-weight: 700; margin: 32px 0 8px; line-height: 1.3; }
+.legal-card h3:first-of-type { margin-top: 0; }
+.legal-card p { font-size: 14px; color: var(--text); line-height: 1.7; margin-bottom: 12px; }
+.legal-card ul, .legal-card ol { font-size: 14px; color: var(--text); line-height: 1.7; margin: 0 0 12px 20px; }
+.legal-card li { margin-bottom: 6px; }
+.legal-card a { color: var(--red); text-decoration: none; }
+.legal-card a:hover { text-decoration: underline; }
+.legal-card strong { font-weight: 600; }
+
+/* ─── Divider ──────────────────────────────────────────────── */
+.legal-divider { border: none; border-top: 1px solid var(--border); margin: 36px 0; }
+
+/* ─── Responsive ───────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .legal-card { padding: 28px 20px; }
+  .page-header { padding: 40px 16px 8px; }
+}
+
+@media (max-width: 768px) {
+  nav {
+    padding: 0 16px !important;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-links { display: none !important; }
+  .logo { font-size: 20px; }
+  .nav-right { gap: 8px; }
+  .nav-right .btn, .nav-right button {
+    padding: 7px 12px !important;
+    font-size: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-right .btn-outline { display: none; }
+  .nav-right .btn-primary { padding: 7px 14px !important; font-size: 12px !important; }
+}
+</style>
+  <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="venly-config.js"></script>
+  <script src="venly-shared.js"></script>
+</head>
+<body>
+
+<div id="venly-nav"></div>
+<script>renderNav({ activePage: "", loggedIn: !!localStorage.getItem("venly_current_user") });</script>
+
+<div class="page-header">
+  <h1>Legal<span style="color:var(--red)">.</span></h1>
+  <p>Our terms, privacy policy, and cookie policy — everything in one place so you know exactly how Venly works.</p>
+</div>
+
+<div class="jump-links">
+  <a href="#terms" class="jump-link">Terms & Conditions</a>
+  <a href="#privacy" class="jump-link">Privacy Policy</a>
+  <a href="#cookies" class="jump-link">Cookie Policy</a>
+</div>
+
+<div class="legal-wrap">
+
+<!-- ════════════════════════════════════════════════════════════
+     TERMS & CONDITIONS
+     ════════════════════════════════════════════════════════════ -->
+<div class="legal-card" id="terms">
+  <div class="section-label">Section 1 of 3</div>
+  <h2>Terms & Conditions</h2>
+  <div class="updated">Last updated: July 2026</div>
+
+  <h3>1. About these terms</h3>
+  <p>These terms of use (<strong>Terms</strong>) govern your access to and use of the website at <a href="https://venly.co.nz">venly.co.nz</a> (<strong>Website</strong>) and the platform, products and services available through it (<strong>Platform</strong>). By using the Website or Platform you agree to be bound by these Terms. If you do not agree, please do not use the Website or Platform.</p>
+  <p>The Website and Platform are operated by WisenUp Limited (company number 8156885, NZBN 9429048972123) (<strong>Venly</strong>, <strong>we</strong>, <strong>us</strong>, <strong>our</strong>).</p>
+
+  <h3>2. Eligibility</h3>
+  <p>You must be at least 18 years old to create an account or use the Platform. By registering, you confirm that the information you provide is accurate, current and complete, and that you will keep it up to date.</p>
+
+  <h3>3. What Venly does</h3>
+  <p>Venly is a marketplace that connects people looking for event spaces, meeting rooms and shoot locations (<strong>Users</strong>) with the owners or managers of those spaces (<strong>Hosts</strong>). We provide the Platform to facilitate introductions and enquiries. We are not a party to any agreement between a User and a Host, and we do not act as agent for either side.</p>
+
+  <h3>4. Accounts</h3>
+  <p>You are responsible for all activity that occurs through your account. Keep your login details secure and notify us immediately at <a href="mailto:info@venly.co.nz">info@venly.co.nz</a> if you suspect unauthorised access. We may suspend or terminate any account that violates these Terms.</p>
+
+  <h3>5. Listings</h3>
+  <p>If you list a space on the Platform, you are responsible for ensuring that:</p>
+  <ul>
+    <li>you are legally entitled to list and make the space available;</li>
+    <li>all information (description, photos, pricing, availability) is accurate and not misleading;</li>
+    <li>pricing is stated in New Zealand dollars and indicates whether GST is included; and</li>
+    <li>the listing is removed or updated promptly when the space is no longer available.</li>
+  </ul>
+  <p>We reserve the right to remove any listing that we consider, in our sole discretion, to be inaccurate, misleading or otherwise inappropriate.</p>
+
+  <h3>6. Fees and payment</h3>
+  <p>Hosts may be required to pay listing fees or subscription fees as displayed on the Website (<strong>Fees</strong>). All Fees are in New Zealand dollars, are non-refundable once paid, and may be changed by us at the end of any subscription period with reasonable notice. Payment is processed through our third-party payment provider (currently Stripe). We do not store your full card details.</p>
+
+  <h3>7. Cancellation</h3>
+  <p>You may cancel your subscription at any time by contacting us at <a href="mailto:info@venly.co.nz">info@venly.co.nz</a>. Cancellation takes effect at the end of the current billing period. Fees already paid are non-refundable.</p>
+  <p>We may cancel or suspend your account at any time if you breach these Terms, and any Fees paid will be non-refundable in those circumstances.</p>
+
+  <h3>8. Acceptable use</h3>
+  <p>You must not:</p>
+  <ul>
+    <li>use the Website or Platform for any unlawful purpose;</li>
+    <li>post content that is offensive, defamatory, discriminatory or infringes any third party's rights;</li>
+    <li>harass, threaten, intimidate or impersonate any other user;</li>
+    <li>introduce viruses, malware or any code that may compromise the Website or Platform;</li>
+    <li>scrape, data-mine or use automated tools to access the Website or Platform without our written consent; or</li>
+    <li>use or reproduce our trade marks, branding or logos without our prior written consent.</li>
+  </ul>
+
+  <h3>9. Content you upload</h3>
+  <p>You retain ownership of content you upload (such as venue photos and descriptions). By uploading it, you grant us a non-exclusive, royalty-free, worldwide licence to use, display and reproduce that content on the Website and Platform, and in marketing materials related to Venly, for as long as the content remains on the Platform.</p>
+
+  <h3>10. Intellectual property</h3>
+  <p>All intellectual property in the Website and Platform (including its design, code, text and branding) belongs to WisenUp Limited. Nothing in these Terms grants you any rights in our intellectual property except the limited right to use the Website and Platform in accordance with these Terms.</p>
+
+  <h3>11. Disclaimers</h3>
+  <p>The Website and Platform are provided on an "as is" basis. To the maximum extent permitted by law, we exclude all implied warranties and representations. We do not guarantee that the Website or Platform will be uninterrupted, error-free or secure.</p>
+  <p>We do not verify the accuracy of any listing, the identity of any Host, or the suitability of any venue. Any arrangement you make with a Host is entirely between you and the Host, and you acknowledge that you enter into it at your own risk.</p>
+
+  <h3>12. Limitation of liability</h3>
+  <p>To the maximum extent permitted by law, our total liability to you in connection with the Website, Platform and these Terms is limited to the total Fees you have paid to us in the 12 months preceding the event giving rise to the claim.</p>
+  <p>We are not liable for any indirect, consequential or special loss, loss of revenue, loss of profit, loss of anticipated savings, loss of goodwill, or loss of business.</p>
+
+  <h3>13. Indemnity</h3>
+  <p>You agree to indemnify us and hold us harmless against all claims, losses, costs and expenses arising from your use of the Website and Platform or any breach of these Terms by you.</p>
+
+  <h3>14. Third-party links</h3>
+  <p>The Website may contain links to third-party websites. We are not responsible for the content or practices of those websites and their inclusion does not imply endorsement.</p>
+
+  <h3>15. Changes to these Terms</h3>
+  <p>We may update these Terms at any time. If we make material changes, we will notify you by email or by posting a notice on the Website. Your continued use of the Website or Platform after a change takes effect means you accept the updated Terms.</p>
+
+  <h3>16. Changes to the Platform</h3>
+  <p>We may modify, update or discontinue any part of the Website or Platform at any time without notice.</p>
+
+  <h3>17. Disputes</h3>
+  <p>If a dispute arises, both parties agree to try to resolve it through good-faith negotiation first. If that is unsuccessful within 30 days, either party may refer the dispute to mediation under the Arbitrators' and Mediators' Institute of New Zealand (AMINZ) Mediation Protocol. Mediation will take place in Auckland, New Zealand, with costs shared equally. Nothing in this clause prevents either party from applying to the courts for urgent interim relief.</p>
+
+  <h3>18. Consumer Guarantees Act 1993</h3>
+  <p>If you are using the Website and Platform for business purposes, you agree that the Consumer Guarantees Act 1993 does not apply.</p>
+
+  <h3>19. Governing law</h3>
+  <p>These Terms are governed by the laws of New Zealand. You submit to the non-exclusive jurisdiction of the courts of New Zealand.</p>
+
+  <h3>20. Severability</h3>
+  <p>If any provision of these Terms is held to be invalid or unenforceable, the remaining provisions will continue in full force and effect.</p>
+
+  <h3>21. Contact</h3>
+  <p>For any questions about these Terms, contact us at <a href="mailto:info@venly.co.nz">info@venly.co.nz</a>.</p>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     PRIVACY POLICY
+     ════════════════════════════════════════════════════════════ -->
+<div class="legal-card" id="privacy">
+  <div class="section-label">Section 2 of 3</div>
+  <h2>Privacy Policy</h2>
+  <div class="updated">Last updated: July 2026</div>
+
+  <h3>1. About this policy</h3>
+  <p>WisenUp Limited (company number 8156885, NZBN 9429048972123) (<strong>Venly</strong>, <strong>we</strong>, <strong>us</strong>, <strong>our</strong>) is committed to protecting the personal information of everyone who uses our website and platform in accordance with the Privacy Act 2020 and the Information Privacy Principles set out in it.</p>
+  <p>This privacy policy explains what personal information we collect, why, how we store and protect it, and your rights in relation to it. This policy does not limit or exclude any rights you have under the Privacy Act 2020. For more information, visit <a href="https://www.privacy.org.nz" target="_blank" rel="noopener">privacy.org.nz</a>.</p>
+
+  <h3>2. What we collect</h3>
+  <p>We collect personal information that you provide when you:</p>
+  <ul>
+    <li>create an account (your name, email address and phone number);</li>
+    <li>list a venue (venue details, photos, contact information);</li>
+    <li>submit an enquiry or contact form (your name, email, phone and message); or</li>
+    <li>communicate with us by email or other channels.</li>
+  </ul>
+  <p>We also collect certain information automatically when you use the Website, including pages visited, referring URLs and basic device information. See the <a href="#cookies">Cookie Policy</a> below for more detail.</p>
+  <p>We do not collect information about your race, ethnicity, religious beliefs, sexual orientation, political opinions, or any genetic or biometric data.</p>
+
+  <h3>3. How we use your information</h3>
+  <p>We use your personal information to:</p>
+  <ul>
+    <li>create and manage your account;</li>
+    <li>provide, operate and improve the Platform;</li>
+    <li>process payments and manage subscriptions;</li>
+    <li>respond to enquiries, support requests and complaints;</li>
+    <li>send transactional emails (account confirmations, password resets, enquiry notifications);</li>
+    <li>send marketing communications (only where you have consented or we have a legitimate interest, and you can opt out at any time);</li>
+    <li>analyse usage patterns to improve the Website and Platform; and</li>
+    <li>comply with legal obligations and protect our rights.</li>
+  </ul>
+
+  <h3>4. Who we share it with</h3>
+  <p>We do not sell your personal information. We share it only in the following circumstances:</p>
+  <ul>
+    <li><strong>With Hosts</strong> — when you submit an enquiry about a venue, the Host of that venue receives your name, email and message so they can respond to you.</li>
+    <li><strong>Service providers</strong> — we use third-party services to operate the Platform, including Supabase (database and authentication), Vercel (hosting), Stripe (payments) and Resend (transactional email). These providers only process your data on our behalf and in accordance with our instructions.</li>
+    <li><strong>Legal requirements</strong> — we may disclose information if required by law, regulation or court order, or to protect our legal rights.</li>
+  </ul>
+
+  <h3>5. Where your data is stored</h3>
+  <p>Your data may be stored and processed in New Zealand, Australia and the United States (where our infrastructure providers operate). We take reasonable steps to ensure that any overseas processing meets the standards required by the Privacy Act 2020.</p>
+
+  <h3>6. How we protect it</h3>
+  <p>We use industry-standard security measures to protect your personal information, including encrypted connections (HTTPS), secure authentication, and access controls. However, no method of transmission or storage is 100% secure, and we cannot guarantee absolute security.</p>
+
+  <h3>7. How long we keep it</h3>
+  <p>We retain your personal information for as long as your account is active or as needed to provide our services. If you close your account, we will delete or anonymise your personal information within a reasonable timeframe, except where we are required by law to retain it.</p>
+
+  <h3>8. Your rights</h3>
+  <p>Under the Privacy Act 2020, you have the right to:</p>
+  <ul>
+    <li>request access to the personal information we hold about you;</li>
+    <li>request correction of any inaccurate information;</li>
+    <li>request deletion of your personal information;</li>
+    <li>withdraw your consent to any processing based on consent; and</li>
+    <li>complain to the Office of the Privacy Commissioner if you believe your privacy has been breached.</li>
+  </ul>
+  <p>To exercise any of these rights, contact us at <a href="mailto:info@venly.co.nz">info@venly.co.nz</a>.</p>
+
+  <h3>9. Marketing communications</h3>
+  <p>You can unsubscribe from marketing emails at any time by clicking the unsubscribe link in any email, or by contacting us at <a href="mailto:info@venly.co.nz">info@venly.co.nz</a>. This does not affect transactional emails (such as account confirmations and password resets), which are necessary for the operation of the Platform.</p>
+
+  <h3>10. Children's privacy</h3>
+  <p>The Platform is not intended for anyone under 18. We do not knowingly collect personal information from children. If you believe we have inadvertently collected information from a person under 18, please contact us and we will delete it promptly.</p>
+
+  <h3>11. Changes to this policy</h3>
+  <p>We may update this privacy policy from time to time. If we make material changes, we will notify you by email or by posting a notice on the Website. The most current version will always be available on this page.</p>
+
+  <h3>12. Privacy officer</h3>
+  <p>Our privacy officer can be contacted at <a href="mailto:info@venly.co.nz">info@venly.co.nz</a>.</p>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     COOKIE POLICY
+     ════════════════════════════════════════════════════════════ -->
+<div class="legal-card" id="cookies">
+  <div class="section-label">Section 3 of 3</div>
+  <h2>Cookie Policy</h2>
+  <div class="updated">Last updated: July 2026</div>
+
+  <h3>1. What are cookies?</h3>
+  <p>Cookies are small text files that are stored on your device when you visit a website. They help the website remember your preferences and understand how you use it. Similar technologies such as local storage and session storage serve comparable purposes.</p>
+
+  <h3>2. How we use cookies</h3>
+  <p>We use a limited number of cookies and similar technologies on the Venly website:</p>
+
+  <ul>
+    <li><strong>Essential cookies</strong> — these are necessary for the Website to function. They handle authentication (keeping you logged in) and security. You cannot opt out of these as the Website will not work without them.</li>
+    <li><strong>Analytics</strong> — we track page views internally (stored in our own database, not sent to third parties) to understand which pages are popular and to improve the Platform. This data is aggregated and does not identify individual users.</li>
+  </ul>
+
+  <p>We do not use advertising cookies, tracking pixels, or any third-party cookies for the purpose of ad targeting or cross-site tracking.</p>
+
+  <h3>3. Third-party services</h3>
+  <p>Some of the third-party services we use (such as Supabase for authentication and Stripe for payment processing) may set their own cookies on your device. These cookies are governed by the respective privacy policies of those services:</p>
+  <ul>
+    <li><a href="https://supabase.com/privacy" target="_blank" rel="noopener">Supabase Privacy Policy</a></li>
+    <li><a href="https://stripe.com/nz/privacy" target="_blank" rel="noopener">Stripe Privacy Policy</a></li>
+  </ul>
+
+  <h3>4. Managing cookies</h3>
+  <p>Most browsers allow you to control cookies through their settings. You can typically choose to block all cookies, accept all cookies, or be notified when a cookie is set. Blocking essential cookies may prevent parts of the Website from working correctly.</p>
+  <p>For more information about managing cookies, visit <a href="https://www.allaboutcookies.org" target="_blank" rel="noopener">allaboutcookies.org</a>.</p>
+
+  <h3>5. Contact</h3>
+  <p>If you have any questions about our use of cookies, contact us at <a href="mailto:info@venly.co.nz">info@venly.co.nz</a>.</p>
+</div>
+
+</div><!-- .legal-wrap -->
+
+<div id="venly-footer"></div>
+<script>if (typeof renderFooter === 'function') renderFooter();</script>
+
+</body>
+</html>
