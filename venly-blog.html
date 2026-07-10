@@ -271,7 +271,7 @@ function renderPosts(filter) {
       </div>
       <div class="blog-card-body">
         <div class="blog-card-title">${p.title}</div>
-        <div class="blog-card-excerpt">${p.excerpt}</div>
+        <div class="blog-card-excerpt">${truncate(p.excerpt, 20)}</div>
         <span class="read-more">
           Read more
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
@@ -285,6 +285,13 @@ function filterCat(cat, btn) {
   document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   renderPosts(cat);
+}
+
+function truncate(text, wordLimit) {
+  if (!text) return '';
+  var words = text.split(/\s+/);
+  if (words.length <= wordLimit) return text;
+  return words.slice(0, wordLimit).join(' ') + '...';
 }
 
 window.venlyReady.then(function() {
@@ -322,7 +329,7 @@ function renderFeaturedSlideshow() {
       '<div class="featured-body">' +
         '<div class="featured-label">Featured Read</div>' +
         '<div class="featured-title">' + p.title + '</div>' +
-        '<div class="featured-excerpt">' + (p.excerpt || '') + '</div>' +
+        '<div class="featured-excerpt">' + truncate(p.excerpt, 30) + '</div>' +
         '<button class="read-btn">Read the story <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>' +
       '</div>' +
     '</div>';

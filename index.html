@@ -1321,6 +1321,13 @@ section { padding: 80px 48px; }
     return cat.charAt(0) + cat.slice(1).toLowerCase();
   }
 
+  function truncate(text, wordLimit) {
+    if (!text) return '';
+    var words = text.split(/\s+/);
+    if (words.length <= wordLimit) return text;
+    return words.slice(0, wordLimit).join(' ') + '...';
+  }
+
   function renderHomeBlog() {
     var grid = document.getElementById('home-blog-grid');
     var section = document.getElementById('home-blog-section');
@@ -1346,7 +1353,7 @@ section { padding: 80px 48px; }
         '<div style="padding:18px 18px 20px;flex:1;display:flex;flex-direction:column">' +
           '<div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">' + meta + '</div>' +
           '<div style="font-size:15px;font-weight:700;line-height:1.35;margin-bottom:10px;color:var(--text)">' + (p.title || 'Untitled post') + '</div>' +
-          '<div style="font-size:13px;color:var(--text-muted);line-height:1.6;flex:1;margin-bottom:14px">' + (p.excerpt || '') + '</div>' +
+          '<div style="font-size:13px;color:var(--text-muted);line-height:1.6;flex:1;margin-bottom:14px">' + truncate(p.excerpt, 20) + '</div>' +
           '<span style="font-size:13px;font-weight:600;color:var(--red);display:flex;align-items:center;gap:4px">' +
             'Read more' +
             '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>' +
