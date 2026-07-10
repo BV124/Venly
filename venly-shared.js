@@ -527,16 +527,24 @@ document.addEventListener('DOMContentLoaded', async function() {
         email: session.user.email,
         name: (session.user.user_metadata.first_name || '') + ' ' + (session.user.user_metadata.last_name || '')
       }));
-
-      // Sync favourites from Supabase → localStorage so hearts are correct
-      try {
-        var favRes = await sb.from('favourites').select('venue_id').eq('user_id', session.user.id);
-        if (favRes.data) {
-          var favs = {};
-          favRes.data.forEach(function(f) { favs[f.venue_id] = true; });
-          localStorage.setItem('venly_favourites', JSON.stringify(favs));
-        }
-      } catch (e) { console.error('Failed to load favourites:', e); }
     }
   }
 });
+
+// Sync favourites from Supabase on every page load — runs as part of the
+// bootstrap chain so it completes BEFORE any page renders venue cards.
+// This ensures isVenueFavourited() reads correct data.
+async function syncFavouritesFromSupabase() {
+  if (!SUPABASE_READY) return;
+  try {
+    var userRes = await sb.auth.getUser();
+    var user = userRes.data && userRes.data.user;
+    if (!user) return;
+    var res = await sb.from('favourites').select('venue_id').eq('user_id', user.id);
+    if (res.data) {
+      var favs = {};
+      res.data.forEach(function(f) { favs[f.venue_id] = true; });
+      localStorage.setItem('venly_favourites', JSON.stringify(favs));
+    }
+  } catch (e) { console.error('Failed to sync favourites:', e); }
+}
