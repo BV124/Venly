@@ -1042,18 +1042,15 @@ tbody tr:last-child td { border-bottom: none; }
                 <label>Venue title</label>
                 <input type="text" id="ven-name" placeholder="e.g. The Rooftop at Britomart" />
               </div>
-              <div class="editor-field">
-                <label>Address <span style="font-weight:400;text-transform:none;color:#bbb">(used to place the pin on the Find a Space map)</span></label>
-                <div style="display:flex;gap:8px">
-                  <input type="text" id="ven-address" placeholder="123 Queen St, Auckland CBD, Auckland" style="flex:1" />
-                  <button type="button" class="btn-secondary" onclick="geocodeAddress()" style="white-space:nowrap;padding:8px 16px;font-size:12px;font-weight:600;border-radius:6px;border:1.5px solid var(--border);background:var(--white);cursor:pointer;transition:all 0.15s" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='inherit'">📍 Locate</button>
-                </div>
+              <div class="editor-field" style="position:relative">
+                <label>Address</label>
+                <input type="text" id="ven-address" placeholder="Start typing an address..." autocomplete="off" oninput="onAddressInput()" />
+                <div id="address-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:50;background:var(--white);border:1.5px solid var(--border);border-top:none;border-radius:0 0 8px 8px;box-shadow:0 8px 24px rgba(0,0,0,0.1);max-height:220px;overflow-y:auto"></div>
                 <input type="hidden" id="ven-lat" />
                 <input type="hidden" id="ven-lng" />
                 <div id="geocode-status" style="font-size:12px;color:var(--text-muted);margin-top:6px"></div>
               </div>
             </div>
-            <div class="filter-card-note" style="margin:-8px 0 14px">Enter the full street address and click <strong>Locate</strong> to place a pin on the map. Without an address, the venue still shows in search results — it just won't have a map pin.</div>
             <div class="editor-field">
               <label>Description <span style="font-weight:400;text-transform:none;color:#bbb">(shown on the venue's public page)</span></label>
               <textarea id="ven-description" placeholder="Describe the space — what makes it special, what it's great for..."></textarea>
@@ -4574,6 +4571,7 @@ function openVenueEditor(venueId) {
     document.getElementById('ven-lat').value = '';
     document.getElementById('ven-lng').value = '';
     document.getElementById('geocode-status').textContent = '';
+    hideAddressDropdown();
     document.getElementById('ven-type').value = 'Event space';
     document.getElementById('ven-plan').value = 'Basic';
     populateVenueDistrictOptions();
@@ -4617,41 +4615,92 @@ function closeVenueEditor() {
   buildVenuesTable();
 }
 
-// ─── Geocode address → lat/lng via OpenStreetMap Nominatim ──────────────
-async function geocodeAddress() {
-  var address = document.getElementById('ven-address').value.trim();
-  var status = document.getElementById('geocode-status');
-  if (!address) { status.textContent = 'Please enter an address first.'; status.style.color = 'var(--red)'; return; }
+// ─── Address autocomplete via OpenStreetMap Nominatim ────────────────────
+var _addressTimer = null;
+var _addressResults = [];
 
-  status.textContent = 'Locating...';
-  status.style.color = 'var(--text-muted)';
+function onAddressInput() {
+  var query = document.getElementById('ven-address').value.trim();
+  clearTimeout(_addressTimer);
 
+  if (query.length < 3) {
+    hideAddressDropdown();
+    return;
+  }
+
+  // Clear coordinates when the user changes the address
+  document.getElementById('ven-lat').value = '';
+  document.getElementById('ven-lng').value = '';
+  document.getElementById('geocode-status').textContent = '';
+
+  // Debounce — wait 300ms after typing stops before searching
+  _addressTimer = setTimeout(function() { searchAddress(query); }, 300);
+}
+
+async function searchAddress(query) {
+  var dropdown = document.getElementById('address-dropdown');
   try {
-    // Bias toward New Zealand for better results
-    var query = address + (address.toLowerCase().includes('new zealand') ? '' : ', New Zealand');
-    var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=nz&q=' + encodeURIComponent(query);
+    // Search with NZ bias, return multiple results
+    var fullQuery = query + (query.toLowerCase().includes('new zealand') ? '' : ', New Zealand');
+    var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=nz&addressdetails=1&q=' + encodeURIComponent(fullQuery);
     var res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-    var results = await res.json();
+    _addressResults = await res.json();
 
-    if (results && results.length > 0) {
-      var lat = parseFloat(results[0].lat).toFixed(6);
-      var lng = parseFloat(results[0].lon).toFixed(6);
-      document.getElementById('ven-lat').value = lat;
-      document.getElementById('ven-lng').value = lng;
-      status.innerHTML = '✓ Found: <strong>' + results[0].display_name.split(',').slice(0, 3).join(', ') + '</strong> (' + lat + ', ' + lng + ')';
-      status.style.color = '#22c55e';
-    } else {
-      document.getElementById('ven-lat').value = '';
-      document.getElementById('ven-lng').value = '';
-      status.textContent = 'Could not find that address. Try adding more detail (e.g. suburb, city).';
-      status.style.color = 'var(--red)';
+    if (_addressResults.length === 0) {
+      dropdown.innerHTML = '<div style="padding:12px 14px;font-size:13px;color:var(--text-muted)">No results found — try adding more detail</div>';
+      dropdown.style.display = 'block';
+      return;
     }
+
+    dropdown.innerHTML = _addressResults.map(function(r, i) {
+      // Build a clean display name (first 3-4 parts, skip country)
+      var parts = r.display_name.split(', ');
+      var display = parts.slice(0, Math.min(parts.length - 1, 4)).join(', ');
+      var type = r.type ? r.type.replace(/_/g, ' ') : '';
+      return '<div class="addr-option" data-idx="' + i + '" onclick="selectAddress(' + i + ')" ' +
+        'style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;transition:background 0.1s" ' +
+        'onmouseover="this.style.background=\'var(--red-light)\'" onmouseout="this.style.background=\'transparent\'">' +
+        '<div style="font-weight:600;color:var(--text);margin-bottom:2px">📍 ' + display + '</div>' +
+        (type ? '<div style="font-size:11px;color:var(--text-muted);text-transform:capitalize">' + type + '</div>' : '') +
+      '</div>';
+    }).join('');
+    dropdown.style.display = 'block';
+
   } catch (e) {
-    console.error('Geocode error:', e);
-    status.textContent = 'Geocoding failed — please check your connection and try again.';
-    status.style.color = 'var(--red)';
+    console.error('Address search error:', e);
+    dropdown.innerHTML = '<div style="padding:12px 14px;font-size:13px;color:var(--red)">Search failed — please try again</div>';
+    dropdown.style.display = 'block';
   }
 }
+
+function selectAddress(idx) {
+  var result = _addressResults[idx];
+  if (!result) return;
+
+  var parts = result.display_name.split(', ');
+  var cleanAddress = parts.slice(0, Math.min(parts.length - 1, 4)).join(', ');
+
+  document.getElementById('ven-address').value = cleanAddress;
+  document.getElementById('ven-lat').value = parseFloat(result.lat).toFixed(6);
+  document.getElementById('ven-lng').value = parseFloat(result.lon).toFixed(6);
+
+  var status = document.getElementById('geocode-status');
+  status.innerHTML = '✓ Map pin set — ' + parseFloat(result.lat).toFixed(4) + ', ' + parseFloat(result.lon).toFixed(4);
+  status.style.color = '#22c55e';
+
+  hideAddressDropdown();
+}
+
+function hideAddressDropdown() {
+  document.getElementById('address-dropdown').style.display = 'none';
+}
+
+// Close dropdown when clicking elsewhere
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#ven-address') && !e.target.closest('#address-dropdown')) {
+    hideAddressDropdown();
+  }
+});
 
 async function saveVenue() {
   var name = document.getElementById('ven-name').value.trim();
