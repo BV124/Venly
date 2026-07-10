@@ -387,7 +387,7 @@ textarea { resize: none; min-height: 90px; }
           Enquire Now
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </button>
-        <div class="enquiry-note">No commitment - the host will get back to you shortly.</div>
+        <div class="enquiry-note" id="enquiry-note">No commitment - your enquiry will be sent to the host.</div>
 
         <div class="enquiry-divider"></div>
         <div class="enquiry-share">
@@ -892,6 +892,7 @@ async function submitEnquiry() {
   // Only reached on success — both branches above return early on error
   document.getElementById('enquiry-form').style.display = 'none';
   document.getElementById('enquiry-success').style.display = 'block';
+  document.getElementById('enquiry-note').textContent = 'No commitment - the host will get back to you shortly.';
 }
 
 function resetEnquiry() {
