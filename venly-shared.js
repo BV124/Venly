@@ -373,7 +373,7 @@ function renderFooter() {
     <!-- SUPPORT -->
     <div>
       <span class="vf-col-heading">Support</span>
-      <a href="javascript:void(0)" onclick="handleFooterAccount()" class="vf-link">Account</a>
+      <a href="venly-dashboard.html" class="vf-link">Account</a>
       <a href="venly-contact.html" class="vf-link">Contact Us</a>
       <a href="venly-terms.html" class="vf-link">Terms &amp; Conditions</a>
     </div>
