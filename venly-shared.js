@@ -73,7 +73,7 @@ function renderNav(options) {
   // Insert the hamburger button just before nav-right's closing </div>
   navRight = navRight.replace(/<\/div>$/, mnavToggle + '</div>');
 
-  var navHTML = '<nav>' +
+  var navHTML = '<nav role="navigation" aria-label="Main navigation">' +
     '<div style="display:flex;align-items:center">' +
       '<a class="logo" href="index.html" style="margin-right:48px">Venly.</a>' +
       '<div style="width:1px;height:18px;background:rgba(0,0,0,0.12);margin-right:48px;flex-shrink:0"></div>' +
@@ -238,7 +238,7 @@ function renderFooter() {
   var loggedIn = !!localStorage.getItem('venly_current_user');
 
   var footerHTML = `
-<footer style="background:#111;color:#fff;font-family:Inter,sans-serif">
+<footer role="contentinfo" aria-label="Site footer" style="background:#111;color:#fff;font-family:Inter,sans-serif">
 
   <style>
     .vf-grid {

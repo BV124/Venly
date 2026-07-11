@@ -27,13 +27,14 @@
 <link rel="preload" href="hero-bg-mobile.jpg" as="image" media="(max-width: 768px)" />
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+.skip-link:focus { top: 0; }
 
 :root {
   --red: #e03a2f;
   --red-light: #fdf0ef;
   --red-dark: #c2332a;
   --text: #1a1a1a;
-  --text-muted: #6b6b6b;
+  --text-muted: #595959;
   --border: #e8e8e8;
   --white: #ffffff;
   --radius: 12px;
@@ -254,7 +255,9 @@ section { padding: 80px 48px; }
   border: none;
   cursor: pointer;
   color: var(--text-muted);
-  padding: 2px;
+  padding: 8px;
+  min-width: 36px; min-height: 36px;
+  display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
   transition: color 0.15s;
 }
@@ -478,29 +481,31 @@ section { padding: 80px 48px; }
   </script>
 </head>
 <body>
+<a href="#main-content" class="skip-link" style="position:absolute;top:-40px;left:0;background:var(--red);color:#fff;padding:8px 16px;z-index:9999;font-size:14px;font-weight:600;text-decoration:none;transition:top 0.2s">Skip to content</a>
 
 <!-- NAV -->
 <div id="venly-nav"></div>
 <script>renderNav({ activePage: "home", loggedIn: !!localStorage.getItem("venly_current_user") });</script>
 
 <!-- HERO -->
+<main id="main-content">
 <section class="hero">
   <div class="hero-bg"></div>
   <div class="hero-content">
     <h1>Find your space<br>with <span>Venly.</span></h1>
     <div class="hero-card">
       <div class="search-bar">
-        <select id="hero-space">
+        <select id="hero-space" aria-label="Choose a space type">
           <option value="" disabled selected>Choose a space</option>
           <option>Event space</option>
           <option>Meeting space</option>
           <option>Shoot Location</option>
         </select>
         <div class="search-divider"></div>
-        <select id="hero-region">
+        <select id="hero-region" aria-label="Select a region">
           <option value="" disabled selected>Select a region</option>
         </select>
-        <button class="btn btn-primary" onclick="doSearch()">Search</button>
+        <button class="btn btn-primary" onclick="doSearch()" aria-label="Search spaces">Search</button>
       </div>
     </div>
   </div>
@@ -536,10 +541,11 @@ section { padding: 80px 48px; }
 .ja-chips-track { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 .ja-chip[aria-hidden="true"] { display: none; }
 .ja-chip {
-  display: inline-flex; align-items: center; padding: 7px 14px;
+  display: inline-flex; align-items: center; padding: 10px 18px;
   border: 1.5px solid var(--border); border-radius: 20px;
   font-size: 13px; font-weight: 600; color: var(--text); text-decoration: none;
   background: var(--white); white-space: nowrap;
+  min-height: 44px;
   opacity: 0; transform: translateY(8px) scale(0.95);
   transition-property: border-color, color, background, transform, opacity;
   transition-duration: 0.15s, 0.15s, 0.15s, 0.35s, 0.35s;
@@ -1394,6 +1400,7 @@ section { padding: 80px 48px; }
 </script>
 
 <!-- FOOTER -->
+</main>
 <div id="venly-footer"></div>
 <script>renderFooter(); trackPageView();</script>
 
