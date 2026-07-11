@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /venly-admin.html
+Disallow: /venly-dashboard.html
+
+Sitemap: https://venly.co.nz/sitemap.xml
