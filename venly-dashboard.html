@@ -708,17 +708,18 @@ let currentUploadSlot = 0;
 const _typeToCategory = { 'Event space': 'event', 'Event Space': 'event', 'Meeting space': 'meeting', 'Meeting Space': 'meeting', 'Shoot Location': 'shoot' };
 const _typeLabels = ['Event space', 'Meeting space', 'Shoot Location'];
 const planPrices = {};
-['Basic', 'Standard', 'Premium'].forEach(function(plan) {
-  planPrices[plan] = {};
-  _typeLabels.forEach(function(type) {
-    var catKey = _typeToCategory[type];
-    var info = VENLY_CONFIG.plans[catKey] && VENLY_CONFIG.plans[catKey][plan];
-    planPrices[plan][type] = info ? '$' + info.monthly + '/mo' : '';
-    // Also map capitalised version for backwards compatibility
-    var altType = type.replace('space', 'Space');
-    if (altType !== type) planPrices[plan][altType] = planPrices[plan][type];
+try {
+  ['Basic', 'Standard', 'Premium'].forEach(function(plan) {
+    planPrices[plan] = {};
+    _typeLabels.forEach(function(type) {
+      var catKey = _typeToCategory[type];
+      var info = (typeof VENLY_CONFIG !== 'undefined' && VENLY_CONFIG.plans && VENLY_CONFIG.plans[catKey]) ? VENLY_CONFIG.plans[catKey][plan] : null;
+      planPrices[plan][type] = info ? '$' + info.monthly + '/mo' : '';
+      var altType = type.replace('space', 'Space');
+      if (altType !== type) planPrices[plan][altType] = planPrices[plan][type];
+    });
   });
-});
+} catch (e) { console.error('planPrices build error:', e); }
 
 // ---- TAB NAVIGATION ----
 function switchToPanel(name) {
