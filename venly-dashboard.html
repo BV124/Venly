@@ -1097,7 +1097,7 @@ function updateHostEnquiryNote() {
 // record to the same venly_venues storage the admin reads/writes, in the
 // exact same shape, so it shows up in the admin's Venues table and (once
 // live) on the public venue page.
-async function saveListing(isLive) {
+async function saveListing(isLive, silent) {
   var title = document.getElementById('v-title').value.trim();
   if (!title) { showToast('Please give your space a title before saving'); return; }
 
@@ -1126,14 +1126,16 @@ async function saveListing(isLive) {
     });
     if (!saved) { showToast('Could not save — please try again'); return null; }
     await loadUserListings();
-    closeModal();
-    showToast(isLive ? '🎉 Your listing is now live!' : '✓ Saved as draft — you can publish it anytime');
-    switchToPanel('listings');
+    // silent = true when called from handlePayment(): keep the modal open and
+    // don't show a "saved as draft" toast while we're mid-way to Stripe.
+    if (!silent) {
+      closeModal();
+      showToast(isLive ? '🎉 Your listing is now live!' : '✓ Saved as draft — you can publish it anytime');
+      switchToPanel('listings');
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-btn')[1].classList.add('active');
+    }
     return saved;
-    switchToPanel('listings');
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-btn')[1].classList.add('active');
-    return;
   }
 
   // DEMO MODE: write to the shared venly_venues localStorage store
@@ -1224,11 +1226,11 @@ async function handlePayment() {
     return;
   }
 
-  // Save the listing as draft first so we have a venue ID
-  var venueId = await saveListing(false);
-  if (!venueId) return;
-  // saveListing returns the full venue object — extract the ID
-  var venueIdStr = (typeof venueId === 'object' && venueId.id) ? venueId.id : venueId;
+  // Save the listing first (silent: don't close the modal or toast "draft saved").
+  // If editing an existing listing this UPDATES it — it does not create a copy.
+  var saved = await saveListing(false, true);
+  if (!saved) return;
+  var venueIdStr = (typeof saved === 'object' && saved.id) ? saved.id : saved;
 
   // Ensure user is marked as a Host
   var user = (typeof getCurrentUser === 'function') ? await getCurrentUser() : null;
@@ -1247,7 +1249,7 @@ async function handlePayment() {
       body: JSON.stringify({
         priceId: planInfo.stripePriceId,
         venueId: venueIdStr,
-        venueName: document.getElementById('v-name').value.trim(),
+        venueName: document.getElementById('v-title').value.trim(),
         userEmail: user ? user.email : '',
         userId: user ? user.id : ''
       })
@@ -1614,7 +1616,8 @@ async function saveListingToSupabase(listingData) {
   if (!SUPABASE_READY) return null;
   const user = await getCurrentUser();
   if (!user) return null;
-  const { data, error } = await sb.from('venues').insert({
+
+  const row = {
     host_user_id: user.id,
     host_email: user.email,
     name: listingData.name,
@@ -1627,22 +1630,35 @@ async function saveListingToSupabase(listingData) {
     website: listingData.website,
     price_from: listingData.priceFrom || null,
     price_to: listingData.priceTo || null,
-    host_name: listingData.hostName || user.name || '',
+    host_name: listingData.hostName || '',
     host_phone: listingData.hostPhone,
     enquiry_email: listingData.enquiryEmail || null,
     plan: listingData.plan,
     is_live: listingData.isLive,
-    subscription_status: listingData.isLive ? 'active' : 'none',
     photos: listingData.photos || [],
     features: listingData.features || [],
     event_types: listingData.eventTypes || [],
-  }).select().single();
+  };
+
+  // EDITING an existing listing -> update that row. Never insert a second copy.
+  if (currentEditingListingId) {
+    const { data, error } = await sb.from('venues')
+      .update(row)
+      .eq('id', currentEditingListingId)
+      .select()
+      .single();
+    if (error) {
+      console.error('saveListingToSupabase update error:', error.code, error.message, error.details, error.hint);
+      return null;
+    }
+    return data;
+  }
+
+  // CREATING a new listing
+  row.subscription_status = listingData.isLive ? 'active' : 'none';
+  const { data, error } = await sb.from('venues').insert(row).select().single();
   if (error) {
-    console.error('saveListingToSupabase error:', error);
-    console.error('Error code:', error.code);
-    console.error('Error message:', error.message);
-    console.error('Error details:', error.details);
-    console.error('Error hint:', error.hint);
+    console.error('saveListingToSupabase insert error:', error.code, error.message, error.details, error.hint);
     return null;
   }
   return data;
