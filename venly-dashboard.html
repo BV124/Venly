@@ -1215,8 +1215,14 @@ async function handlePayment() {
   // Save the listing as draft first so we have a venue ID
   var venueId = await saveListing(false);
   if (!venueId) return;
+  // saveListing returns the full venue object — extract the ID
+  var venueIdStr = (typeof venueId === 'object' && venueId.id) ? venueId.id : venueId;
 
+  // Ensure user is marked as a Host
   var user = (typeof getCurrentUser === 'function') ? await getCurrentUser() : null;
+  if (user) {
+    sb.from('profiles').update({ role: 'Host' }).eq('id', user.id).then(function() {});
+  }
 
   try {
     showToast('Redirecting to payment...');
@@ -1228,7 +1234,7 @@ async function handlePayment() {
       },
       body: JSON.stringify({
         priceId: planInfo.stripePriceId,
-        venueId: venueId,
+        venueId: venueIdStr,
         venueName: document.getElementById('v-name').value.trim(),
         userEmail: user ? user.email : '',
         userId: user ? user.id : ''
@@ -1609,16 +1615,15 @@ async function saveListingToSupabase(listingData) {
     website: listingData.website,
     price_from: listingData.priceFrom || null,
     price_to: listingData.priceTo || null,
-    host_name: listingData.hostName,
+    host_name: listingData.hostName || user.name || '',
     host_phone: listingData.hostPhone,
-    enquiry_email: listingData.enquiryEmail,
-    effective_enquiry_email: listingData.enquiryEmail || user.email,
+    enquiry_email: listingData.enquiryEmail || null,
     plan: listingData.plan,
     is_live: listingData.isLive,
     subscription_status: listingData.isLive ? 'active' : 'none',
-    photos: listingData.photos,
-    features: listingData.features,
-    event_types: listingData.eventTypes,
+    photos: listingData.photos || [],
+    features: listingData.features || [],
+    event_types: listingData.eventTypes || [],
   }).select().single();
   if (error) { console.error('saveListingToSupabase error:', error); return null; }
   return data;
