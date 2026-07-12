@@ -1042,6 +1042,12 @@ function confirmUpgrade() {
 // Shows a clearer label for venues the admin set up on a host's behalf
 // that are still waiting on payment, vs a normal host-created draft.
 function renderListingStatus(l) {
+  // A failed payment must be visible BEFORE the listing comes down.
+  // Stripe retries for a few days; the host needs to fix their card in that
+  // window, so warn them rather than silently unpublishing later.
+  if (l.subscriptionStatus === 'past_due') {
+    return '<span class="live-dot draft" style="color:#a06000" title="We couldn\'t take payment. Update your card to keep this listing live.">Payment failed</span>';
+  }
   if (l.status === 'live') {
     return '<span class="live-dot live">Live</span>';
   }
@@ -1717,10 +1723,15 @@ async function handlePayment() {
       return;
     }
 
-    // 4. Publish the venue
+    // 4. Publish the venue. Store the subscription id so the webhook can
+    //    find this venue later when a payment fails or they cancel.
     if (SUPABASE_READY) {
       await sb.from('venues')
-        .update({ is_live: true, subscription_status: 'active' })
+        .update({
+          is_live: true,
+          subscription_status: 'active',
+          stripe_subscription_id: activeSubscriptionId
+        })
         .eq('id', venueIdStr);
     }
     if (user) {
