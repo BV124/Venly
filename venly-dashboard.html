@@ -700,7 +700,7 @@ function getEventTypes() {
 }
 let currentStep = 1;
 let activePlan = 'Premium';
-let activeType = 'Event Space';
+let activeType = 'Event space';
 let currentEditingListingId = null; // set when editing an existing listing, null when creating a new one
 let currentUploadSlot = 0;
 
@@ -1765,7 +1765,7 @@ loadFavourites();
   }
   if (params.get('newlisting') === '1') {
     activePlan = params.get('plan') || 'Premium';
-    activeType = params.get('type') || 'Event Space';
+    activeType = params.get('type') || 'Event space';
     switchToListings();
     setTimeout(() => openModal(), 300);
     window.history.replaceState({}, '', 'venly-dashboard.html');
