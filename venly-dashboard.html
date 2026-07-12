@@ -704,11 +704,21 @@ let activeType = 'Event Space';
 let currentEditingListingId = null; // set when editing an existing listing, null when creating a new one
 let currentUploadSlot = 0;
 
-const planPrices = {
-  'Basic': { 'Event Space': 'Free*', 'Meeting Space': 'Free*', 'Shoot Location': 'Free*' },
-  'Standard': { 'Event Space': '$59/mo', 'Meeting Space': '$49/mo', 'Shoot Location': '$29/mo' },
-  'Premium': { 'Event Space': '$89/mo', 'Meeting Space': '$69/mo', 'Shoot Location': '$49/mo' },
-};
+// Build planPrices dynamically from VENLY_CONFIG so it's always in sync
+const _typeToCategory = { 'Event space': 'event', 'Event Space': 'event', 'Meeting space': 'meeting', 'Meeting Space': 'meeting', 'Shoot Location': 'shoot' };
+const _typeLabels = ['Event space', 'Meeting space', 'Shoot Location'];
+const planPrices = {};
+['Basic', 'Standard', 'Premium'].forEach(function(plan) {
+  planPrices[plan] = {};
+  _typeLabels.forEach(function(type) {
+    var catKey = _typeToCategory[type];
+    var info = VENLY_CONFIG.plans[catKey] && VENLY_CONFIG.plans[catKey][plan];
+    planPrices[plan][type] = info ? '$' + info.monthly + '/mo' : '';
+    // Also map capitalised version for backwards compatibility
+    var altType = type.replace('space', 'Space');
+    if (altType !== type) planPrices[plan][altType] = planPrices[plan][type];
+  });
+});
 
 // ---- TAB NAVIGATION ----
 function switchToPanel(name) {
@@ -1193,10 +1203,8 @@ function saveDraft() {
 }
 
 async function handlePayment() {
-  // Get the venue type category key for pricing lookup
-  var typeMap = { 'Event space': 'event', 'Meeting space': 'meeting', 'Shoot Location': 'shoot' };
-  var venueType = document.getElementById('v-type').value;
-  var catKey = typeMap[venueType] || 'event';
+  var venueType = document.getElementById('v-type').value || activeType;
+  var catKey = _typeToCategory[venueType] || 'event';
   var planInfo = VENLY_CONFIG.plans[catKey] && VENLY_CONFIG.plans[catKey][activePlan];
 
   if (!planInfo || !planInfo.stripePriceId) {
