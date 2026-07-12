@@ -1625,7 +1625,14 @@ async function saveListingToSupabase(listingData) {
     features: listingData.features || [],
     event_types: listingData.eventTypes || [],
   }).select().single();
-  if (error) { console.error('saveListingToSupabase error:', error); return null; }
+  if (error) {
+    console.error('saveListingToSupabase error:', error);
+    console.error('Error code:', error.code);
+    console.error('Error message:', error.message);
+    console.error('Error details:', error.details);
+    console.error('Error hint:', error.hint);
+    return null;
+  }
   return data;
 }
 
