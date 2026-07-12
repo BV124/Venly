@@ -148,6 +148,9 @@ tbody tr:last-child td { border-bottom: none; }
 .step.active .step-num { border-color: var(--red); background: var(--red); color: #fff; }
 .step.active { color: var(--text); }
 .step.done .step-num { border-color: var(--red); background: var(--red-light); color: var(--red); }
+.step:hover .step-num { border-color: var(--red); transform: scale(1.1); }
+.step { transition: opacity 0.15s; }
+.step .step-num { transition: border-color 0.15s, transform 0.15s, background 0.15s, color 0.15s; }
 .step-line { flex: 1; height: 1px; background: var(--border); margin: 0 8px; }
 .step-line.done { background: var(--red); }
 
@@ -443,13 +446,13 @@ tbody tr:last-child td { border-bottom: none; }
     <div class="modal-body">
       <!-- Step indicator -->
       <div class="step-indicator">
-        <div class="step active" id="step-1"><div class="step-num">1</div><span>Venue info</span></div>
+        <div class="step active" id="step-1" onclick="goToStep(1)" style="cursor:pointer"><div class="step-num">1</div><span>Venue info</span></div>
         <div class="step-line" id="line-1"></div>
-        <div class="step" id="step-2"><div class="step-num">2</div><span>Photos</span></div>
+        <div class="step" id="step-2" onclick="goToStep(2)" style="cursor:pointer"><div class="step-num">2</div><span>Photos</span></div>
         <div class="step-line" id="line-2"></div>
-        <div class="step" id="step-3"><div class="step-num">3</div><span>Features</span></div>
+        <div class="step" id="step-3" onclick="goToStep(3)" style="cursor:pointer"><div class="step-num">3</div><span>Features</span></div>
         <div class="step-line" id="line-3"></div>
-        <div class="step" id="step-4"><div class="step-num">4</div><span>Payment</span></div>
+        <div class="step" id="step-4" onclick="goToStep(4)" style="cursor:pointer"><div class="step-num">4</div><span>Payment</span></div>
       </div>
 
       <!-- STEP 1: Venue Info -->
@@ -1151,11 +1154,34 @@ function updateStepUI() {
   }
 }
 
+function validateStep(step) {
+  if (step >= 1) {
+    var title = document.getElementById('v-title').value.trim();
+    var type = document.getElementById('v-type').value;
+    if (!title) { showToast('Please enter a venue title'); return false; }
+    if (!type) { showToast('Please select a space type'); return false; }
+  }
+  return true;
+}
+
+function goToStep(target) {
+  // Going backwards is always allowed
+  if (target < currentStep) {
+    currentStep = target;
+    updateStepUI();
+    return;
+  }
+  // Going forward: validate all steps up to the target
+  if (target > currentStep) {
+    if (!validateStep(1)) return;
+  }
+  currentStep = target;
+  updateStepUI();
+}
+
 function nextStep() {
   if (currentStep === 1) {
-    if (!document.getElementById('v-title').value.trim()) {
-      showToast('Please enter a venue title'); return;
-    }
+    if (!validateStep(1)) return;
   }
   if (currentStep < 4) { currentStep++; updateStepUI(); }
 }
