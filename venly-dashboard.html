@@ -227,6 +227,15 @@ tbody tr:last-child td { border-bottom: none; }
 .btn-pay svg { width: 18px; height: 18px; }
 .stripe-note { font-size: 11px; color: var(--text-muted); margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 4px; }
 
+/* Embedded Stripe checkout */
+.pay-embedded-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.pay-back-link { display: inline-flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; color: var(--text-muted); padding: 6px 0; transition: color 0.15s; }
+.pay-back-link:hover { color: var(--red); }
+.pay-embedded-total { display: flex; align-items: baseline; gap: 10px; font-size: 13px; color: var(--text-muted); }
+.pay-embedded-total strong { font-size: 16px; font-weight: 800; color: var(--red); }
+#stripe-checkout-mount { min-height: 320px; border: 1px solid var(--border); border-radius: var(--radius); padding: 8px; background: var(--white); }
+.btn-pay:disabled { opacity: 0.6; cursor: not-allowed; }
+
 /* TOAST */
 .toast { position: fixed; bottom: 24px; right: 24px; background: #1a1a1a; color: #fff; padding: 12px 20px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; opacity: 0; transform: translateY(8px); transition: all 0.25s; pointer-events: none; z-index: 999; }
 .toast.show { opacity: 1; transform: translateY(0); }
@@ -318,6 +327,7 @@ tbody tr:last-child td { border-bottom: none; }
 </style>
   <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://js.stripe.com/v3/"></script>
   <script src="venly-config.js?v=2"></script>
   <script src="venly-shared.js"></script>
 </head>
@@ -539,7 +549,9 @@ tbody tr:last-child td { border-bottom: none; }
       <div id="modal-step-4" style="display:none">
         <div class="modal-section">
           <div class="modal-section-title">Complete your listing</div>
-          <div class="stripe-box">
+
+          <!-- 4a: summary + start payment -->
+          <div class="stripe-box" id="pay-summary">
             <div class="stripe-logo">stripe</div>
             <p>Secure payment powered by Stripe. Your listing will go live immediately after payment.</p>
             <div class="plan-summary">
@@ -560,15 +572,31 @@ tbody tr:last-child td { border-bottom: none; }
                 <span class="plan-price-display" id="summary-price">$89/mo</span>
               </div>
             </div>
-            <button class="btn-pay" onclick="handlePayment()">
+            <button class="btn-pay" id="btn-pay" onclick="handlePayment()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-              Pay &amp; Go Live
+              <span id="btn-pay-text">Continue to payment</span>
             </button>
             <div class="stripe-note">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
               Secured by Stripe · Cancel anytime
             </div>
           </div>
+
+          <!-- 4b: embedded Stripe card form (mounts here) -->
+          <div id="pay-embedded-wrap" style="display:none">
+            <div class="pay-embedded-header">
+              <button type="button" class="pay-back-link" onclick="cancelEmbeddedCheckout()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                Back to summary
+              </button>
+              <div class="pay-embedded-total">
+                <span id="embed-plan-label">Premium · Monthly</span>
+                <strong id="embed-price">$89/mo</strong>
+              </div>
+            </div>
+            <div id="stripe-checkout-mount"></div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -1030,6 +1058,20 @@ function closeModal() {
   typeDropdown.disabled = false;
   typeDropdown.style.opacity = '';
   typeDropdown.style.cursor = '';
+  // Tear down any mounted Stripe form and reset the payment step
+  if (typeof embeddedCheckout !== 'undefined' && embeddedCheckout) {
+    try { embeddedCheckout.destroy(); } catch (e) {}
+    embeddedCheckout = null;
+  }
+  var embedWrap = document.getElementById('pay-embedded-wrap');
+  var paySummary = document.getElementById('pay-summary');
+  var payBtn = document.getElementById('btn-pay');
+  if (embedWrap) embedWrap.style.display = 'none';
+  if (paySummary) paySummary.style.display = '';
+  if (payBtn) {
+    payBtn.disabled = false;
+    document.getElementById('btn-pay-text').textContent = 'Continue to payment';
+  }
   currentStep = 1;
   selectedFeatures = [];
   selectedEventTypes = [];
@@ -1216,6 +1258,10 @@ function saveDraft() {
   saveListing(false);
 }
 
+// ---- EMBEDDED STRIPE CHECKOUT ----
+var stripeInstance = null;
+var embeddedCheckout = null;
+
 async function handlePayment() {
   var venueType = document.getElementById('v-type').value || activeType;
   var catKey = _typeToCategory[venueType] || 'event';
@@ -1225,21 +1271,33 @@ async function handlePayment() {
     showToast('Could not find pricing for this plan. Please try again.');
     return;
   }
+  if (typeof Stripe === 'undefined') {
+    showToast('Payment system still loading — please try again in a moment.');
+    return;
+  }
 
-  // Save the listing first (silent: don't close the modal or toast "draft saved").
+  var payBtn = document.getElementById('btn-pay');
+  var payBtnText = document.getElementById('btn-pay-text');
+  payBtn.disabled = true;
+  payBtnText.textContent = 'Loading payment…';
+
+  // Save the listing first (silent: keep the modal open, no "draft saved" toast).
   // If editing an existing listing this UPDATES it — it does not create a copy.
   var saved = await saveListing(false, true);
-  if (!saved) return;
+  if (!saved) {
+    payBtn.disabled = false;
+    payBtnText.textContent = 'Continue to payment';
+    return;
+  }
   var venueIdStr = (typeof saved === 'object' && saved.id) ? saved.id : saved;
 
-  // Ensure user is marked as a Host
+  // Ensure the user is marked as a Host
   var user = (typeof getCurrentUser === 'function') ? await getCurrentUser() : null;
   if (user) {
     sb.from('profiles').update({ role: 'Host' }).eq('id', user.id).then(function() {});
   }
 
   try {
-    showToast('Redirecting to payment...');
     var res = await fetch(VENLY_CONFIG.supabaseUrl + '/functions/v1/stripe-checkout', {
       method: 'POST',
       headers: {
@@ -1256,17 +1314,45 @@ async function handlePayment() {
     });
 
     var data = await res.json();
-    if (data.error) {
-      showToast('Payment error: ' + data.error);
+    if (data.error || !data.clientSecret) {
+      showToast('Payment error: ' + (data.error || 'could not start checkout'));
+      payBtn.disabled = false;
+      payBtnText.textContent = 'Continue to payment';
       return;
     }
-    if (data.url) {
-      window.location.href = data.url;
-    }
+
+    // Swap the summary out for the embedded card form
+    document.getElementById('embed-plan-label').textContent = activePlan + ' · Monthly';
+    document.getElementById('embed-price').textContent = planPrices[activePlan]?.[activeType] || '';
+    document.getElementById('pay-summary').style.display = 'none';
+    document.getElementById('pay-embedded-wrap').style.display = 'block';
+
+    if (!stripeInstance) stripeInstance = Stripe(VENLY_CONFIG.stripeKey);
+
+    // Tear down any previous instance before mounting a fresh one
+    if (embeddedCheckout) { try { embeddedCheckout.destroy(); } catch (e) {} embeddedCheckout = null; }
+
+    embeddedCheckout = await stripeInstance.initEmbeddedCheckout({
+      clientSecret: data.clientSecret
+    });
+    embeddedCheckout.mount('#stripe-checkout-mount');
+
   } catch (e) {
-    console.error('Stripe checkout failed:', e);
+    console.error('Stripe embedded checkout failed:', e);
     showToast('Could not start payment. Please try again.');
+    payBtn.disabled = false;
+    payBtnText.textContent = 'Continue to payment';
   }
+}
+
+// Back out of the card form and return to the summary
+function cancelEmbeddedCheckout() {
+  if (embeddedCheckout) { try { embeddedCheckout.destroy(); } catch (e) {} embeddedCheckout = null; }
+  document.getElementById('pay-embedded-wrap').style.display = 'none';
+  document.getElementById('pay-summary').style.display = '';
+  var payBtn = document.getElementById('btn-pay');
+  payBtn.disabled = false;
+  document.getElementById('btn-pay-text').textContent = 'Continue to payment';
 }
 
 // ---- FEATURES ----
@@ -1764,24 +1850,39 @@ loadFavourites();
 (function() {
   const params = new URLSearchParams(window.location.search);
 
-  // Stripe payment success — mark the venue as live
-  if (params.get('payment') === 'success') {
+  // Stripe embedded checkout return
+  if (params.get('payment') === 'complete') {
     var venueId = params.get('venue_id');
-    if (venueId && typeof sb !== 'undefined' && SUPABASE_READY) {
-      sb.from('venues').update({ is_live: true, subscription_status: 'active' }).eq('id', venueId)
-        .then(function() {
-          showToast('🎉 Payment successful — your listing is now live!');
-          loadUserListings();
+    var sessionId = params.get('session_id');
+    window.history.replaceState({}, '', 'venly-dashboard.html');
+
+    // Verify the session actually paid before marking the venue live —
+    // don't trust the URL alone.
+    (async function() {
+      try {
+        var res = await fetch(VENLY_CONFIG.supabaseUrl + '/functions/v1/stripe-checkout?session_id=' + encodeURIComponent(sessionId || ''), {
+          method: 'GET',
+          headers: { 'Authorization': 'Bearer ' + VENLY_CONFIG.supabaseKey }
         });
-    } else {
-      showToast('🎉 Payment successful!');
-    }
-    window.history.replaceState({}, '', 'venly-dashboard.html');
-    return;
-  }
-  if (params.get('payment') === 'cancelled') {
-    showToast('Payment cancelled — your listing has been saved as a draft');
-    window.history.replaceState({}, '', 'venly-dashboard.html');
+        var info = await res.json();
+        if (info.paid && venueId && SUPABASE_READY) {
+          await sb.from('venues')
+            .update({ is_live: true, subscription_status: 'active' })
+            .eq('id', venueId);
+          showToast('🎉 Payment successful — your listing is now live!');
+          await loadUserListings();
+        } else {
+          showToast('Payment not completed — your listing is saved as a draft');
+          await loadUserListings();
+        }
+      } catch (e) {
+        console.error('Could not verify payment:', e);
+        showToast('Could not confirm payment — please check your listing status');
+      }
+    })();
+    switchToPanel('listings');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-btn')[1].classList.add('active');
     return;
   }
 
