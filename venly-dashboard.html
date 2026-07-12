@@ -615,6 +615,23 @@ tbody tr:last-child td { border-bottom: none; }
 
 <div class="toast" id="toast"></div>
 
+<!-- DELETE CONFIRMATION MODAL -->
+<div class="modal-overlay hidden" id="delete-confirm-overlay" style="z-index:1100">
+  <div style="background:var(--white);border-radius:16px;padding:32px;max-width:400px;width:90%;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,0.15);animation:mmIn 0.2s ease">
+    <div style="width:56px;height:56px;background:#fff0ef;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e03a2f" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+    </div>
+    <h3 style="font-size:18px;font-weight:800;margin-bottom:8px">Delete venue?</h3>
+    <p style="font-size:14px;color:var(--text-muted);line-height:1.6;margin-bottom:24px">
+      Are you sure you want to delete <strong id="delete-confirm-name"></strong>? This action can't be undone and all venue data will be permanently removed.
+    </p>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button id="delete-confirm-no" style="flex:1;padding:12px;border:1.5px solid var(--border);border-radius:8px;background:var(--white);font-family:Inter,sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.15s" onmouseover="this.style.borderColor='var(--text)'" onmouseout="this.style.borderColor='var(--border)'">Cancel</button>
+      <button id="delete-confirm-yes" style="flex:1;padding:12px;border:none;border-radius:8px;background:#e03a2f;color:#fff;font-family:Inter,sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='#c2332a'" onmouseout="this.style.background='#e03a2f'">Yes, delete</button>
+    </div>
+  </div>
+</div>
+
 <!-- MANAGE PLAN MODAL -->
 <div class="modal-overlay hidden" id="manage-plan-overlay">
   <div class="modal" style="max-width:560px">
@@ -966,11 +983,40 @@ function buildTable() {
 }
 
 function deleteListing(i) {
-  if (confirm(`Delete "${listings[i].name}"?`)) {
+  var listing = listings[i];
+  if (!listing) return;
+
+  // Show a branded confirmation instead of the browser's ugly confirm()
+  var overlay = document.getElementById('delete-confirm-overlay');
+  document.getElementById('delete-confirm-name').textContent = listing.name || 'this venue';
+  overlay.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+
+  // Wire up the buttons for this specific listing
+  document.getElementById('delete-confirm-yes').onclick = async function() {
+    overlay.classList.add('hidden');
+    document.body.style.overflow = '';
+
+    // Delete from Supabase
+    if (SUPABASE_READY && listing.id) {
+      var { error } = await sb.from('venues').delete().eq('id', listing.id);
+      if (error) {
+        console.error('Delete failed:', error);
+        showToast('Could not delete — please try again');
+        return;
+      }
+    }
+
+    // Remove from local list and refresh
     listings.splice(i, 1);
     buildTable();
-    showToast('Listing deleted');
-  }
+    showToast('Venue deleted');
+  };
+
+  document.getElementById('delete-confirm-no').onclick = function() {
+    overlay.classList.add('hidden');
+    document.body.style.overflow = '';
+  };
 }
 
 // Opens the venue's real page in the same tab. The page itself renders
