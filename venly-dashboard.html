@@ -1004,7 +1004,12 @@ function openModal() {
   document.getElementById('modal-overlay').classList.remove('hidden');
   document.getElementById('modal-plan-tag').textContent = activePlan + ' Plan';
   document.getElementById('modal-type-tag').textContent = activeType;
-  document.getElementById('v-type').value = activeType;
+  // Set and lock the type dropdown — the user already chose this on the listing fees page
+  var typeDropdown = document.getElementById('v-type');
+  typeDropdown.value = activeType;
+  typeDropdown.disabled = true;
+  typeDropdown.style.opacity = '0.7';
+  typeDropdown.style.cursor = 'not-allowed';
   document.getElementById('summary-plan').textContent = activePlan;
   document.getElementById('summary-type').textContent = activeType;
   document.getElementById('summary-price').textContent = planPrices[activePlan]?.[activeType] || '';
@@ -1019,6 +1024,12 @@ function openModal() {
 function closeModal() {
   document.getElementById('modal-overlay').classList.add('hidden');
   document.body.style.overflow = '';
+  // Re-enable the type dropdown
+  var typeDropdown = document.getElementById('v-type');
+  typeDropdown.disabled = false;
+  typeDropdown.style.opacity = '';
+  typeDropdown.style.cursor = '';
+}
   currentStep = 1;
   selectedFeatures = [];
   selectedEventTypes = [];
@@ -1766,7 +1777,9 @@ loadFavourites();
   }
   if (params.get('newlisting') === '1') {
     activePlan = params.get('plan') || 'Premium';
-    activeType = params.get('type') || 'Event space';
+    // Normalise type to match database values (lowercase 's' in 'space')
+    var rawType = params.get('type') || 'Event space';
+    activeType = rawType.replace('Event Space', 'Event space').replace('Meeting Space', 'Meeting space');
     switchToListings();
     setTimeout(() => openModal(), 300);
     window.history.replaceState({}, '', 'venly-dashboard.html');
