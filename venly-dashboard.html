@@ -1004,9 +1004,10 @@ function openModal() {
   document.getElementById('modal-overlay').classList.remove('hidden');
   document.getElementById('modal-plan-tag').textContent = activePlan + ' Plan';
   document.getElementById('modal-type-tag').textContent = activeType;
+  document.getElementById('v-type').value = activeType;
   document.getElementById('summary-plan').textContent = activePlan;
   document.getElementById('summary-type').textContent = activeType;
-  document.getElementById('summary-price').textContent = planPrices[activePlan]?.[activeType] || '$89/mo';
+  document.getElementById('summary-price').textContent = planPrices[activePlan]?.[activeType] || '';
   updateStepUI();
   populateRegionOptions();
   renderPhotoGrid();
