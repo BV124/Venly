@@ -16,7 +16,7 @@ const VENLY_CONFIG = {
   // STRIPE — get these from dashboard.stripe.com
   // Developers → API keys → Publishable key
   // ----------------------------------------------------------
-  stripeKey: 'YOUR_STRIPE_PUBLISHABLE_KEY',
+  stripeKey: 'pk_live_51Il070LEXONgPwvxk8r0BgEMXXCZb2oXB4hDip6nsIj1viAi7Y3o6HgfMh5R67dTxQU7YxySlqHPhsKIjjVHs5LN00H3LdGUPY',
 
   // ----------------------------------------------------------
   // SITE SETTINGS
@@ -32,19 +32,19 @@ const VENLY_CONFIG = {
   // ----------------------------------------------------------
   plans: {
     event: {
-      Basic:    { price: 'Free*', strikethrough: '$39', monthly: 0 },
-      Standard: { price: '$59',   strikethrough: null,  monthly: 59 },
-      Premium:  { price: '$79',   strikethrough: null,  monthly: 79 },
+      Basic:    { price: '$39',  strikethrough: null, monthly: 39,  stripePriceId: 'price_1TsE7FLEXONgPwvxattWCpXN' },
+      Standard: { price: '$59',  strikethrough: null, monthly: 59,  stripePriceId: 'price_1TsEBcLEXONgPwvxzyWTtpB2' },
+      Premium:  { price: '$89',  strikethrough: null, monthly: 89,  stripePriceId: 'price_1TsECmLEXONgPwvx2ZhWHDtP' },
     },
     meeting: {
-      Basic:    { price: 'Free*', strikethrough: '$29', monthly: 0 },
-      Standard: { price: '$39',   strikethrough: null,  monthly: 39 },
-      Premium:  { price: '$59',   strikethrough: null,  monthly: 59 },
+      Basic:    { price: '$29',  strikethrough: null, monthly: 29,  stripePriceId: 'price_1TsEFuLEXONgPwvxkSsTrcrH' },
+      Standard: { price: '$49',  strikethrough: null, monthly: 49,  stripePriceId: 'price_1TsEHzLEXONgPwvxQiOdN1ea' },
+      Premium:  { price: '$69',  strikethrough: null, monthly: 69,  stripePriceId: 'price_1TsEIYLEXONgPwvxw41xKvh6' },
     },
     shoot: {
-      Basic:    { price: 'Free*', strikethrough: '$29', monthly: 0 },
-      Standard: { price: '$49',   strikethrough: null,  monthly: 49 },
-      Premium:  { price: '$69',   strikethrough: null,  monthly: 69 },
+      Basic:    { price: '$19',  strikethrough: null, monthly: 19,  stripePriceId: 'price_1TsEJCLEXONgPwvxK5ckM9Yk' },
+      Standard: { price: '$29',  strikethrough: null, monthly: 29,  stripePriceId: 'price_1TsEJzLEXONgPwvxKlPODRmS' },
+      Premium:  { price: '$49',  strikethrough: null, monthly: 49,  stripePriceId: 'price_1TsEKVLEXONgPwvxVTsAlREW' },
     },
   },
 

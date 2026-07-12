@@ -1102,10 +1102,12 @@ async function saveListing(isLive) {
       features: selectedFeatures.slice(),
       eventTypes: selectedEventTypes.slice(),
     });
-    if (!saved) { showToast('Could not save — please try again'); return; }
+    if (!saved) { showToast('Could not save — please try again'); return null; }
     await loadUserListings();
     closeModal();
     showToast(isLive ? '🎉 Your listing is now live!' : '✓ Saved as draft — you can publish it anytime');
+    switchToPanel('listings');
+    return saved;
     switchToPanel('listings');
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-btn')[1].classList.add('active');
@@ -1190,11 +1192,53 @@ function saveDraft() {
   saveListing(false);
 }
 
-function handlePayment() {
-  // NOTE: this does not yet process any real payment — no Stripe checkout
-  // is wired up. It marks the listing live immediately. Real payment
-  // processing needs to be added before this goes live for real money.
-  saveListing(true);
+async function handlePayment() {
+  // Get the venue type category key for pricing lookup
+  var typeMap = { 'Event space': 'event', 'Meeting space': 'meeting', 'Shoot Location': 'shoot' };
+  var venueType = document.getElementById('v-type').value;
+  var catKey = typeMap[venueType] || 'event';
+  var planInfo = VENLY_CONFIG.plans[catKey] && VENLY_CONFIG.plans[catKey][activePlan];
+
+  if (!planInfo || !planInfo.stripePriceId) {
+    showToast('Could not find pricing for this plan. Please try again.');
+    return;
+  }
+
+  // Save the listing as draft first so we have a venue ID
+  var venueId = await saveListing(false);
+  if (!venueId) return;
+
+  var user = (typeof getCurrentUser === 'function') ? await getCurrentUser() : null;
+
+  try {
+    showToast('Redirecting to payment...');
+    var res = await fetch(VENLY_CONFIG.supabaseUrl + '/functions/v1/stripe-checkout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + VENLY_CONFIG.supabaseKey
+      },
+      body: JSON.stringify({
+        priceId: planInfo.stripePriceId,
+        venueId: venueId,
+        venueName: document.getElementById('v-name').value.trim(),
+        userEmail: user ? user.email : '',
+        userId: user ? user.id : ''
+      })
+    });
+
+    var data = await res.json();
+    if (data.error) {
+      showToast('Payment error: ' + data.error);
+      return;
+    }
+    if (data.url) {
+      window.location.href = data.url;
+    }
+  } catch (e) {
+    console.error('Stripe checkout failed:', e);
+    showToast('Could not start payment. Please try again.');
+  }
 }
 
 // ---- FEATURES ----
@@ -1545,7 +1589,7 @@ async function saveListingToSupabase(listingData) {
   const user = await getCurrentUser();
   if (!user) return null;
   const { data, error } = await sb.from('venues').insert({
-    user_id: user.id,
+    host_user_id: user.id,
     host_email: user.email,
     name: listingData.name,
     type: listingData.type,
@@ -1668,9 +1712,31 @@ loadUserProfile();
 loadUserListings();
 loadFavourites();
 
-// ---- URL PARAMS: open modal if returning from listing fees ----
+// ---- URL PARAMS: handle payment returns and listing fees redirects ----
 (function() {
   const params = new URLSearchParams(window.location.search);
+
+  // Stripe payment success — mark the venue as live
+  if (params.get('payment') === 'success') {
+    var venueId = params.get('venue_id');
+    if (venueId && typeof sb !== 'undefined' && SUPABASE_READY) {
+      sb.from('venues').update({ is_live: true, subscription_status: 'active' }).eq('id', venueId)
+        .then(function() {
+          showToast('🎉 Payment successful — your listing is now live!');
+          loadUserListings();
+        });
+    } else {
+      showToast('🎉 Payment successful!');
+    }
+    window.history.replaceState({}, '', 'venly-dashboard.html');
+    return;
+  }
+  if (params.get('payment') === 'cancelled') {
+    showToast('Payment cancelled — your listing has been saved as a draft');
+    window.history.replaceState({}, '', 'venly-dashboard.html');
+    return;
+  }
+
   // Switch to listings tab
   function switchToListings() {
     switchToPanel('listings');
