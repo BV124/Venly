@@ -435,26 +435,35 @@ tbody tr:last-child td { border-bottom: none; }
       <div class="panel-title">My details</div>
       <div class="section-divider">Information</div>
       <div class="photo-row">
-        <div class="profile-pic" id="profile-pic" style="position:relative;overflow:hidden" onclick="document.getElementById('avatar-upload').click()">
+        <div class="profile-pic" id="profile-pic" style="position:relative;overflow:hidden" onclick="onAvatarClick()">
           <span id="profile-initials"></span>
           <img id="profile-photo" src="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:50%" />
           <input type="file" id="avatar-upload" accept="image/*" style="display:none" onchange="handleAvatarUpload(this)" />
-          <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.5);color:#fff;font-size:9px;font-weight:600;text-align:center;padding:2px 0;opacity:0;transition:opacity 0.15s" class="avatar-hover-hint">Edit</div>
+          <div id="avatar-hover-hint" style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.5);color:#fff;font-size:9px;font-weight:600;text-align:center;padding:2px 0;opacity:0;transition:opacity 0.15s;display:none">Edit</div>
         </div>
         <div class="fields-wrap">
           <div class="form-row">
-            <div class="form-group"><label for="name">Name</label><input type="text" id="name" value="" placeholder="Your name" /></div>
-            <div class="form-group"><label for="phone">Number</label><input type="tel" id="phone" value="" placeholder="Your number" /></div>
+            <div class="form-group">
+              <label for="name">Name</label>
+              <input type="text" id="name" value="" placeholder="Your name" disabled style="background:var(--bg);color:var(--text-muted)" />
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone</label>
+              <input type="tel" id="phone" value="" placeholder="Your number" disabled style="background:var(--bg);color:var(--text-muted)" />
+            </div>
           </div>
-          <div class="form-group" style="max-width:340px"><label for="email">Email</label><input type="email" id="email" value="" placeholder="Your email" /></div>
+          <div class="form-group" style="max-width:340px">
+            <label for="email">Email</label>
+            <input type="email" id="email" value="" placeholder="Your email" disabled style="background:var(--bg);color:var(--text-muted)" />
+          </div>
         </div>
       </div>
       <div class="form-actions">
+        <button class="btn btn-outline" id="btn-change-password" onclick="sendPasswordReset()">Change password</button>
         <div style="display:flex;gap:8px">
-          <button class="btn btn-outline" onclick="showToast('Email change link sent')">Change email</button>
-          <button class="btn btn-outline" onclick="showToast('Password reset email sent')">Change password</button>
+          <button class="btn btn-outline" id="btn-cancel-edit" style="display:none" onclick="cancelEdit()">Cancel</button>
+          <button class="btn btn-primary" id="btn-edit-save" onclick="toggleEditMode()">Edit</button>
         </div>
-        <button class="btn btn-primary" onclick="showToast('Changes saved')">Edit</button>
       </div>
     </div>
 
@@ -1966,6 +1975,119 @@ function showToast(msg) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
 }
 
+// ---- MY DETAILS — edit / save / password reset ----
+var _editMode = false;
+var _profileSnapshot = {};
+
+function onAvatarClick() {
+  if (_editMode) document.getElementById('avatar-upload').click();
+}
+
+function toggleEditMode() {
+  if (!_editMode) {
+    // Enter edit mode
+    _editMode = true;
+    _profileSnapshot = {
+      name: document.getElementById('name').value,
+      phone: document.getElementById('phone').value
+    };
+    ['name', 'phone'].forEach(function(id) {
+      var el = document.getElementById(id);
+      el.disabled = false;
+      el.style.background = '';
+      el.style.color = '';
+    });
+    document.getElementById('avatar-hover-hint').style.display = 'block';
+    document.getElementById('profile-pic').style.cursor = 'pointer';
+    document.getElementById('btn-edit-save').textContent = 'Save changes';
+    document.getElementById('btn-cancel-edit').style.display = '';
+  } else {
+    saveProfile();
+  }
+}
+
+function cancelEdit() {
+  _editMode = false;
+  document.getElementById('name').value = _profileSnapshot.name || '';
+  document.getElementById('phone').value = _profileSnapshot.phone || '';
+  ['name', 'phone'].forEach(function(id) {
+    var el = document.getElementById(id);
+    el.disabled = true;
+    el.style.background = 'var(--bg)';
+    el.style.color = 'var(--text-muted)';
+  });
+  document.getElementById('avatar-hover-hint').style.display = 'none';
+  document.getElementById('btn-edit-save').textContent = 'Edit';
+  document.getElementById('btn-cancel-edit').style.display = 'none';
+}
+
+async function saveProfile() {
+  var name = document.getElementById('name').value.trim();
+  var phone = document.getElementById('phone').value.trim();
+  if (!name) { showToast('Please enter your name'); return; }
+
+  var btn = document.getElementById('btn-edit-save');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
+
+  try {
+    if (SUPABASE_READY) {
+      var user = await getCurrentUser();
+      if (user) {
+        var { error } = await sb.from('profiles').update({ name: name, phone: phone }).eq('id', user.id);
+        if (error) throw error;
+      }
+    }
+    // Update initials in nav avatar
+    var nameParts = name.trim().split(/\s+/);
+    var initials = nameParts.length >= 2
+      ? (nameParts[0][0] || '') + (nameParts[nameParts.length - 1][0] || '')
+      : (nameParts[0] ? nameParts[0][0] : '');
+    document.getElementById('profile-initials').textContent = initials.toUpperCase();
+
+    showToast('Changes saved');
+  } catch (e) {
+    console.error('saveProfile failed:', e);
+    showToast('Could not save — please try again');
+  } finally {
+    _editMode = false;
+    btn.disabled = false;
+    ['name', 'phone'].forEach(function(id) {
+      var el = document.getElementById(id);
+      el.disabled = true;
+      el.style.background = 'var(--bg)';
+      el.style.color = 'var(--text-muted)';
+    });
+    document.getElementById('avatar-hover-hint').style.display = 'none';
+    document.getElementById('btn-edit-save').textContent = 'Edit';
+    document.getElementById('btn-cancel-edit').style.display = 'none';
+  }
+}
+
+async function sendPasswordReset() {
+  var btn = document.getElementById('btn-change-password');
+  var email = document.getElementById('email').value.trim();
+  if (!email) { showToast('Could not find your email address'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+  try {
+    if (SUPABASE_READY) {
+      var { error } = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/reset-password.html'
+      });
+      if (error) throw error;
+    }
+    showToast('Password reset email sent — check your inbox');
+  } catch (e) {
+    console.error('sendPasswordReset failed:', e);
+    showToast('Could not send reset email — please try again');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Change password';
+  }
+}
+
 // ---- SUPABASE DATA LOADING ----
 async function loadUserProfile() {
   if (!SUPABASE_READY) return;
@@ -2000,6 +2122,12 @@ async function loadUserProfile() {
   } catch (e) {
     console.error('loadUserProfile failed:', e);
   }
+
+  // Hover hint — only visible and functional in edit mode
+  var pic = document.getElementById('profile-pic');
+  var hint = document.getElementById('avatar-hover-hint');
+  pic.addEventListener('mouseenter', function() { if (_editMode) hint.style.opacity = '1'; });
+  pic.addEventListener('mouseleave', function() { hint.style.opacity = '0'; });
 }
 
 async function handleAvatarUpload(input) {
