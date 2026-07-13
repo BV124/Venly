@@ -74,7 +74,11 @@ input:focus, textarea:focus, select:focus { outline: none; border-color: var(--r
 
 textarea { min-height: 160px; }
 
-.form-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; }
+.form-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; gap: 16px; flex-wrap: wrap; }
+@media (max-width: 540px) {
+  .form-footer { flex-direction: column; align-items: flex-start; gap: 14px; margin-top: 24px; }
+  .btn-send { width: 100%; justify-content: center; }
+}
 .form-note { font-size: 12px; color: var(--text-muted); }
 
 .btn-send { background: var(--red); color: #fff; border: none; border-radius: var(--radius-sm); padding: 13px 28px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s; display: flex; align-items: center; gap: 8px; white-space: nowrap; flex-shrink: 0; }
@@ -88,25 +92,23 @@ textarea { min-height: 160px; }
 .success-msg h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
 .success-msg p { font-size: 14px; color: var(--text-muted); }
 
-/* INFO CARD */
-.info-card { display: flex; flex-direction: column; gap: 0; justify-content: space-between; }
+/* FAQ CARD */
+.info-card { display: flex; flex-direction: column; gap: 0; }
 
-.contact-details { display: flex; flex-direction: column; gap: 0; margin-bottom: 28px; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
-
-.contact-row { display: flex; align-items: center; gap: 14px; padding: 16px 20px; border-bottom: 1px solid var(--border); transition: background 0.15s; cursor: default; }
-.contact-row:last-child { border-bottom: none; }
-.contact-row:hover { background: var(--bg); }
-
-.contact-icon { width: 36px; height: 36px; border-radius: 50%; background: var(--red-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.contact-icon svg { width: 16px; height: 16px; color: var(--red); }
-
-.contact-row-text { display: flex; flex-direction: column; }
-.contact-row-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
-.contact-row-value { font-size: 14px; font-weight: 500; color: var(--text); }
-.contact-row-value a { color: var(--text); transition: color 0.15s; }
-.contact-row-value a:hover { color: var(--red); }
-
-/* ABOUT BLURB */
+.faq-list { display: flex; flex-direction: column; margin-bottom: 32px; }
+.faq-item { border-bottom: 1px solid var(--border); }
+.faq-item:first-child { border-top: 1px solid var(--border); }
+.faq-btn {
+  width: 100%; background: none; border: none; padding: 16px 0;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+  color: var(--text); cursor: pointer; text-align: left; transition: color 0.15s;
+}
+.faq-btn:hover { color: var(--red); }
+.faq-icon { width: 20px; height: 20px; flex-shrink: 0; color: var(--text-muted); transition: transform 0.2s, color 0.15s; }
+.faq-btn[aria-expanded="true"] .faq-icon { transform: rotate(45deg); color: var(--red); }
+.faq-answer { font-size: 14px; color: var(--text-muted); line-height: 1.7; padding-bottom: 16px; display: none; }
+.faq-item.open .faq-answer { display: block; }
 
 /* SOCIAL */
 .social-title { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px; }
@@ -233,57 +235,92 @@ textarea { min-height: 160px; }
     </div>
   </div>
 
-  <!-- INFO CARD -->
+  <!-- FAQ CARD -->
   <div class="card info-card">
-    <div class="card-label">Where to find us</div>
-    <div class="contact-details" style="margin-top:0">
-      <div class="contact-row">
-        <div class="contact-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-        </div>
-        <div class="contact-row-text">
-          <span class="contact-row-label">Address</span>
-          <span class="contact-row-value">2/110 Symonds Street, Auckland CBD</span>
-        </div>
+    <div class="card-label">Frequently asked questions</div>
+
+    <div class="faq-list">
+
+      <div class="faq-item">
+        <button class="faq-btn" aria-expanded="false" onclick="toggleFaq(this)">
+          Is it free to search and enquire about spaces?
+          <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <div class="faq-answer">Yes — browsing and sending enquiries is completely free. You only need an account to save favourites or list a space.</div>
       </div>
-      <div class="contact-row">
-        <div class="contact-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-        </div>
-        <div class="contact-row-text">
-          <span class="contact-row-label">Email</span>
-          <span class="contact-row-value"><a href="mailto:info@venly.co.nz">info@venly.co.nz</a></span>
-        </div>
+
+      <div class="faq-item">
+        <button class="faq-btn" aria-expanded="false" onclick="toggleFaq(this)">
+          How do I enquire about a space?
+          <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <div class="faq-answer">Click "Enquire Now" on any venue page and fill in the form. Your message goes straight to the host and they'll get back to you directly.</div>
       </div>
-      <div class="contact-row">
-        <div class="contact-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.12 1.18 2 2 0 012.1 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-        </div>
-        <div class="contact-row-text">
-          <span class="contact-row-label">Phone</span>
-          <span class="contact-row-value"><a href="tel:0274254550">027 425 4550</a></span>
-        </div>
+
+      <div class="faq-item">
+        <button class="faq-btn" aria-expanded="false" onclick="toggleFaq(this)">
+          Can I visit a space before booking?
+          <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <div class="faq-answer">That's between you and the host — most are happy to arrange a walkthrough first. Just mention it in your enquiry.</div>
       </div>
-      <div class="contact-row">
-        <div class="contact-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        </div>
-        <div class="contact-row-text">
-          <span class="contact-row-label">Hours</span>
-          <span class="contact-row-value">Mon – Fri, 9am – 5pm NZST</span>
-        </div>
+
+      <div class="faq-item">
+        <button class="faq-btn" aria-expanded="false" onclick="toggleFaq(this)">
+          How do I list my space on Venly?
+          <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <div class="faq-answer">Sign up, choose a plan, and fill in your venue details. It only takes a few minutes to get your space in front of people searching across New Zealand.</div>
       </div>
+
+      <div class="faq-item">
+        <button class="faq-btn" aria-expanded="false" onclick="toggleFaq(this)">
+          What plans are available?
+          <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <div class="faq-answer">We offer Basic, Standard, and Premium plans. You can compare what's included on our <a href="venly-listing-fees.html" style="color:var(--red);font-weight:500">Pricing &amp; Plans</a> page.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-btn" aria-expanded="false" onclick="toggleFaq(this)">
+          How do enquiries reach me as a host?
+          <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <div class="faq-answer">Enquiries go straight to your email — no middleman, no delays. You can also view and manage them from your dashboard.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-btn" aria-expanded="false" onclick="toggleFaq(this)">
+          Can I list more than one space?
+          <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <div class="faq-answer">Yes — you can list as many spaces as you like under one account. Each space gets its own listing page.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-btn" aria-expanded="false" onclick="toggleFaq(this)">
+          What types of spaces can I find on Venly?
+          <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <div class="faq-answer">Event spaces, meeting spaces, and shoot locations across New Zealand. Use the filters on the Find a Space page to narrow things down.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-btn" aria-expanded="false" onclick="toggleFaq(this)">
+          How do I get in touch if I have a problem?
+          <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <div class="faq-answer">Use the contact form on this page and we'll get back to you within 1 business day.</div>
+      </div>
+
     </div>
 
     <div class="social-title">Follow us</div>
     <div class="social-links">
-      <a href="#" class="social-link" aria-label="Instagram">
+      <a href="https://instagram.com/venly.co.nz" class="social-link" aria-label="Instagram">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.4a4 4 0 11-8 0 4 4 0 018 0z"/><circle cx="16.5" cy="7.5" r="1" fill="currentColor" stroke="none"/></svg>
       </a>
-      <a href="#" class="social-link" aria-label="Facebook">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
-      </a>
-      <a href="#" class="social-link" aria-label="LinkedIn">
+      <a href="https://linkedin.com/company/venly" class="social-link" aria-label="LinkedIn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
       </a>
     </div>
@@ -343,6 +380,19 @@ function resetForm() {
   document.getElementById('c-message').value = '';
   document.getElementById('form-wrap').style.display = 'block';
   document.getElementById('success-msg').style.display = 'none';
+}
+
+function toggleFaq(btn) {
+  var item = btn.closest('.faq-item');
+  var isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(function(el) {
+    el.classList.remove('open');
+    el.querySelector('.faq-btn').setAttribute('aria-expanded', 'false');
+  });
+  if (!isOpen) {
+    item.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+  }
 }
 
 let toastTimer;
