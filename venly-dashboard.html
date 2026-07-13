@@ -1997,7 +1997,9 @@ function toggleEditMode() {
       el.style.background = '';
       el.style.color = '';
     });
-    document.getElementById('avatar-hover-hint').style.display = 'block';
+    var hint = document.getElementById('avatar-hover-hint');
+    hint.style.display = 'block';
+    hint.style.opacity = '1';
     document.getElementById('profile-pic').style.cursor = 'pointer';
     document.getElementById('btn-edit-save').textContent = 'Save changes';
     document.getElementById('btn-cancel-edit').style.display = '';
@@ -2016,7 +2018,9 @@ function cancelEdit() {
     el.style.background = 'var(--bg)';
     el.style.color = 'var(--text-muted)';
   });
-  document.getElementById('avatar-hover-hint').style.display = 'none';
+  var hint = document.getElementById('avatar-hover-hint');
+  hint.style.display = 'none';
+  hint.style.opacity = '0';
   document.getElementById('btn-edit-save').textContent = 'Edit';
   document.getElementById('btn-cancel-edit').style.display = 'none';
 }
@@ -2058,7 +2062,9 @@ async function saveProfile() {
       el.style.background = 'var(--bg)';
       el.style.color = 'var(--text-muted)';
     });
-    document.getElementById('avatar-hover-hint').style.display = 'none';
+    var h = document.getElementById('avatar-hover-hint');
+    h.style.display = 'none';
+    h.style.opacity = '0';
     document.getElementById('btn-edit-save').textContent = 'Edit';
     document.getElementById('btn-cancel-edit').style.display = 'none';
   }
