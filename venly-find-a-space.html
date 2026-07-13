@@ -748,7 +748,13 @@ function getSpacesForDisplay() {
   var real = (typeof getAllVenues === 'function') ? getAllVenues() : null;
   if (!SUPABASE_READY || !real) return DEMO_SPACES;
 
-  return real.map(function(v) {
+  // Public page: only ever show live venues. getAllVenues() is shared with the
+  // admin, so it deliberately returns drafts too — the live check has to happen
+  // here. RLS alone isn't enough: a logged-in host can read their OWN drafts
+  // back from Supabase, which is exactly how a draft leaks onto this page.
+  return real.filter(function(v) {
+    return v.isLive === true || v.is_live === true;
+  }).map(function(v) {
     var mapped = {
       id: v.id,
       name: v.name,
