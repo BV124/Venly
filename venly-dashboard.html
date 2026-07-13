@@ -722,7 +722,7 @@ tbody tr:last-child td { border-bottom: none; }
     <div class="modal-footer">
       <div class="modal-footer-left">
         <button class="btn-back" id="btn-back" onclick="prevStep()" style="display:none">← Back</button>
-        <button class="btn-draft" onclick="saveDraft()">Save as draft</button>
+        <button class="btn-draft" id="btn-draft" onclick="saveDraft()">Save as draft</button>
       </div>
       <button class="btn-next" id="btn-next" onclick="nextStep()">
         Continue <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
@@ -1323,7 +1323,7 @@ function attachDirtyListeners() {
   });
 }
 
-
+function updateStepUI() {
   for (let i = 1; i <= 4; i++) {
     const stepEl = document.getElementById('step-' + i);
     const stepContent = document.getElementById('modal-step-' + i);
