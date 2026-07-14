@@ -739,7 +739,7 @@ tbody tr:last-child td { border-bottom: none; }
     <div style="width:56px;height:56px;background:#fff8ec;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#a06000" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
     </div>
-    <h3 style="font-size:18px;font-weight:800;margin-bottom:8px;text-align:center">Cancel subscription</h3>
+    <h3 id="cancel-sub-title" style="font-size:18px;font-weight:800;margin-bottom:8px;text-align:center">Cancel subscription</h3>
     <p style="font-size:14px;color:var(--text-muted);line-height:1.6;margin-bottom:22px;text-align:center">
       For <strong id="cancel-sub-name" style="color:var(--text)"></strong>.
     </p>
@@ -748,11 +748,7 @@ tbody tr:last-child td { border-bottom: none; }
     <button id="cancel-sub-grace" style="width:100%;text-align:left;padding:16px;border:1.5px solid var(--border);border-radius:10px;background:var(--white);cursor:pointer;margin-bottom:10px;font-family:Inter,sans-serif;display:block"
             onmouseover="this.style.borderColor='var(--text)'" onmouseout="this.style.borderColor='var(--border)'">
       <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px">Stay live until my period ends</div>
-      <div style="font-size:13px;color:var(--text-muted);line-height:1.5">
-        You've paid through to <strong id="cancel-sub-date" style="color:var(--text)"></strong>, so your listing stays
-        visible for <strong id="cancel-sub-days" style="color:var(--text)"></strong> and then becomes a draft.
-        You won't be charged again.
-      </div>
+      <div id="cancel-sub-detail" style="font-size:13px;color:var(--text-muted);line-height:1.5"></div>
     </button>
 
     <!-- Option B: take it down now, forfeit the rest -->
@@ -1157,6 +1153,17 @@ function renderListingStatus(l) {
   return '<span class="live-dot draft">Draft</span>';
 }
 
+// Does this venue actually have a Stripe subscription behind it?
+//
+// Not every live venue does. Admin-published/overridden listings never had
+// one, and some early rows predate the stripe_subscription_id column. Those
+// venues can't be "cancelled" - there's no subscription to cancel, and no
+// paid period to run out - so offering that button would be a dead end (the
+// Edge Function correctly rejects it with "No active subscription").
+function hasSubscription(l) {
+  return !!l.stripeSubscriptionId;
+}
+
 // Which destructive/billing action does this row get?
 //
 // Deliberately, a LIVE listing has NO delete button. Delete on a live
@@ -1165,10 +1172,11 @@ function renderListingStatus(l) {
 // genuinely wants their data gone having to click Delete, land in a draft,
 // and hunt for Delete a second time. So:
 //
-//   live            -> Cancel subscription  (stays live to period end)
-//   grace period    -> Resume subscription  (undo the cancellation)
-//   past_due        -> Update payment method (Stripe's portal)
-//   draft           -> Delete                (means exactly what it says)
+//   past_due                 -> Update payment method (Stripe's portal)
+//   grace period             -> Resume subscription  (undo the cancellation)
+//   live, with a sub         -> Cancel subscription  (stays live to period end)
+//   live, with NO sub        -> Unlist               (nothing to cancel; just draft it)
+//   draft                    -> Delete               (means exactly what it says)
 function renderRowPrimaryAction(l, i) {
   if (l.subscriptionStatus === 'past_due') {
     return '<button class="icon-btn" title="Update payment method" style="color:#a06000" onclick="openBillingPortal(' + i + ')">' +
@@ -1181,8 +1189,15 @@ function renderRowPrimaryAction(l, i) {
       '</button>';
   }
   if (l.status === 'live') {
-    return '<button class="icon-btn" title="Cancel subscription" onclick="cancelSubscription(' + i + ')">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>' +
+    if (hasSubscription(l)) {
+      return '<button class="icon-btn" title="Cancel subscription" onclick="cancelSubscription(' + i + ')">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>' +
+        '</button>';
+    }
+    // Live but no Stripe subscription (admin-published, or pre-dates the
+    // subscription id column). Nothing to cancel - just take it down.
+    return '<button class="icon-btn" title="Unlist — take this listing down" onclick="unlistListing(' + i + ')">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>' +
       '</button>';
   }
   // Draft (or pending setup) - delete is safe and honest here.
@@ -1264,21 +1279,30 @@ function cancelSubscription(i) {
 
   var overlay = document.getElementById('cancel-sub-overlay');
   document.getElementById('cancel-sub-name').textContent = listing.name || 'this venue';
+  document.getElementById('cancel-sub-title').textContent = 'Cancel subscription';
 
   // Show the host exactly what they've already paid for, so "stay live"
   // is an informed choice rather than a vague one.
   var d = daysUntil(listing.currentPeriodEnd);
   var graceBtn = document.getElementById('cancel-sub-grace');
+  graceBtn.style.display = 'block';
+
   if (d === null) {
-    // No period end on record (e.g. an admin-published listing with no Stripe
-    // sub). Can't honestly promise a date, so don't offer the option.
-    graceBtn.style.display = 'none';
+    // We know there's a subscription (this button only renders when there is)
+    // but haven't got its period end yet - the backfill may still be running,
+    // or Stripe was unreachable. Still offer the option, just without a
+    // specific date: hiding it would take away a real choice over a missing
+    // display value. Stripe honours the boundary either way.
+    document.getElementById('cancel-sub-detail').innerHTML =
+      'Your listing stays visible until the end of the period you\'ve already paid for, ' +
+      'then becomes a draft. You won\'t be charged again.';
   } else {
-    graceBtn.style.display = 'block';
-    document.getElementById('cancel-sub-date').textContent =
-      new Date(listing.currentPeriodEnd).toLocaleDateString('en-NZ', { day: 'numeric', month: 'long', year: 'numeric' });
-    document.getElementById('cancel-sub-days').textContent =
-      d === 0 ? 'the rest of today' : d === 1 ? '1 more day' : d + ' more days';
+    document.getElementById('cancel-sub-detail').innerHTML =
+      'You\'ve paid through to <strong style="color:var(--text)">' +
+      new Date(listing.currentPeriodEnd).toLocaleDateString('en-NZ', { day: 'numeric', month: 'long', year: 'numeric' }) +
+      '</strong>, so your listing stays visible for <strong style="color:var(--text)">' +
+      (d === 0 ? 'the rest of today' : d === 1 ? '1 more day' : d + ' more days') +
+      '</strong> and then becomes a draft. You won\'t be charged again.';
   }
 
   overlay.classList.remove('hidden');
@@ -1295,9 +1319,14 @@ function cancelSubscription(i) {
   graceBtn.onclick = async function() {
     close();
     try {
-      await callStripeFn('cancel_subscription', { venueId: listing.id });
-      showToast('Subscription cancelled — your listing stays live until ' +
-        new Date(listing.currentPeriodEnd).toLocaleDateString('en-NZ', { day: 'numeric', month: 'long' }));
+      var res = await callStripeFn('cancel_subscription', { venueId: listing.id });
+      // The function returns the authoritative period end from Stripe - use
+      // that rather than whatever we had cached, which may have been null.
+      var end = (res && res.currentPeriodEnd) || listing.currentPeriodEnd;
+      showToast(end
+        ? 'Subscription cancelled — your listing stays live until ' +
+          new Date(end).toLocaleDateString('en-NZ', { day: 'numeric', month: 'long' })
+        : 'Subscription cancelled — your listing stays live until the end of your paid period');
       await loadUserListings();
       buildTable();
     } catch (e) {
@@ -1348,6 +1377,74 @@ async function openBillingPortal(i) {
     console.error('billing_portal failed:', e);
     showToast('Could not open billing — please try again');
   }
+}
+
+// Pull current_period_end from Stripe for any live venue that has a
+// subscription id but no period end stored. Runs quietly in the background
+// after the listings load - if it fails, the table still renders, the host
+// just doesn't get a countdown on that row.
+async function syncMissingPeriodEnds() {
+  if (!SUPABASE_READY) return;
+
+  var stale = listings.filter(function(l) {
+    return l.status === 'live' && l.stripeSubscriptionId && !l.currentPeriodEnd;
+  });
+  if (stale.length === 0) return;
+
+  var changed = false;
+  for (var i = 0; i < stale.length; i++) {
+    try {
+      var data = await callStripeFn('sync_period_end', { venueId: stale[i].id });
+      if (data && data.currentPeriodEnd) {
+        stale[i].currentPeriodEnd = data.currentPeriodEnd;
+        changed = true;
+      }
+    } catch (e) {
+      console.warn('Could not sync period end for', stale[i].name, e);
+    }
+  }
+  if (changed) buildTable();
+}
+
+// Take a live listing down when there's no Stripe subscription behind it
+// (admin-published, or an early row from before subscriptions were tracked).
+// Nothing to cancel and no paid period to honour - so this is a plain
+// unpublish, and the draft is kept.
+function unlistListing(i) {
+  var listing = listings[i];
+  if (!listing) return;
+
+  var overlay = document.getElementById('cancel-sub-overlay');
+  document.getElementById('cancel-sub-name').textContent = listing.name || 'this venue';
+
+  // No subscription, so there's no "stay live until my period ends" choice
+  // to offer - there's no period being paid for.
+  document.getElementById('cancel-sub-grace').style.display = 'none';
+  document.getElementById('cancel-sub-title').textContent = 'Unlist this venue';
+
+  overlay.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+
+  function close() {
+    overlay.classList.add('hidden');
+    document.body.style.overflow = '';
+    document.getElementById('cancel-sub-title').textContent = 'Cancel subscription';
+  }
+
+  document.getElementById('cancel-sub-back').onclick = close;
+
+  document.getElementById('cancel-sub-now').onclick = async function() {
+    close();
+    try {
+      await callStripeFn('unlist_now', { venueId: listing.id });
+      showToast('Listing removed — it\'s saved as a draft');
+      await loadUserListings();
+      buildTable();
+    } catch (e) {
+      console.error('unlist_now failed:', e);
+      showToast('Could not remove — please try again');
+    }
+  };
 }
 
 function deleteListing(i) {
@@ -2481,8 +2578,16 @@ async function loadUserListings() {
       createdBy: v.created_by || 'host',
       id: v.id,
       photos: v.photos || [],
-      currentPeriodEnd: v.current_period_end || null
+      currentPeriodEnd: v.current_period_end || null,
+      stripeSubscriptionId: v.stripe_subscription_id || null
     }));
+
+    // Backfill any live venue that has a subscription but no period end.
+    // These are rows whose subscription predates the current_period_end
+    // column - nothing will populate it until their next renewal fires a
+    // webhook, so we pull it from Stripe now instead of leaving the host
+    // with no countdown (and no "stay live until my period ends" option).
+    syncMissingPeriodEnds();
     buildTable();
   }
 }
