@@ -81,7 +81,7 @@ tbody tr:last-child td { border-bottom: none; }
 .badge-premium { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; background: #fff8ec; color: #a06000; border: 1px solid #fde7a0; }
 .badge-basic { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; background: #f0f0f0; color: #666; border: 1px solid #ddd; }
 .badge-standard { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; background: #e8f4fd; color: #1a6fa8; border: 1px solid #b3d9f5; }
-.live-dot { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-muted); }
+.live-dot { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-muted); white-space: nowrap; }
 .live-dot.live { color: #1a8a4a; font-weight: 500; }
 .live-dot::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--text-muted); flex-shrink: 0; }
 .live-dot.live::before { background: #1a8a4a; }
@@ -1139,7 +1139,7 @@ function renderListingStatus(l) {
               : d === 0   ? 'Ends today'
               : d === 1   ? 'Live · 1 day left'
               :             'Live · ' + d + ' days left';
-    return '<span class="live-dot live" style="color:#a06000" title="Cancelled. Stays live until the period you\'ve paid for ends, then becomes a draft.">' + label + '</span>';
+    return '<span class="live-dot live" style="color:#a06000;white-space:nowrap" title="Cancelled. Stays live until the period you\'ve paid for ends, then becomes a draft.">' + label + '</span>';
   }
   if (l.status === 'live') {
     return '<span class="live-dot live">Live</span>';
@@ -1148,7 +1148,10 @@ function renderListingStatus(l) {
     return '<span class="live-dot draft" style="color:#a06000">Pending setup</span>';
   }
   if (l.subscriptionStatus === 'cancelled') {
-    return '<span class="live-dot draft" style="color:var(--red)">Cancelled</span>';
+    // A cancelled venue that's no longer live is functionally a draft - the
+    // host can republish it whenever. Showing "Draft" is clearer than
+    // "Cancelled", which reads as an error state rather than a resting state.
+    return '<span class="live-dot draft">Draft</span>';
   }
   return '<span class="live-dot draft">Draft</span>';
 }
