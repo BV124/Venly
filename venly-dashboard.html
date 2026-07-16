@@ -1326,12 +1326,25 @@ function cancelSubscription(i) {
       // The function returns the authoritative period end from Stripe - use
       // that rather than whatever we had cached, which may have been null.
       var end = (res && res.currentPeriodEnd) || listing.currentPeriodEnd;
+
+      // Optimistic update: reflect the change in the UI immediately, rather
+      // than waiting for Stripe's webhook to write it to the database and a
+      // reload to pick it up. The webhook still does the authoritative write
+      // in the background; this just stops the row looking unchanged for the
+      // second or two that round-trip takes. Grace period = still live, but
+      // now cancelled, with the paid-through date.
+      listing.subscriptionStatus = 'cancelled';
+      listing.currentPeriodEnd = end;
+      buildTable();
+
       showToast(end
         ? 'Subscription cancelled — your listing stays live until ' +
           new Date(end).toLocaleDateString('en-NZ', { day: 'numeric', month: 'long' })
         : 'Subscription cancelled — your listing stays live until the end of your paid period');
-      await loadUserListings();
-      buildTable();
+
+      // Reconcile with the server shortly after, once the webhook has landed,
+      // so the row ends up matching the database exactly.
+      setTimeout(function() { loadUserListings(); }, 2500);
     } catch (e) {
       console.error('cancel_subscription failed:', e);
       showToast('Could not cancel — please try again');
@@ -1343,9 +1356,15 @@ function cancelSubscription(i) {
     close();
     try {
       await callStripeFn('unlist_now', { venueId: listing.id });
-      showToast('Listing removed — it\'s saved as a draft');
-      await loadUserListings();
+
+      // Optimistic update: unlisted -> draft, immediately.
+      listing.status = 'draft';
+      listing.subscriptionStatus = 'cancelled';
+      listing.currentPeriodEnd = null;
       buildTable();
+
+      showToast('Listing removed — it\'s saved as a draft');
+      setTimeout(function() { loadUserListings(); }, 2500);
     } catch (e) {
       console.error('unlist_now failed:', e);
       showToast('Could not remove — please try again');
@@ -1358,9 +1377,14 @@ async function resumeSubscription(i) {
   if (!listing) return;
   try {
     await callStripeFn('resume_subscription', { venueId: listing.id });
-    showToast('Subscription resumed — your listing stays live');
-    await loadUserListings();
+
+    // Optimistic update: back to a normal active, live listing.
+    listing.subscriptionStatus = 'active';
+    listing.status = 'live';
     buildTable();
+
+    showToast('Subscription resumed — your listing stays live');
+    setTimeout(function() { loadUserListings(); }, 2500);
   } catch (e) {
     console.error('resume_subscription failed:', e);
     showToast(e.message || 'Could not resume — please try again');
@@ -1440,9 +1464,15 @@ function unlistListing(i) {
     close();
     try {
       await callStripeFn('unlist_now', { venueId: listing.id });
-      showToast('Listing removed — it\'s saved as a draft');
-      await loadUserListings();
+
+      // Optimistic update: live -> draft, immediately.
+      listing.status = 'draft';
+      listing.subscriptionStatus = 'cancelled';
+      listing.currentPeriodEnd = null;
       buildTable();
+
+      showToast('Listing removed — it\'s saved as a draft');
+      setTimeout(function() { loadUserListings(); }, 2500);
     } catch (e) {
       console.error('unlist_now failed:', e);
       showToast('Could not remove — please try again');
