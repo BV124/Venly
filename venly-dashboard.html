@@ -1532,9 +1532,17 @@ function previewListing(i) {
 
 function openEditListing(i) {
   var listing = listings[i];
-  var venue = (typeof getAllVenues === 'function')
+
+  // Prefer the listing record itself - it comes straight from Supabase on
+  // every load/refresh. getAllVenues() is an in-memory cache populated once
+  // at page load, so after you save it is stale: reading photos from it
+  // showed an empty grid, and saving again wrote that empty array over the
+  // real photos. Only fall back to the cache in demo mode, where `listings`
+  // rows don't carry the full record.
+  var cached = (typeof getAllVenues === 'function')
     ? getAllVenues().find(function(v) { return v.id === listing.id; })
     : null;
+  var venue = (listing && listing.photos !== undefined) ? listing : cached;
 
   currentEditingListingId = listing.id || null;
   _isEditingLive = listing.status === 'live';
@@ -1638,6 +1646,7 @@ function closeModal() {
   selectedEventTypes = [];
   photoDataUrls = [];
   coverPhotoIndex = 0;
+  _photosExplicitlyCleared = false;
   currentEditingListingId = null;
   _isEditingLive = false;
   _isDirty = false;
@@ -2188,6 +2197,10 @@ function getCaps() {
 // ---- PHOTOS (with selectable cover image) ----
 let photoDataUrls = []; // index-aligned with photo slots; '' = empty slot
 let coverPhotoIndex = 0; // which slot is currently the cover photo
+// Set when the host actually clicks remove on a photo. Distinguishes a
+// deliberate "I deleted all my photos" from "the editor failed to load them",
+// so getOrderedPhotos() only preserves existing photos in the latter case.
+let _photosExplicitlyCleared = false;
 
 function renderPhotoGrid() {
   const cap = getCaps().photos;
@@ -2236,9 +2249,27 @@ function setCoverPhoto(e, slot) {
 
 // Returns the filled photos with the chosen cover moved to the front —
 // this is the order that actually gets saved against the listing.
+//
+// Safety net: if the grid is empty but the listing being edited DOES have
+// saved photos, that means the editor failed to load them rather than the
+// host deliberately deleting every photo. Deleting all photos one by one is
+// possible but rare; silently wiping them because of a load failure is
+// data loss. So in that case we keep what's already saved.
+// removePhoto() sets _photosExplicitlyCleared, so a genuine "delete them all"
+// still works.
 function getOrderedPhotos() {
+  const filled = photoDataUrls.filter(p => !!p);
+
+  if (filled.length === 0 && !_photosExplicitlyCleared && currentEditingListingId) {
+    const existing = listings.find(function(l) { return l.id === currentEditingListingId; });
+    if (existing && existing.photos && existing.photos.length) {
+      console.warn('Photo grid was empty but listing has saved photos - keeping existing photos rather than wiping them.');
+      return existing.photos.slice();
+    }
+  }
+
   const coverUrl = photoDataUrls[coverPhotoIndex];
-  if (!coverUrl) return photoDataUrls.filter(p => !!p);
+  if (!coverUrl) return filled;
   const rest = [];
   photoDataUrls.forEach((p, i) => { if (p && i !== coverPhotoIndex) rest.push(p); });
   return [coverUrl, ...rest];
@@ -2383,6 +2414,7 @@ function compressImage(dataUrl, maxWidth, quality, callback) {
 function removePhoto(e, slot) {
   e.stopPropagation();
   photoDataUrls[slot] = '';
+  _photosExplicitlyCleared = true; // deliberate removal, not a load failure
   markDirty();
   renderPhotoGrid();
 }
@@ -2612,7 +2644,25 @@ async function loadUserListings() {
       id: v.id,
       photos: v.photos || [],
       currentPeriodEnd: v.current_period_end || null,
-      stripeSubscriptionId: v.stripe_subscription_id || null
+      stripeSubscriptionId: v.stripe_subscription_id || null,
+      // Full editable record, straight from Supabase. The edit modal reads
+      // these rather than getAllVenues(), whose in-memory cache is only
+      // populated on page load and goes stale the moment anything is saved -
+      // which previously caused saved photos to vanish from the editor (and
+      // then get overwritten with an empty array on the next save).
+      region: v.region || '',
+      district: v.district || '',
+      address: v.address || '',
+      description: v.description || '',
+      capacity: v.capacity || '',
+      website: v.website || '',
+      priceFrom: v.price_from,
+      priceTo: v.price_to,
+      hostName: v.host_name || '',
+      hostPhone: v.host_phone || '',
+      enquiryEmail: v.enquiry_email || '',
+      features: v.features || [],
+      eventTypes: v.event_types || []
     }));
 
     // Backfill any live venue that has a subscription but no period end.
