@@ -1803,8 +1803,17 @@ async function saveListing(isLive, silent) {
     // silent = true when called from handlePayment(): keep the modal open and
     // don't show a "saved as draft" toast while we're mid-way to Stripe.
     if (!silent) {
+      // Capture this BEFORE closeModal(), which resets _isEditingLive.
+      // "Now live" is only true if it wasn't already live - editing an
+      // existing live listing should say the changes went live, not imply
+      // it was just published.
+      var wasAlreadyLive = _isEditingLive;
       closeModal();
-      showToast(isLive ? '🎉 Your listing is now live!' : '✓ Saved as draft — you can publish it anytime');
+      showToast(
+        isLive
+          ? (wasAlreadyLive ? '✓ Changes saved — your listing is updated' : '🎉 Your listing is now live!')
+          : '✓ Saved as draft — you can publish it anytime'
+      );
       switchToPanel('listings');
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-btn')[1].classList.add('active');
@@ -1879,8 +1888,14 @@ async function saveListing(isLive, silent) {
   if (!saveAllVenues(venues)) return;
 
   loadUserListingsDemo();
+  // Capture before closeModal() resets it.
+  var wasAlreadyLiveDemo = _isEditingLive;
   closeModal();
-  showToast(isLive ? '🎉 Your listing is now live!' : '✓ Saved as draft — you can publish it anytime');
+  showToast(
+    isLive
+      ? (wasAlreadyLiveDemo ? '✓ Changes saved — your listing is updated' : '🎉 Your listing is now live!')
+      : '✓ Saved as draft — you can publish it anytime'
+  );
   switchToPanel('listings');
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-btn')[1].classList.add('active');
