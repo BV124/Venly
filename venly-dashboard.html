@@ -632,7 +632,72 @@ tbody tr:last-child td { border-bottom: none; }
 
       <!-- STEP 4: Payment -->
       <div id="modal-step-4" style="display:none">
-        <div class="modal-section">
+
+        <!-- EXISTING SUBSCRIBER: manage, don't re-checkout. Showing a card
+             form to someone already paying is confusing and risks creating a
+             second subscription against the same venue. -->
+        <div class="modal-section" id="sub-manage-panel" style="display:none">
+          <div class="modal-section-title">Your subscription</div>
+
+          <div id="sub-manage-loading" style="padding:24px 0;text-align:center;color:var(--text-muted);font-size:14px">
+            Loading your subscription…
+          </div>
+
+          <div id="sub-manage-body" style="display:none">
+            <!-- Current plan -->
+            <div style="border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:16px">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
+                <div>
+                  <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Current plan</div>
+                  <div style="font-size:20px;font-weight:800" id="sub-current-plan">—</div>
+                  <div style="font-size:13px;color:var(--text-muted);margin-top:4px" id="sub-current-price">—</div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Next payment</div>
+                  <div style="font-size:14px;font-weight:600" id="sub-next-date">—</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pending scheduled change (a downgrade that hasn't landed yet) -->
+            <div id="sub-pending-change" style="display:none;border:1.5px solid #f0c674;background:#fffbf0;border-radius:10px;padding:14px 16px;margin-bottom:16px">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+                <div style="font-size:13px;color:#7a5800;line-height:1.5">
+                  <strong id="sub-pending-text">Scheduled change</strong>
+                </div>
+                <button type="button" onclick="cancelPlanChange()"
+                        style="padding:8px 14px;border:1.5px solid #d9a441;border-radius:7px;background:#fff;color:#7a5800;font-family:Inter,sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">
+                  Keep current plan
+                </button>
+              </div>
+            </div>
+
+            <!-- Change plan -->
+            <div style="font-size:13px;font-weight:700;margin-bottom:10px">Change plan</div>
+            <div id="sub-plan-options" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.6;margin-bottom:20px">
+              Upgrades start straight away — you'll only pay the difference for the rest of this month.
+              Downgrades start at your next billing date, so you keep what you've already paid for.
+            </div>
+
+            <!-- Payment method -->
+            <div style="border-top:1px solid var(--border);padding-top:16px">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+                <div>
+                  <div style="font-size:13px;font-weight:700;margin-bottom:3px">Payment method</div>
+                  <div style="font-size:13px;color:var(--text-muted)" id="sub-card-line">—</div>
+                </div>
+                <button type="button" onclick="openBillingPortalForEditing()"
+                        style="padding:9px 16px;border:1.5px solid var(--border);border-radius:7px;background:var(--white);font-family:Inter,sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">
+                  Update card
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NEW LISTING: normal checkout -->
+        <div class="modal-section" id="sub-checkout-panel">
           <div class="modal-section-title">Complete your listing</div>
 
           <div class="pay-grid">
@@ -1480,6 +1545,199 @@ function unlistListing(i) {
   };
 }
 
+// ---- SUBSCRIPTION MANAGEMENT PANEL (step 4 for existing subscribers) ----
+
+var _subPanelVenue = null;   // the listing whose subscription we're showing
+var _subPanelInfo = null;    // last response from subscription_info
+
+// Tier order is the only reliable way to tell an upgrade from a downgrade.
+// Price alone doesn't work across space types - a shoot Standard ($29) costs
+// the same as a meeting Basic ($29) - but a plan change never changes the
+// venue's type, so comparing rank within the type is unambiguous.
+var PLAN_RANK = { Basic: 1, Standard: 2, Premium: 3 };
+
+function planCategoryForType(type) {
+  return (typeof VENLY_PLAN_CATEGORY_BY_TYPE !== 'undefined' && VENLY_PLAN_CATEGORY_BY_TYPE[type])
+    || 'event';
+}
+
+async function loadSubscriptionPanel(listing) {
+  _subPanelVenue = listing;
+  document.getElementById('sub-manage-loading').style.display = '';
+  document.getElementById('sub-manage-body').style.display = 'none';
+
+  try {
+    var info = await callStripeFn('subscription_info', { venueId: listing.id });
+    _subPanelInfo = info;
+
+    if (!info || !info.hasSubscription) {
+      // Shouldn't normally happen (we only show this panel when there's a
+      // subscription id) but fall back to checkout rather than a dead panel.
+      document.getElementById('sub-manage-panel').style.display = 'none';
+      document.getElementById('sub-checkout-panel').style.display = '';
+      mountCardElement();
+      refreshPaymentTotals();
+      return;
+    }
+
+    var cat = planCategoryForType(listing.type);
+    var plans = VENLY_CONFIG.plans[cat] || {};
+
+    // Which plan is the current price?
+    var currentPlanName = listing.plan || 'Basic';
+    Object.keys(plans).forEach(function(name) {
+      if (plans[name].stripePriceId === info.currentPriceId) currentPlanName = name;
+    });
+
+    document.getElementById('sub-current-plan').textContent = currentPlanName;
+    document.getElementById('sub-current-price').textContent =
+      info.amount != null
+        ? '$' + info.amount + '/month · ' + listing.type
+        : listing.type;
+
+    document.getElementById('sub-next-date').textContent = info.currentPeriodEnd
+      ? new Date(info.currentPeriodEnd).toLocaleDateString('en-NZ', { day: 'numeric', month: 'long', year: 'numeric' })
+      : '—';
+
+    // If the subscription is cancelling, there's no "next payment" - say so.
+    if (info.cancelAtPeriodEnd) {
+      document.getElementById('sub-next-date').textContent = 'Cancelled';
+    }
+
+    // Pending scheduled change (downgrade waiting for the period boundary)
+    var pendingEl = document.getElementById('sub-pending-change');
+    if (info.pendingChange) {
+      var pendingName = '';
+      Object.keys(plans).forEach(function(name) {
+        if (plans[name].stripePriceId === info.pendingChange.priceId) pendingName = name;
+      });
+      document.getElementById('sub-pending-text').textContent =
+        'Changing to ' + (pendingName || 'a new plan') +
+        (info.pendingChange.startsAt
+          ? ' on ' + new Date(info.pendingChange.startsAt).toLocaleDateString('en-NZ', { day: 'numeric', month: 'long' })
+          : ' at the end of this period');
+      pendingEl.style.display = '';
+    } else {
+      pendingEl.style.display = 'none';
+    }
+
+    // Card on file
+    document.getElementById('sub-card-line').textContent = info.card
+      ? (info.card.brand ? info.card.brand.charAt(0).toUpperCase() + info.card.brand.slice(1) : 'Card') +
+        ' ending ' + info.card.last4 +
+        ' · expires ' + String(info.card.expMonth).padStart(2, '0') + '/' + String(info.card.expYear).slice(-2)
+      : 'No card on file';
+
+    // Plan options
+    var optionsEl = document.getElementById('sub-plan-options');
+    var currentRank = PLAN_RANK[currentPlanName] || 1;
+    optionsEl.innerHTML = '';
+
+    ['Basic', 'Standard', 'Premium'].forEach(function(name) {
+      var plan = plans[name];
+      if (!plan) return;
+      var isCurrent = name === currentPlanName;
+      var rank = PLAN_RANK[name];
+      var direction = rank > currentRank ? 'upgrade' : 'downgrade';
+
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:12px;' +
+        'padding:12px 14px;border:1.5px solid ' + (isCurrent ? 'var(--red)' : 'var(--border)') +
+        ';border-radius:8px;background:' + (isCurrent ? 'var(--red-light)' : 'var(--white)') + ';';
+
+      var left = document.createElement('div');
+      left.innerHTML = '<div style="font-size:14px;font-weight:700">' + name +
+        (isCurrent ? ' <span style="font-size:11px;font-weight:600;color:var(--red)">· current</span>' : '') +
+        '</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px">$' + plan.monthly + '/month</div>';
+      row.appendChild(left);
+
+      if (!isCurrent) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = direction === 'upgrade' ? 'Upgrade' : 'Downgrade';
+        btn.style.cssText = 'padding:8px 16px;border-radius:7px;font-family:Inter,sans-serif;' +
+          'font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;border:1.5px solid ' +
+          (direction === 'upgrade' ? 'var(--red);background:var(--red);color:#fff' : 'var(--border);background:var(--white);color:var(--text)');
+        btn.onclick = function() { changePlan(name, plan.stripePriceId, direction, plan.monthly); };
+        row.appendChild(btn);
+      }
+
+      optionsEl.appendChild(row);
+    });
+
+    document.getElementById('sub-manage-loading').style.display = 'none';
+    document.getElementById('sub-manage-body').style.display = '';
+
+  } catch (e) {
+    console.error('subscription_info failed:', e);
+    document.getElementById('sub-manage-loading').textContent =
+      'Could not load your subscription. Please close and try again.';
+  }
+}
+
+async function changePlan(planName, newPriceId, direction, monthly) {
+  if (!_subPanelVenue) return;
+
+  var msg = direction === 'upgrade'
+    ? 'Upgrade to ' + planName + ' ($' + monthly + '/month)?\n\n' +
+      'This starts straight away. You\'ll be charged the difference for the rest of this billing period.'
+    : 'Change to ' + planName + ' ($' + monthly + '/month)?\n\n' +
+      'You keep your current plan until the end of the period you\'ve already paid for, ' +
+      'then this one starts. Nothing is charged today.';
+  if (!confirm(msg)) return;
+
+  try {
+    var res = await callStripeFn('change_plan', {
+      venueId: _subPanelVenue.id,
+      newPriceId: newPriceId,
+      direction: direction
+    });
+
+    if (res && res.applied === 'immediately') {
+      showToast('Upgraded to ' + planName + ' — active now');
+      _subPanelVenue.plan = planName;
+      activePlan = planName;
+    } else {
+      showToast('Change scheduled — ' + planName + ' starts ' +
+        (res && res.startsAt
+          ? new Date(res.startsAt).toLocaleDateString('en-NZ', { day: 'numeric', month: 'long' })
+          : 'at the end of this period'));
+    }
+
+    await loadSubscriptionPanel(_subPanelVenue);
+    setTimeout(function() { loadUserListings(); }, 2500);
+  } catch (e) {
+    console.error('change_plan failed:', e);
+    showToast(e.message || 'Could not change plan — please try again');
+  }
+}
+
+async function cancelPlanChange() {
+  if (!_subPanelVenue) return;
+  try {
+    await callStripeFn('cancel_plan_change', { venueId: _subPanelVenue.id });
+    showToast('Scheduled change cancelled — staying on your current plan');
+    await loadSubscriptionPanel(_subPanelVenue);
+  } catch (e) {
+    console.error('cancel_plan_change failed:', e);
+    showToast('Could not cancel the change — please try again');
+  }
+}
+
+async function openBillingPortalForEditing() {
+  if (!_subPanelVenue) return;
+  try {
+    var data = await callStripeFn('billing_portal', {
+      venueId: _subPanelVenue.id,
+      returnUrl: window.location.href
+    });
+    if (data && data.url) window.location.href = data.url;
+  } catch (e) {
+    console.error('billing_portal failed:', e);
+    showToast('Could not open billing — please try again');
+  }
+}
+
 function deleteListing(i) {
   var listing = listings[i];
   if (!listing) return;
@@ -1700,12 +1958,28 @@ function updateStepUI() {
   const nextBtn = document.getElementById('btn-next');
   if (currentStep === 4) {
     nextBtn.style.display = 'none';
-    // Landing on the payment step: mount the card field and price it up.
-    // Deferred a tick so the container is actually visible when Stripe mounts.
-    setTimeout(function() {
-      mountCardElement();
-      refreshPaymentTotals();
-    }, 0);
+
+    // Existing subscriber -> manage their subscription. New listing -> checkout.
+    // We decide on whether this venue already has a Stripe subscription, not
+    // on is_live: an admin-published venue is live with no subscription, and
+    // should still see the normal checkout if it ever needs one.
+    var editing = currentEditingListingId
+      ? listings.find(function(l) { return l.id === currentEditingListingId; })
+      : null;
+    var alreadySubscribed = !!(editing && editing.stripeSubscriptionId);
+
+    document.getElementById('sub-manage-panel').style.display = alreadySubscribed ? '' : 'none';
+    document.getElementById('sub-checkout-panel').style.display = alreadySubscribed ? 'none' : '';
+
+    if (alreadySubscribed) {
+      loadSubscriptionPanel(editing);
+    } else {
+      // Deferred a tick so the container is visible when Stripe mounts.
+      setTimeout(function() {
+        mountCardElement();
+        refreshPaymentTotals();
+      }, 0);
+    }
   } else {
     nextBtn.style.display = 'inline-flex';
     nextBtn.innerHTML = currentStep === 3

@@ -490,6 +490,42 @@ function saveAllVenues(venues) {
 
 var VENLY_PLAN_CATEGORY_BY_TYPE = { 'Event space': 'event', 'Meeting space': 'meeting', 'Shoot Location': 'shoot' };
 
+// ---------------------------------------------------------------------------
+// PLAN CAPS — how much of a venue's content each plan actually DISPLAYS.
+//
+// These are display limits, not storage limits. A venue keeps everything it
+// has ever uploaded; downgrading just shows less of it. That way an accidental
+// or temporary downgrade never destroys a host's content, and upgrading again
+// brings it all straight back.
+//
+// Keep in sync with planCaps in venly-dashboard.html (the editor enforces the
+// same numbers when adding new content).
+// ---------------------------------------------------------------------------
+var VENLY_PLAN_CAPS = {
+  'Basic':    { photos: 4,  features: 6,  eventTypes: 4  },
+  'Standard': { photos: 8,  features: 10, eventTypes: 6  },
+  'Premium':  { photos: 12, features: 12, eventTypes: 10 },
+};
+
+function venlyPlanCaps(plan) {
+  return VENLY_PLAN_CAPS[plan] || VENLY_PLAN_CAPS['Basic'];
+}
+
+// Returns a copy of the venue with photos/features/eventTypes trimmed to what
+// its current plan displays. Use this on every PUBLIC surface (venue page,
+// cards, search results). Never write the trimmed version back to the
+// database - the untrimmed arrays are the source of truth.
+function venlyApplyPlanCaps(venue) {
+  if (!venue) return venue;
+  var caps = venlyPlanCaps(venue.plan);
+  var out = {};
+  for (var k in venue) { if (Object.prototype.hasOwnProperty.call(venue, k)) out[k] = venue[k]; }
+  if (Array.isArray(venue.photos))     out.photos     = venue.photos.slice(0, caps.photos);
+  if (Array.isArray(venue.features))   out.features   = venue.features.slice(0, caps.features);
+  if (Array.isArray(venue.eventTypes)) out.eventTypes = venue.eventTypes.slice(0, caps.eventTypes);
+  return out;
+}
+
 // What Venly is actually charging this venue's host per month, right now —
 // the LISTING/subscription fee (VENLY_CONFIG.plans), not the venue's own
 // hourly booking rate (priceFrom/priceTo), and NOT counted at all unless
