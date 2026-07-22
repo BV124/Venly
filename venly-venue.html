@@ -480,6 +480,12 @@ function escapeHtmlVenue(str) {
 
 // Finds the venue to show, by id first (canonical), falling back to a
 // name match for older links that only pass ?name=.
+//
+// Plan caps are applied HERE, at the single point every render path takes
+// its venue from — so the gallery, amenities grid and event-type chips are
+// all trimmed together. Capping is display-only: the database keeps every
+// photo and feature the host has ever added, so a downgrade hides content
+// rather than destroying it, and upgrading brings it all straight back.
 function findVenueFromUrl() {
   if (typeof getAllVenues !== 'function') return null;
   var params = new URLSearchParams(window.location.search);
@@ -487,13 +493,19 @@ function findVenueFromUrl() {
   var name = params.get('name');
   var all = getAllVenues();
 
+  // Defensive: if config.js is an older build without the helper, fall back
+  // to showing everything rather than breaking the page.
+  var cap = (typeof venlyApplyPlanCaps === 'function')
+    ? venlyApplyPlanCaps
+    : function(v) { return v; };
+
   if (id) {
     var byId = all.find(function(v) { return String(v.id) === String(id); });
-    if (byId) return byId;
+    if (byId) return cap(byId);
   }
   if (name) {
     var byName = all.find(function(v) { return v.name === name; });
-    if (byName) return byName;
+    if (byName) return cap(byName);
   }
   return null;
 }
