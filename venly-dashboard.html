@@ -1614,6 +1614,15 @@ async function loadSubscriptionPanel(listing) {
       var discLabel = info.discount.percentOff
         ? info.discount.percentOff + '% off'
         : '$' + info.discount.amountOff + ' off';
+
+      // If the discount runs out on or before the next billing date, the next
+      // charge is the FULL price. Say so here rather than leaving a big
+      // struck-through "$0.00/month" implying it continues.
+      var dEnd = info.discount.endsAt ? new Date(info.discount.endsAt) : null;
+      var pEnd = info.currentPeriodEnd ? new Date(info.currentPeriodEnd) : null;
+      var endingSoon = info.discount.duration !== 'forever' && dEnd && pEnd &&
+                       dEnd.getTime() <= pEnd.getTime();
+
       priceEl.innerHTML =
         '<span style="text-decoration:line-through;opacity:0.55">$' + info.amount + '</span> ' +
         '<strong style="color:var(--text)">$' + info.effectiveAmount.toFixed(2) + '/month</strong>' +
@@ -1621,10 +1630,14 @@ async function loadSubscriptionPanel(listing) {
         '<div style="margin-top:5px"><span style="display:inline-block;background:var(--red-light);color:var(--red);' +
         'font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px">' + discLabel +
         (info.discount.duration === 'forever' ? ''
-          : (info.discount.endsAt
-              ? ' · until ' + new Date(info.discount.endsAt).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })
-              : '')) +
-        '</span></div>';
+          : (dEnd ? ' · until ' + dEnd.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' }) : '')) +
+        '</span></div>' +
+        (endingSoon
+          ? '<div style="font-size:12px;color:#a06000;margin-top:7px;line-height:1.5">' +
+              'Your discount ends before your next payment — you\'ll be charged $' +
+              info.amount + ' on ' +
+              pEnd.toLocaleDateString('en-NZ', { day: 'numeric', month: 'long' }) + '.</div>'
+          : '');
     } else {
       priceEl.textContent = info.amount != null
         ? '$' + info.amount + '/month · ' + listing.type
@@ -1757,11 +1770,34 @@ async function changePlan(planName, newPriceId, direction, monthly) {
     ? _subPanelInfo.effectiveAmount
     : ((_subPanelInfo && _subPanelInfo.amount != null) ? _subPanelInfo.amount : null);
 
-  // If a percentage discount applies, the new plan is discounted the same way.
-  var newAmount = monthly;
   var d = _subPanelInfo && _subPanelInfo.discount;
-  if (d && d.percentOff) newAmount = monthly * (1 - d.percentOff / 100);
-  else if (d && d.amountOff) newAmount = Math.max(0, monthly - d.amountOff);
+  var periodEnd = (_subPanelInfo && _subPanelInfo.currentPeriodEnd)
+    ? new Date(_subPanelInfo.currentPeriodEnd) : null;
+
+  // Does the discount still apply on the NEXT billing date? A limited-duration
+  // coupon that expires on or before the next charge must NOT be applied to
+  // the ongoing figure - otherwise we'd promise "$0.00/month from 22 Aug" to
+  // someone whose discount runs out on exactly that date, and they'd be
+  // charged full price instead.
+  var discountEndsAt = (d && d.endsAt) ? new Date(d.endsAt) : null;
+  var discountAppliesNextCycle = !!d && (
+    d.duration === 'forever' ||
+    !discountEndsAt ||
+    (periodEnd ? discountEndsAt.getTime() > periodEnd.getTime() : true)
+  );
+
+  function applyDiscount(amount) {
+    if (!d) return amount;
+    if (d.percentOff) return amount * (1 - d.percentOff / 100);
+    if (d.amountOff) return Math.max(0, amount - d.amountOff);
+    return amount;
+  }
+
+  // Today's prorated charge covers the CURRENT period, so it uses the discount
+  // if one is active now. The ongoing monthly figure uses it only if the
+  // discount survives past the next billing date.
+  var newAmountNow = applyDiscount(monthly);
+  var newAmountOngoing = discountAppliesNextCycle ? applyDiscount(monthly) : monthly;
 
   var detail = '';
 
@@ -1770,33 +1806,41 @@ async function changePlan(planName, newPriceId, direction, monthly) {
     // difference in price, scaled by how much of the current period is left.
     // Stripe does the authoritative calculation (and applies any discount),
     // so this is explicitly framed as an estimate rather than an exact figure.
-    var end = _subPanelInfo && _subPanelInfo.currentPeriodEnd
-      ? new Date(_subPanelInfo.currentPeriodEnd) : null;
-    if (end && currentAmount != null) {
-      var daysLeft = Math.max(0, Math.ceil((end.getTime() - Date.now()) / 86400000));
-      var estimate = Math.max(0, (newAmount - currentAmount) * (daysLeft / 30));
+    if (periodEnd && currentAmount != null) {
+      var daysLeft = Math.max(0, Math.ceil((periodEnd.getTime() - Date.now()) / 86400000));
+      var estimate = Math.max(0, (newAmountNow - currentAmount) * (daysLeft / 30));
       detail = '<div style="display:flex;justify-content:space-between;margin-bottom:5px">' +
                  '<span style="color:var(--text-muted)">Roughly today</span>' +
                  '<strong>~$' + estimate.toFixed(2) + '</strong></div>' +
                '<div style="display:flex;justify-content:space-between">' +
                  '<span style="color:var(--text-muted)">Then from ' +
-                   end.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' }) + '</span>' +
-                 '<strong>$' + newAmount.toFixed(2) + '/month</strong></div>' +
+                   periodEnd.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' }) + '</span>' +
+                 '<strong>$' + newAmountOngoing.toFixed(2) + '/month</strong></div>' +
+               (d && !discountAppliesNextCycle
+                 ? '<div style="color:#a06000;font-size:12px;margin-top:9px;line-height:1.5">' +
+                     'Your ' + (d.percentOff ? d.percentOff + '% off' : 'discount') +
+                     ' ends ' + (discountEndsAt ? discountEndsAt.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' }) : 'soon') +
+                     ', so this is the full price from then on.</div>'
+                 : '') +
                '<div style="color:var(--text-muted);font-size:12px;margin-top:9px;line-height:1.5">' +
                  'Estimate only — Stripe works out the exact prorated amount, ' +
                  'including any discount on your account.</div>';
     }
   } else if (currentAmount != null) {
-    var endD = _subPanelInfo && _subPanelInfo.currentPeriodEnd
-      ? new Date(_subPanelInfo.currentPeriodEnd) : null;
     detail = '<div style="display:flex;justify-content:space-between;margin-bottom:5px">' +
                '<span style="color:var(--text-muted)">Today</span>' +
                '<strong>$0.00</strong></div>' +
              '<div style="display:flex;justify-content:space-between">' +
                '<span style="color:var(--text-muted)">' +
-                 (endD ? 'From ' + endD.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })
-                       : 'Next billing date') + '</span>' +
-               '<strong>$' + newAmount.toFixed(2) + '/month</strong></div>';
+                 (periodEnd ? 'From ' + periodEnd.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })
+                            : 'Next billing date') + '</span>' +
+               '<strong>$' + newAmountOngoing.toFixed(2) + '/month</strong></div>' +
+             (d && !discountAppliesNextCycle
+               ? '<div style="color:#a06000;font-size:12px;margin-top:9px;line-height:1.5">' +
+                   'Your ' + (d.percentOff ? d.percentOff + '% off' : 'discount') +
+                   ' ends ' + (discountEndsAt ? discountEndsAt.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' }) : 'soon') +
+                   ', so this is the full price.</div>'
+               : '');
   }
 
   var ok = await showPlanChangeConfirm({
