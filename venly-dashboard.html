@@ -798,6 +798,22 @@ tbody tr:last-child td { border-bottom: none; }
 
 <div class="toast" id="toast"></div>
 
+<!-- PLAN CHANGE CONFIRM MODAL -->
+<div class="modal-overlay hidden" id="plan-change-overlay" style="z-index:1200">
+  <div style="background:var(--white);border-radius:16px;padding:32px;max-width:440px;width:90%;box-shadow:0 16px 48px rgba(0,0,0,0.15)">
+    <div id="plan-change-icon" style="width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px"></div>
+    <h3 id="plan-change-title" style="font-size:18px;font-weight:800;margin-bottom:10px;text-align:center"></h3>
+    <p id="plan-change-body" style="font-size:14px;color:var(--text-muted);line-height:1.65;margin-bottom:14px;text-align:center"></p>
+    <div id="plan-change-detail" style="font-size:13px;line-height:1.6;background:var(--bg);border-radius:9px;padding:13px 15px;margin-bottom:22px;display:none"></div>
+    <div style="display:flex;gap:10px">
+      <button id="plan-change-cancel" style="flex:1;padding:12px;border:1.5px solid var(--border);border-radius:8px;background:var(--white);font-family:Inter,sans-serif;font-size:14px;font-weight:600;cursor:pointer"
+              onmouseover="this.style.borderColor='var(--text)'" onmouseout="this.style.borderColor='var(--border)'">Cancel</button>
+      <button id="plan-change-confirm" style="flex:1;padding:12px;border:none;border-radius:8px;background:var(--red);color:#fff;font-family:Inter,sans-serif;font-size:14px;font-weight:600;cursor:pointer"
+              onmouseover="this.style.background='var(--red-dark)'" onmouseout="this.style.background='var(--red)'"></button>
+    </div>
+  </div>
+</div>
+
 <!-- CANCEL SUBSCRIPTION MODAL -->
 <div class="modal-overlay hidden" id="cancel-sub-overlay" style="z-index:1200">
   <div style="background:var(--white);border-radius:16px;padding:32px;max-width:480px;width:90%;box-shadow:0 16px 48px rgba(0,0,0,0.15)">
@@ -1590,10 +1606,28 @@ async function loadSubscriptionPanel(listing) {
     });
 
     document.getElementById('sub-current-plan').textContent = currentPlanName;
-    document.getElementById('sub-current-price').textContent =
-      info.amount != null
+
+    // Show what they actually pay. With a partial discount the list price and
+    // the charged amount differ, so show both rather than just the list price.
+    var priceEl = document.getElementById('sub-current-price');
+    if (info.discount && info.effectiveAmount != null && info.amount != null) {
+      var discLabel = info.discount.percentOff
+        ? info.discount.percentOff + '% off'
+        : '$' + info.discount.amountOff + ' off';
+      priceEl.innerHTML =
+        '<span style="text-decoration:line-through;opacity:0.55">$' + info.amount + '</span> ' +
+        '<strong style="color:var(--text)">$' + info.effectiveAmount.toFixed(2) + '/month</strong>' +
+        ' · ' + listing.type +
+        '<div style="margin-top:5px"><span style="display:inline-block;background:var(--red-light);color:var(--red);' +
+        'font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px">' + discLabel +
+        (info.discount.duration === 'forever' ? '' :
+          (info.discount.monthsRemaining ? ' · ' + info.discount.monthsRemaining + ' months left' : '')) +
+        '</span></div>';
+    } else {
+      priceEl.textContent = info.amount != null
         ? '$' + info.amount + '/month · ' + listing.type
         : listing.type;
+    }
 
     document.getElementById('sub-next-date').textContent = info.currentPeriodEnd
       ? new Date(info.currentPeriodEnd).toLocaleDateString('en-NZ', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -1675,16 +1709,104 @@ async function loadSubscriptionPanel(listing) {
   }
 }
 
+function showPlanChangeConfirm(opts) {
+  return new Promise(function(resolve) {
+    var overlay = document.getElementById('plan-change-overlay');
+    var isUpgrade = opts.direction === 'upgrade';
+
+    document.getElementById('plan-change-icon').style.background = isUpgrade ? 'var(--red-light)' : '#fff8ec';
+    document.getElementById('plan-change-icon').innerHTML = isUpgrade
+      ? '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>'
+      : '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#a06000" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+
+    document.getElementById('plan-change-title').textContent =
+      (isUpgrade ? 'Upgrade to ' : 'Change to ') + opts.planName;
+    document.getElementById('plan-change-body').textContent = opts.body;
+
+    var detail = document.getElementById('plan-change-detail');
+    if (opts.detail) {
+      detail.innerHTML = opts.detail;
+      detail.style.display = '';
+    } else {
+      detail.style.display = 'none';
+    }
+
+    var confirmBtn = document.getElementById('plan-change-confirm');
+    confirmBtn.textContent = isUpgrade ? 'Upgrade now' : 'Schedule change';
+    confirmBtn.style.background = isUpgrade ? 'var(--red)' : '#a06000';
+
+    overlay.classList.remove('hidden');
+
+    function done(result) {
+      overlay.classList.add('hidden');
+      resolve(result);
+    }
+    document.getElementById('plan-change-cancel').onclick = function() { done(false); };
+    confirmBtn.onclick = function() { done(true); };
+  });
+}
+
 async function changePlan(planName, newPriceId, direction, monthly) {
   if (!_subPanelVenue) return;
 
-  var msg = direction === 'upgrade'
-    ? 'Upgrade to ' + planName + ' ($' + monthly + '/month)?\n\n' +
-      'This starts straight away. You\'ll be charged the difference for the rest of this billing period.'
-    : 'Change to ' + planName + ' ($' + monthly + '/month)?\n\n' +
-      'You keep your current plan until the end of the period you\'ve already paid for, ' +
-      'then this one starts. Nothing is charged today.';
-  if (!confirm(msg)) return;
+  // Use what they ACTUALLY pay as the baseline. With a discount, the list
+  // price would overstate the difference they'll be charged.
+  var currentAmount = (_subPanelInfo && _subPanelInfo.effectiveAmount != null)
+    ? _subPanelInfo.effectiveAmount
+    : ((_subPanelInfo && _subPanelInfo.amount != null) ? _subPanelInfo.amount : null);
+
+  // If a percentage discount applies, the new plan is discounted the same way.
+  var newAmount = monthly;
+  var d = _subPanelInfo && _subPanelInfo.discount;
+  if (d && d.percentOff) newAmount = monthly * (1 - d.percentOff / 100);
+  else if (d && d.amountOff) newAmount = Math.max(0, monthly - d.amountOff);
+
+  var detail = '';
+
+  if (direction === 'upgrade') {
+    // Show a rough estimate of what they'll be charged today. This is the
+    // difference in price, scaled by how much of the current period is left.
+    // Stripe does the authoritative calculation (and applies any discount),
+    // so this is explicitly framed as an estimate rather than an exact figure.
+    var end = _subPanelInfo && _subPanelInfo.currentPeriodEnd
+      ? new Date(_subPanelInfo.currentPeriodEnd) : null;
+    if (end && currentAmount != null) {
+      var daysLeft = Math.max(0, Math.ceil((end.getTime() - Date.now()) / 86400000));
+      var estimate = Math.max(0, (newAmount - currentAmount) * (daysLeft / 30));
+      detail = '<div style="display:flex;justify-content:space-between;margin-bottom:5px">' +
+                 '<span style="color:var(--text-muted)">Roughly today</span>' +
+                 '<strong>~$' + estimate.toFixed(2) + '</strong></div>' +
+               '<div style="display:flex;justify-content:space-between">' +
+                 '<span style="color:var(--text-muted)">Then from ' +
+                   end.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' }) + '</span>' +
+                 '<strong>$' + newAmount.toFixed(2) + '/month</strong></div>' +
+               '<div style="color:var(--text-muted);font-size:12px;margin-top:9px;line-height:1.5">' +
+                 'Estimate only — Stripe works out the exact prorated amount, ' +
+                 'including any discount on your account.</div>';
+    }
+  } else if (currentAmount != null) {
+    var endD = _subPanelInfo && _subPanelInfo.currentPeriodEnd
+      ? new Date(_subPanelInfo.currentPeriodEnd) : null;
+    detail = '<div style="display:flex;justify-content:space-between;margin-bottom:5px">' +
+               '<span style="color:var(--text-muted)">Today</span>' +
+               '<strong>$0.00</strong></div>' +
+             '<div style="display:flex;justify-content:space-between">' +
+               '<span style="color:var(--text-muted)">' +
+                 (endD ? 'From ' + endD.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })
+                       : 'Next billing date') + '</span>' +
+               '<strong>$' + newAmount.toFixed(2) + '/month</strong></div>';
+  }
+
+  var ok = await showPlanChangeConfirm({
+    planName: planName,
+    direction: direction,
+    body: direction === 'upgrade'
+      ? 'This starts straight away. You\'ll only pay the difference for the rest of your current billing period.'
+      : 'You keep ' + (_subPanelVenue.plan || 'your current plan') +
+        ' until the end of the period you\'ve already paid for, then ' + planName + ' starts.',
+    detail: detail
+  });
+  if (!ok) return;
 
   try {
     var res = await callStripeFn('change_plan', {
