@@ -2057,6 +2057,37 @@ function openModal() {
   renderPhotoGrid();
   renderFeatures();
   updateHostEnquiryNote();
+
+  // Safety net: if the modal is opened before the filters have arrived, the
+  // dropdowns and feature/event-type lists would render empty. Fetch them and
+  // redraw. Cheap — venlyBootstrapFilters() is a single row lookup, and this
+  // only fires when they're genuinely missing.
+  (function ensureFiltersLoaded() {
+    if (typeof getVenlyFilters !== 'function' || typeof venlyBootstrapFilters !== 'function') return;
+    var f = getVenlyFilters();
+    var haveRegions = f && f.regions && f.regions.length;
+    var haveAmenities = f && f.amenities && f.amenities.length;
+    if (haveRegions && haveAmenities) return;
+    venlyBootstrapFilters().then(function() {
+      populateRegionOptions();
+      // Restore the saved region/district after repopulating, since replacing
+      // the <option> list clears any value that wasn't in the old list.
+      if (currentEditingListingId) {
+        var l = listings.find(function(x) { return x.id === currentEditingListingId; });
+        if (l) {
+          var regionEl = document.getElementById('v-region');
+          var districtEl = document.getElementById('v-district');
+          if (regionEl && l.region) {
+            regionEl.value = l.region;
+            populateDistrictOptions();
+          }
+          if (districtEl && l.district) districtEl.value = l.district;
+        }
+      }
+      renderFeatures();
+    }).catch(function(e) { console.error('Filter reload failed:', e); });
+  })();
+
   document.body.style.overflow = 'hidden';
 }
 
@@ -3349,6 +3380,31 @@ loadUserProfile();
 loadUserListings();
 loadFavourites();
 attachDirtyListeners();
+
+// Load the shared site filters (regions, districts, amenities, event types)
+// that the admin's Filters page manages.
+//
+// This page reads them through getVenlyFilters(), which serves an in-memory
+// cache — and on a live site that cache deliberately returns EMPTY arrays
+// rather than demo defaults when it hasn't loaded yet. Nothing else on this
+// page was populating it, so whether the dropdowns had any options came down
+// to timing. Fetch them explicitly, then re-populate anything already
+// rendered so the options appear as soon as they arrive.
+(async function bootstrapFiltersForDashboard() {
+  if (typeof venlyBootstrapFilters !== 'function') return;
+  try {
+    await venlyBootstrapFilters();
+    if (typeof populateRegionOptions === 'function') populateRegionOptions();
+    // Features and event types are rendered from the same filters, so redraw
+    // them too if the modal happens to be open already.
+    if (typeof renderFeatures === 'function' &&
+        document.getElementById('features-grid')) {
+      renderFeatures();
+    }
+  } catch (e) {
+    console.error('Could not load site filters:', e);
+  }
+})();
 
 // ---- URL PARAMS: handle payment returns and listing fees redirects ----
 (function() {
