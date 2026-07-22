@@ -374,7 +374,7 @@ nav {
 <div class="page-header">
   <h1>Pricing &amp; Plans<span style="color:var(--red)">.</span></h1>
   <p>Select your space and explore our plans below to see what suits you best. Have questions or need help deciding? Don't hesitate to reach out!</p>
-  <div class="type-tabs">
+  <div class="type-tabs" id="type-tabs">
     <button class="type-tab active" onclick="switchType('event', this)">Event Space</button>
     <button class="type-tab" onclick="switchType('meeting', this)">Meeting Space</button>
     <button class="type-tab" onclick="switchType('shoot', this)">Shoot Location</button>
@@ -715,6 +715,31 @@ function selectPlan(btn) {
       document.querySelectorAll('.type-tab')[2].click();
     }
   }
+})();
+
+// Arriving from the dashboard's "Add New" (or a plan change): scroll far
+// enough that the space-type tabs AND the plan cards with their Get Started
+// buttons are visible straight away, rather than landing on the page header
+// and making the host scroll to find them.
+//
+// Only fires for ?from=dashboard or a plan change — someone arriving from the
+// nav or a direct link still gets the normal top-of-page intro.
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('from') !== 'dashboard' && !params.get('changeidx') && !params.get('currentplan')) return;
+
+  const tabs = document.getElementById('type-tabs');
+  if (!tabs) return;
+
+  // Wait for the plan cards to render, otherwise we'd measure the page before
+  // it has its full height and scroll to the wrong place.
+  requestAnimationFrame(function() {
+    setTimeout(function() {
+      const navHeight = 90; // keep the tabs clear of the sticky nav
+      const top = tabs.getBoundingClientRect().top + window.pageYOffset - navHeight;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    }, 120);
+  });
 })();
 </script>
 
