@@ -670,10 +670,30 @@ function closeAuthPopup() {
   document.getElementById('auth-popup').classList.add('hidden');
   document.body.style.overflow = '';
 }
-// Close on overlay click
-document.getElementById('auth-popup').addEventListener('click', function(e) {
-  if (e.target === this) closeAuthPopup();
-});
+// Close on overlay click.
+//
+// Guarded because #auth-popup is defined further down the page than this
+// script, so it doesn't exist yet when this runs. Calling addEventListener on
+// null throws, and that throw aborts the REST of this script block - which is
+// why selectPlan() and everything below it silently stopped working.
+(function attachAuthPopupClose() {
+  var overlay = document.getElementById('auth-popup');
+  if (overlay) {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === this) closeAuthPopup();
+    });
+    return;
+  }
+  // Not in the DOM yet — wait for parsing to finish, then try again.
+  document.addEventListener('DOMContentLoaded', function() {
+    var el = document.getElementById('auth-popup');
+    if (el) {
+      el.addEventListener('click', function(e) {
+        if (e.target === this) closeAuthPopup();
+      });
+    }
+  });
+})();
 
 
 function selectPlan(btn) {
