@@ -557,22 +557,26 @@ tbody tr:last-child td { border-bottom: none; }
               </select>
             </div>
             <div class="form-group">
+              <label>Capacity (e.g. 1–10, 50–100)</label>
+              <input type="text" id="v-capacity" placeholder="e.g. 20–150" />
+            </div>
+          </div>
+          <!-- Region and District sit together: District's options depend on
+               the selected Region, so pairing them makes that relationship
+               obvious. Both are populated from the shared site_filters the
+               admin's Filters page manages. -->
+          <div class="form-row">
+            <div class="form-group">
               <label>Region</label>
               <select id="v-region" onchange="populateDistrictOptions()">
                 <option value="">Choose</option>
               </select>
             </div>
-          </div>
-          <div class="form-row">
             <div class="form-group">
               <label>District</label>
               <select id="v-district">
                 <option value="">Choose</option>
               </select>
-            </div>
-            <div class="form-group">
-              <label>Capacity (e.g. 1–10, 50–100)</label>
-              <input type="text" id="v-capacity" placeholder="e.g. 20–150" />
             </div>
           </div>
           <div class="form-group">
@@ -2036,7 +2040,14 @@ function openModal() {
   // make all of them fall back to activeType instead.
   var typeField = typeDropdown.closest('.form-group') || typeDropdown.parentElement;
   if (typeField) {
-    typeField.style.display = currentEditingListingId ? 'none' : '';
+    var hideType = !!currentEditingListingId;
+    typeField.style.display = hideType ? 'none' : '';
+    // Type shares a two-column row with Capacity. Hiding it would leave
+    // Capacity in the left column with an empty gap beside it, so let
+    // Capacity span the full row instead.
+    var capacityField = document.getElementById('v-capacity');
+    capacityField = capacityField && (capacityField.closest('.form-group') || capacityField.parentElement);
+    if (capacityField) capacityField.style.gridColumn = hideType ? '1 / -1' : '';
   }
   document.getElementById('summary-plan').textContent = activePlan;
   document.getElementById('summary-type').textContent = activeType;
@@ -2059,6 +2070,9 @@ function closeModal() {
   typeDropdown.style.cursor = '';
   var typeFieldClose = typeDropdown.closest('.form-group') || typeDropdown.parentElement;
   if (typeFieldClose) typeFieldClose.style.display = '';
+  var capacityFieldClose = document.getElementById('v-capacity');
+  capacityFieldClose = capacityFieldClose && (capacityFieldClose.closest('.form-group') || capacityFieldClose.parentElement);
+  if (capacityFieldClose) capacityFieldClose.style.gridColumn = '';
   // Tear down the Stripe card field and reset the payment step
   if (typeof cardElement !== 'undefined' && cardElement) {
     try { cardElement.destroy(); } catch (e) {}
