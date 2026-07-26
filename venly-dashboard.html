@@ -544,15 +544,17 @@ tbody tr:last-child td { border-bottom: none; }
           <div class="form-row">
             <div class="form-group"><label>Venue title</label><input type="text" id="v-title" placeholder="e.g. The Rooftop at Britomart" /></div>
             <div class="form-group" style="position:relative">
-              <label>Address</label>
-              <input type="text" id="v-address" placeholder="Start typing your address…" autocomplete="off" oninput="onDashAddressInput()" />
+              <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+                <label style="margin-bottom:0">Address</label>
+                <span id="dash-geocode-status" style="font-size:12px;color:var(--text-muted)"></span>
+              </div>
+              <input type="text" id="v-address" placeholder="Start typing your address…" autocomplete="off" oninput="onDashAddressInput()" style="margin-top:5px" />
               <!-- Coordinates the map actually uses. Filled by picking a result
                    from the dropdown below; the plain address text alone can't
                    place a pin. -->
               <input type="hidden" id="v-lat" />
               <input type="hidden" id="v-lng" />
               <div id="dash-address-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:50;max-height:260px;overflow-y:auto;margin-top:4px"></div>
-              <div id="dash-geocode-status" style="font-size:12px;color:var(--text-muted);margin-top:6px"></div>
             </div>
           </div>
           <div class="form-group" style="margin-bottom:16px"><label>Description</label><textarea id="v-desc" rows="4" placeholder="Describe your space — what makes it special, what it's great for..."></textarea></div>
@@ -2011,10 +2013,10 @@ function openEditListing(i) {
     vLng.value = (venue && venue.lng != null) ? venue.lng : '';
     if (geoStatus) {
       if (venue && venue.lat != null && venue.lng != null) {
-        geoStatus.innerHTML = '✓ Map pin set — ' + parseFloat(venue.lat).toFixed(4) + ', ' + parseFloat(venue.lng).toFixed(4);
+        geoStatus.innerHTML = '✓ Map pin set';
         geoStatus.style.color = '#22c55e';
       } else {
-        geoStatus.innerHTML = 'No map pin yet — start typing your address and pick a match to set one.';
+        geoStatus.innerHTML = 'No map pin yet';
         geoStatus.style.color = 'var(--text-muted)';
       }
     }
@@ -3063,7 +3065,7 @@ function selectDashAddress(idx) {
   document.getElementById('v-lng').value = parseFloat(result.lon).toFixed(6);
 
   var status = document.getElementById('dash-geocode-status');
-  status.innerHTML = '✓ Map pin set — ' + parseFloat(result.lat).toFixed(4) + ', ' + parseFloat(result.lon).toFixed(4);
+  status.innerHTML = '✓ Map pin set';
   status.style.color = '#22c55e';
 
   markDirty();
