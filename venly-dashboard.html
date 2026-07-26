@@ -978,7 +978,7 @@ tbody tr:last-child td { border-bottom: none; }
     </div>
     <div class="modal-body" style="max-height:none">
       <div style="display:flex;flex-direction:column;gap:10px" id="upgrade-plan-options"></div>
-      <div style="background:#fff8ec;border:1px solid #fde7a0;border-radius:var(--radius-sm);padding:12px 16px;margin-top:16px;font-size:12px;color:#a06000">
+      <div style="background:#fff8ec;border:1px solid #fde7a0;border-radius:var(--radius-sm);padding:12px 16px;margin-top:16px;font-size:12px;color:#a06000" id="upgrade-note">
         ⚡ Upgrades take effect immediately. You'll be charged the prorated difference.
       </div>
     </div>
@@ -1178,7 +1178,12 @@ function showUpgradeBanner(limitType, currentCap) {
   const container = document.getElementById('upgrade-plan-options');
   container.innerHTML = planOrder.filter(p => planOrder.indexOf(p) > planOrder.indexOf(activePlan)).map(p => {
     const caps = planCaps[p];
-    const price = planPrices[p]?.[activeType] || '';
+    const cat = (typeof VENLY_PLAN_CATEGORY_BY_TYPE !== 'undefined' && VENLY_PLAN_CATEGORY_BY_TYPE[activeType]) || 'event';
+    const planInfo = (VENLY_CONFIG.plans[cat] || {})[p];
+    const monthly = planInfo ? planInfo.monthly : null;
+    const priceHtml = monthly != null
+      ? '$' + monthly + ' + GST<div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-top:2px">$' + (monthly * 1.15).toFixed(2) + '/mo</div>'
+      : '';
     return `
       <div class="plan-option-row" id="up-opt-${p}" onclick="selectUpgradePlan('${p}')" style="
         display:flex;align-items:center;justify-content:space-between;
@@ -1188,11 +1193,32 @@ function showUpgradeBanner(limitType, currentCap) {
           <div style="font-size:15px;font-weight:700;margin-bottom:4px">${p}</div>
           <div style="font-size:12px;color:var(--text-muted)">${caps.photos} photos · ${caps.features} features · ${caps.eventTypes} event types</div>
         </div>
-        <div style="font-size:16px;font-weight:700;color:var(--red)">${price}</div>
+        <div style="font-size:16px;font-weight:700;color:var(--red);text-align:right">${priceHtml}</div>
       </div>`;
   }).join('');
   pendingUpgradePlan = nextPlan;
   selectUpgradePlan(nextPlan);
+
+  // Tailor the note + button to the situation. An existing paying listing gets
+  // an immediate prorated charge via Stripe; a new listing simply pays the new
+  // plan's price at checkout — telling a not-yet-paying host they'll be
+  // "charged the prorated difference" would be wrong.
+  var editingNow = currentEditingListingId
+    ? listings.find(function(l) { return l.id === currentEditingListingId; })
+    : null;
+  var isSubscribed = !!(editingNow && editingNow.stripeSubscriptionId);
+  var note = document.getElementById('upgrade-note');
+  var confirmBtn = document.getElementById('upgrade-confirm-btn');
+  if (note) {
+    note.innerHTML = isSubscribed
+      ? '⚡ Upgrades take effect immediately. You\'ll be charged the prorated difference (incl. GST) for the rest of this billing period.'
+      : '⚡ You\'ll go to payment next to activate this plan. Price shown is monthly, plus 15% GST.';
+  }
+  if (confirmBtn) {
+    confirmBtn.innerHTML = (isSubscribed ? 'Upgrade now' : 'Go to payment') +
+      ' <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+  }
+
   document.getElementById('upgrade-banner-overlay').classList.remove('hidden');
 }
 
@@ -1207,14 +1233,48 @@ function selectUpgradePlan(plan) {
 
 function confirmUpgrade() {
   if (!pendingUpgradePlan) return;
-  activePlan = pendingUpgradePlan;
-  document.getElementById('modal-plan-tag').textContent = activePlan + ' Plan';
-  document.getElementById('summary-plan').textContent = activePlan;
-  document.getElementById('summary-price').textContent = planPrices[activePlan]?.[activeType] || '';
+  var targetPlan = pendingUpgradePlan;
   document.getElementById('upgrade-banner-overlay').classList.add('hidden');
+
+  // Is this an existing, already-paying listing, or a new one still being
+  // created? The two need completely different upgrade paths.
+  var editing = currentEditingListingId
+    ? listings.find(function(l) { return l.id === currentEditingListingId; })
+    : null;
+  var alreadySubscribed = !!(editing && editing.stripeSubscriptionId);
+
+  if (alreadySubscribed) {
+    // Already paying — they can't "checkout" again. Jump to the Payment step,
+    // which for a subscribed listing shows the subscription panel, and kick
+    // off the real prorated upgrade there (charges immediately via Stripe).
+    activePlan = targetPlan; // so the UI caps update once the change lands
+    currentStep = 4;
+    updateStepUI();
+
+    var cat = (typeof VENLY_PLAN_CATEGORY_BY_TYPE !== 'undefined' && VENLY_PLAN_CATEGORY_BY_TYPE[editing.type]) || 'event';
+    var planInfo = (VENLY_CONFIG.plans[cat] || {})[targetPlan];
+    if (planInfo && typeof changePlan === 'function') {
+      // Let the panel finish loading, then open the upgrade confirm for the
+      // plan they picked, so it's one continuous flow rather than making them
+      // hunt for the plan again.
+      setTimeout(function() {
+        changePlan(targetPlan, planInfo.stripePriceId, 'upgrade', planInfo.monthly);
+      }, 400);
+    }
+    return;
+  }
+
+  // New listing — no charge yet. Switch the plan and send them to Payment,
+  // where they'll pay the new plan's price (incl. GST) at checkout.
+  activePlan = targetPlan;
+  document.getElementById('modal-plan-tag').textContent = activePlan + ' Plan';
+  var summaryPlan = document.getElementById('summary-plan');
+  if (summaryPlan) summaryPlan.textContent = activePlan;
   renderPhotoGrid();
   renderFeatures();
-  showToast('⚡ Upgraded to ' + activePlan + ' — continue adding your listing!');
+  currentStep = 4;
+  updateStepUI();
+  showToast('⚡ Switched to ' + activePlan + ' — review and pay to go live');
 }
 
 // Shows a clearer label for venues the admin set up on a host's behalf
