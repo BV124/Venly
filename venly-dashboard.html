@@ -543,7 +543,17 @@ tbody tr:last-child td { border-bottom: none; }
           <div class="modal-section-title">Venue information</div>
           <div class="form-row">
             <div class="form-group"><label>Venue title</label><input type="text" id="v-title" placeholder="e.g. The Rooftop at Britomart" /></div>
-            <div class="form-group"><label>Address</label><input type="text" id="v-address" placeholder="123 Queen St, Auckland" /></div>
+            <div class="form-group" style="position:relative">
+              <label>Address</label>
+              <input type="text" id="v-address" placeholder="Start typing your address…" autocomplete="off" oninput="onDashAddressInput()" />
+              <!-- Coordinates the map actually uses. Filled by picking a result
+                   from the dropdown below; the plain address text alone can't
+                   place a pin. -->
+              <input type="hidden" id="v-lat" />
+              <input type="hidden" id="v-lng" />
+              <div id="dash-address-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:50;max-height:260px;overflow-y:auto;margin-top:4px"></div>
+              <div id="dash-geocode-status" style="font-size:12px;color:var(--text-muted);margin-top:6px"></div>
+            </div>
           </div>
           <div class="form-group" style="margin-bottom:16px"><label>Description</label><textarea id="v-desc" rows="4" placeholder="Describe your space — what makes it special, what it's great for..."></textarea></div>
           <div class="form-row">
@@ -1992,6 +2002,23 @@ function openEditListing(i) {
   document.getElementById('v-title').value = (venue && venue.name) || listing.name || '';
   document.getElementById('v-type').value = listing.type;
   document.getElementById('v-address').value = (venue && venue.address) || '';
+  // Restore the saved map coordinates and reflect whether a pin is set.
+  var vLat = document.getElementById('v-lat');
+  var vLng = document.getElementById('v-lng');
+  var geoStatus = document.getElementById('dash-geocode-status');
+  if (vLat && vLng) {
+    vLat.value = (venue && venue.lat != null) ? venue.lat : '';
+    vLng.value = (venue && venue.lng != null) ? venue.lng : '';
+    if (geoStatus) {
+      if (venue && venue.lat != null && venue.lng != null) {
+        geoStatus.innerHTML = '✓ Map pin set — ' + parseFloat(venue.lat).toFixed(4) + ', ' + parseFloat(venue.lng).toFixed(4);
+        geoStatus.style.color = '#22c55e';
+      } else {
+        geoStatus.innerHTML = 'No map pin yet — start typing your address and pick a match to set one.';
+        geoStatus.style.color = 'var(--text-muted)';
+      }
+    }
+  }
   document.getElementById('v-desc').value = (venue && venue.description) || '';
   document.getElementById('v-capacity').value = (venue && venue.capacity) || '';
   document.getElementById('v-website').value = (venue && venue.website) || '';
@@ -2135,6 +2162,15 @@ function closeModal() {
   photoDataUrls = [];
   coverPhotoIndex = 0;
   _photosExplicitlyCleared = false;
+  // Clear the geocoded coordinates + status and any open address dropdown, so
+  // the next time the modal opens it doesn't inherit a stale pin.
+  var latEl = document.getElementById('v-lat');
+  var lngEl = document.getElementById('v-lng');
+  if (latEl) latEl.value = '';
+  if (lngEl) lngEl.value = '';
+  var geoEl = document.getElementById('dash-geocode-status');
+  if (geoEl) { geoEl.textContent = ''; geoEl.style.color = 'var(--text-muted)'; }
+  if (typeof hideDashAddressDropdown === 'function') hideDashAddressDropdown();
   currentEditingListingId = null;
   _isEditingLive = false;
   _isDirty = false;
@@ -2288,6 +2324,8 @@ async function saveListing(isLive, silent) {
       region: document.getElementById('v-region').value,
       district: document.getElementById('v-district').value,
       address: document.getElementById('v-address').value.trim(),
+      lat: document.getElementById('v-lat').value || null,
+      lng: document.getElementById('v-lng').value || null,
       description: document.getElementById('v-desc').value.trim(),
       capacity: document.getElementById('v-capacity').value.trim(),
       website: document.getElementById('v-website').value.trim(),
@@ -2344,6 +2382,8 @@ async function saveListing(isLive, silent) {
   var venueData = {
     name: title,
     address: document.getElementById('v-address').value.trim(),
+    lat: document.getElementById('v-lat').value ? parseFloat(document.getElementById('v-lat').value) : null,
+    lng: document.getElementById('v-lng').value ? parseFloat(document.getElementById('v-lng').value) : null,
     type: document.getElementById('v-type').value || activeType,
     plan: activePlan,
     region: document.getElementById('v-region').value,
@@ -2948,7 +2988,100 @@ function showToast(msg) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// ---- MY DETAILS — edit / save / password reset ----
+// ─── Address autocomplete + geocoding (OpenStreetMap Nominatim) ──────────
+// Ported from the admin dashboard, which already does this. The plain address
+// text can't place a map pin on the venue page — that needs lat/lng. As the
+// host types, we look the address up (NZ-filtered), they pick the right match,
+// and we store the coordinates in the hidden v-lat / v-lng fields, which then
+// save to the venue row and drive the mini-map on the public page.
+var _dashAddressTimer = null;
+var _dashAddressResults = [];
+
+function onDashAddressInput() {
+  var query = document.getElementById('v-address').value.trim();
+  clearTimeout(_dashAddressTimer);
+  markDirty();
+
+  if (query.length < 3) {
+    hideDashAddressDropdown();
+    return;
+  }
+
+  // Changing the address invalidates any previously-picked coordinates.
+  document.getElementById('v-lat').value = '';
+  document.getElementById('v-lng').value = '';
+  document.getElementById('dash-geocode-status').textContent = '';
+
+  // Debounce so we don't hit Nominatim on every keystroke (their usage policy
+  // asks for at most ~1 request/second).
+  _dashAddressTimer = setTimeout(function() { searchDashAddress(query); }, 350);
+}
+
+async function searchDashAddress(query) {
+  var dropdown = document.getElementById('dash-address-dropdown');
+  try {
+    var fullQuery = query + (query.toLowerCase().includes('new zealand') ? '' : ', New Zealand');
+    var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=nz&addressdetails=1&q=' + encodeURIComponent(fullQuery);
+    var res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    _dashAddressResults = await res.json();
+
+    if (!_dashAddressResults.length) {
+      dropdown.innerHTML = '<div style="padding:12px 14px;font-size:13px;color:var(--text-muted)">No results found — try adding more detail</div>';
+      dropdown.style.display = 'block';
+      return;
+    }
+
+    dropdown.innerHTML = _dashAddressResults.map(function(r, i) {
+      var parts = r.display_name.split(', ');
+      var display = parts.slice(0, Math.min(parts.length - 1, 4)).join(', ');
+      var type = r.type ? r.type.replace(/_/g, ' ') : '';
+      return '<div data-idx="' + i + '" onclick="selectDashAddress(' + i + ')" ' +
+        'style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px" ' +
+        'onmouseover="this.style.background=\'var(--red-light)\'" onmouseout="this.style.background=\'transparent\'">' +
+        '<div style="font-weight:600;color:var(--text);margin-bottom:2px">📍 ' + display + '</div>' +
+        (type ? '<div style="font-size:11px;color:var(--text-muted);text-transform:capitalize">' + type + '</div>' : '') +
+      '</div>';
+    }).join('');
+    dropdown.style.display = 'block';
+
+  } catch (e) {
+    console.error('Address search error:', e);
+    dropdown.innerHTML = '<div style="padding:12px 14px;font-size:13px;color:var(--red)">Search failed — please try again</div>';
+    dropdown.style.display = 'block';
+  }
+}
+
+function selectDashAddress(idx) {
+  var result = _dashAddressResults[idx];
+  if (!result) return;
+
+  var parts = result.display_name.split(', ');
+  var cleanAddress = parts.slice(0, Math.min(parts.length - 1, 4)).join(', ');
+
+  document.getElementById('v-address').value = cleanAddress;
+  document.getElementById('v-lat').value = parseFloat(result.lat).toFixed(6);
+  document.getElementById('v-lng').value = parseFloat(result.lon).toFixed(6);
+
+  var status = document.getElementById('dash-geocode-status');
+  status.innerHTML = '✓ Map pin set — ' + parseFloat(result.lat).toFixed(4) + ', ' + parseFloat(result.lon).toFixed(4);
+  status.style.color = '#22c55e';
+
+  markDirty();
+  hideDashAddressDropdown();
+}
+
+function hideDashAddressDropdown() {
+  var d = document.getElementById('dash-address-dropdown');
+  if (d) d.style.display = 'none';
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#v-address') && !e.target.closest('#dash-address-dropdown')) {
+    hideDashAddressDropdown();
+  }
+});
+
+// ─── end address autocomplete ────────────────────────────────────────────
 var _editMode = false;
 var _profileSnapshot = {};
 
@@ -3172,6 +3305,8 @@ async function loadUserListings() {
       region: v.region || '',
       district: v.district || '',
       address: v.address || '',
+      lat: v.lat != null ? v.lat : null,
+      lng: v.lng != null ? v.lng : null,
       description: v.description || '',
       capacity: v.capacity || '',
       website: v.website || '',
@@ -3245,6 +3380,8 @@ async function saveListingToSupabase(listingData) {
     region: listingData.region,
     district: listingData.district,
     address: listingData.address,
+    lat: listingData.lat != null && listingData.lat !== '' ? parseFloat(listingData.lat) : null,
+    lng: listingData.lng != null && listingData.lng !== '' ? parseFloat(listingData.lng) : null,
     description: listingData.description,
     capacity: listingData.capacity,
     website: listingData.website,
