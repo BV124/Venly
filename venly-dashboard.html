@@ -518,6 +518,10 @@ tbody tr:last-child td { border-bottom: none; }
         <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
           <span class="plan-tag" id="modal-plan-tag">Premium Plan</span>
           <span style="font-size:12px;color:var(--text-muted)" id="modal-type-tag">Event Space</span>
+          <button type="button" id="modal-change-plan" onclick="openDraftPlanChange()"
+                  style="display:none;background:none;border:none;padding:0;margin-left:2px;font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:var(--red);cursor:pointer;text-decoration:underline">
+            Change plan
+          </button>
         </div>
       </div>
       <button class="modal-close" onclick="requestCloseModal()">
@@ -964,6 +968,31 @@ tbody tr:last-child td { border-bottom: none; }
   </div>
 </div>
 
+<!-- DRAFT PLAN CHANGE (free switch — no subscription yet) -->
+<div class="modal-overlay hidden" id="draft-plan-overlay" style="z-index:1200">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <h2>Choose your plan</h2>
+        <p style="font-size:13px;color:var(--text-muted);margin-top:4px">This listing isn't published yet, so you can switch freely — you'll pay for the plan you choose when you go live.</p>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('draft-plan-overlay').classList.add('hidden')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" style="max-height:none">
+      <div style="display:flex;flex-direction:column;gap:10px" id="draft-plan-options"></div>
+      <div id="draft-plan-warning" style="display:none;background:#fff8ec;border:1px solid #fde7a0;border-radius:var(--radius-sm);padding:12px 16px;margin-top:16px;font-size:12px;color:#a06000;line-height:1.55"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-draft" onclick="document.getElementById('draft-plan-overlay').classList.add('hidden')">Cancel</button>
+      <button class="btn-next" id="draft-plan-confirm" onclick="confirmDraftPlanChange()">
+        Switch plan <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- UPGRADE BANNER -->
 <div class="modal-overlay hidden" id="upgrade-banner-overlay">
   <div class="modal" style="max-width:460px">
@@ -1212,10 +1241,10 @@ function showUpgradeBanner(limitType, currentCap) {
   if (note) {
     note.innerHTML = isSubscribed
       ? '⚡ Upgrades take effect immediately. You\'ll be charged the prorated difference (incl. GST) for the rest of this billing period.'
-      : '⚡ You\'ll go to payment next to activate this plan. Price shown is monthly, plus 15% GST.';
+      : '⚡ You can keep editing after switching. You\'ll pay for this plan (plus 15% GST) when you go live.';
   }
   if (confirmBtn) {
-    confirmBtn.innerHTML = (isSubscribed ? 'Upgrade now' : 'Go to payment') +
+    confirmBtn.innerHTML = (isSubscribed ? 'Upgrade now' : 'Switch plan') +
       ' <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
   }
 
@@ -1264,17 +1293,16 @@ function confirmUpgrade() {
     return;
   }
 
-  // New listing — no charge yet. Switch the plan and send them to Payment,
-  // where they'll pay the new plan's price (incl. GST) at checkout.
+  // New listing — no charge yet. Switch the plan and let them keep editing;
+  // they'll pay the new plan's price (incl. GST) when they reach Payment.
   activePlan = targetPlan;
   document.getElementById('modal-plan-tag').textContent = activePlan + ' Plan';
   var summaryPlan = document.getElementById('summary-plan');
   if (summaryPlan) summaryPlan.textContent = activePlan;
+  updateDraftPlanControl();
   renderPhotoGrid();
   renderFeatures();
-  currentStep = 4;
-  updateStepUI();
-  showToast('⚡ Switched to ' + activePlan + ' — review and pay to go live');
+  showToast('⚡ Switched to ' + activePlan + ' — keep adding your listing');
 }
 
 // Shows a clearer label for venues the admin set up on a host's behalf
@@ -2013,6 +2041,98 @@ async function openBillingPortalForEditing() {
   }
 }
 
+// Show the header "Change plan" link only when editing a DRAFT (a listing
+// with no subscription yet). A paying listing changes plan through the proper
+// prorated flow on the Payment step, not this free switch.
+function updateDraftPlanControl() {
+  var link = document.getElementById('modal-change-plan');
+  if (!link) return;
+  var editing = currentEditingListingId
+    ? listings.find(function(l) { return l.id === currentEditingListingId; })
+    : null;
+  var isPayingListing = !!(editing && editing.stripeSubscriptionId);
+  // Show for new listings and for drafts; hide for anything already paying.
+  link.style.display = isPayingListing ? 'none' : 'inline';
+}
+
+var _draftPendingPlan = null;
+
+function openDraftPlanChange() {
+  var container = document.getElementById('draft-plan-options');
+  var cat = (typeof VENLY_PLAN_CATEGORY_BY_TYPE !== 'undefined' && VENLY_PLAN_CATEGORY_BY_TYPE[activeType]) || 'event';
+  var plans = VENLY_CONFIG.plans[cat] || {};
+
+  container.innerHTML = ['Basic', 'Standard', 'Premium'].map(function(p) {
+    var info = plans[p];
+    if (!info) return '';
+    var caps = planCaps[p];
+    var isCurrent = p === activePlan;
+    var incl = (info.monthly * 1.15).toFixed(2);
+    return '<div class="plan-option-row" id="draft-opt-' + p + '" onclick="selectDraftPlan(\'' + p + '\')" style="' +
+      'display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-radius:var(--radius);' +
+      'border:2px solid ' + (isCurrent ? 'var(--red)' : 'var(--border)') + ';cursor:pointer;transition:all 0.15s;' +
+      'background:' + (isCurrent ? 'var(--red-light)' : 'var(--white)') + '">' +
+        '<div><div style="font-size:15px;font-weight:700;margin-bottom:4px">' + p +
+          (isCurrent ? ' <span style="font-size:11px;color:var(--red)">· current</span>' : '') + '</div>' +
+          '<div style="font-size:12px;color:var(--text-muted)">' + caps.photos + ' photos · ' + caps.features + ' features · ' + caps.eventTypes + ' event types</div></div>' +
+        '<div style="text-align:right;font-size:15px;font-weight:700;color:var(--red)">$' + info.monthly +
+          ' + GST<div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-top:2px">$' + incl + '/mo</div></div>' +
+      '</div>';
+  }).join('');
+
+  _draftPendingPlan = activePlan;
+  selectDraftPlan(activePlan);
+  document.getElementById('draft-plan-overlay').classList.remove('hidden');
+}
+
+function selectDraftPlan(plan) {
+  _draftPendingPlan = plan;
+  ['Basic', 'Standard', 'Premium'].forEach(function(p) {
+    var row = document.getElementById('draft-opt-' + p);
+    if (!row) return;
+    var isSel = p === plan;
+    row.style.borderColor = isSel ? 'var(--red)' : 'var(--border)';
+    row.style.background = isSel ? 'var(--red-light)' : 'var(--white)';
+  });
+
+  // Warn if the chosen plan's caps are below what's already in the editor.
+  // Mirrors the live-downgrade behaviour: nothing is deleted, but content over
+  // the new cap won't be shown until they're back on a higher plan.
+  var caps = planCaps[plan];
+  var photoCount = photoDataUrls.filter(function(x) { return !!x; }).length;
+  var featCount = selectedFeatures.length;
+  var eventCount = selectedEventTypes.length;
+  var over = [];
+  if (photoCount > caps.photos) over.push((photoCount - caps.photos) + ' photo' + (photoCount - caps.photos > 1 ? 's' : ''));
+  if (featCount > caps.features) over.push((featCount - caps.features) + ' feature' + (featCount - caps.features > 1 ? 's' : ''));
+  if (eventCount > caps.eventTypes) over.push((eventCount - caps.eventTypes) + ' event type' + (eventCount - caps.eventTypes > 1 ? 's' : ''));
+
+  var warn = document.getElementById('draft-plan-warning');
+  if (over.length) {
+    warn.style.display = '';
+    warn.innerHTML = '⚠️ ' + plan + ' allows ' + caps.photos + ' photos, ' + caps.features +
+      ' features and ' + caps.eventTypes + ' event types. Your listing has more than that, so ' +
+      over.join(', ') + ' won\'t be shown while you\'re on ' + plan +
+      '. Nothing is deleted — switch back up any time to restore them.';
+  } else {
+    warn.style.display = 'none';
+  }
+}
+
+function confirmDraftPlanChange() {
+  if (!_draftPendingPlan) return;
+  activePlan = _draftPendingPlan;
+  document.getElementById('modal-plan-tag').textContent = activePlan + ' Plan';
+  var summaryPlan = document.getElementById('summary-plan');
+  if (summaryPlan) summaryPlan.textContent = activePlan;
+  document.getElementById('draft-plan-overlay').classList.add('hidden');
+  // Re-render so caps (which read activePlan via getCaps) apply on display.
+  renderPhotoGrid();
+  renderFeatures();
+  if (typeof refreshPaymentTotals === 'function') refreshPaymentTotals();
+  showToast('Plan changed to ' + activePlan);
+}
+
 function deleteListing(i) {
   var listing = listings[i];
   if (!listing) return;
@@ -2148,6 +2268,7 @@ function openModal() {
   document.getElementById('modal-overlay').classList.remove('hidden');
   document.getElementById('modal-plan-tag').textContent = activePlan + ' Plan';
   document.getElementById('modal-type-tag').textContent = activeType;
+  updateDraftPlanControl();
   // Set and lock the type dropdown — the user already chose this on the
   // listing fees page, and a venue's type can never change afterwards (the
   // Stripe price is tied to it).
