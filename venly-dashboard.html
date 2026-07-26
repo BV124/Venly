@@ -2102,18 +2102,29 @@ function selectDraftPlan(plan) {
   var photoCount = photoDataUrls.filter(function(x) { return !!x; }).length;
   var featCount = selectedFeatures.length;
   var eventCount = selectedEventTypes.length;
-  var over = [];
-  if (photoCount > caps.photos) over.push((photoCount - caps.photos) + ' photo' + (photoCount - caps.photos > 1 ? 's' : ''));
-  if (featCount > caps.features) over.push((featCount - caps.features) + ' feature' + (featCount - caps.features > 1 ? 's' : ''));
-  if (eventCount > caps.eventTypes) over.push((eventCount - caps.eventTypes) + ' event type' + (eventCount - caps.eventTypes > 1 ? 's' : ''));
+
+  var photoOver = Math.max(0, photoCount - caps.photos);
+  var featOver = Math.max(0, featCount - caps.features);
+  var eventOver = Math.max(0, eventCount - caps.eventTypes);
 
   var warn = document.getElementById('draft-plan-warning');
-  if (over.length) {
+  if (photoOver || featOver || eventOver) {
+    var lines = [];
+    // Photos are KEPT (restored on upgrade); features/event types are DESELECTED.
+    if (photoOver) {
+      lines.push(photoOver + ' photo' + (photoOver > 1 ? 's' : '') +
+        ' will be hidden from your public listing (kept, and restored if you upgrade again)');
+    }
+    if (featOver) {
+      lines.push(featOver + ' feature' + (featOver > 1 ? 's' : '') + ' will be deselected');
+    }
+    if (eventOver) {
+      lines.push(eventOver + ' event type' + (eventOver > 1 ? 's' : '') + ' will be deselected');
+    }
     warn.style.display = '';
     warn.innerHTML = '⚠️ ' + plan + ' allows ' + caps.photos + ' photos, ' + caps.features +
-      ' features and ' + caps.eventTypes + ' event types. Your listing has more than that, so ' +
-      over.join(', ') + ' won\'t be shown while you\'re on ' + plan +
-      '. Nothing is deleted — switch back up any time to restore them.';
+      ' features and ' + caps.eventTypes + ' event types. Switching means: ' +
+      lines.join('; ') + '. You can reselect within the new limit.';
   } else {
     warn.style.display = 'none';
   }
@@ -2121,11 +2132,27 @@ function selectDraftPlan(plan) {
 
 function confirmDraftPlanChange() {
   if (!_draftPendingPlan) return;
-  activePlan = _draftPendingPlan;
+  var newPlan = _draftPendingPlan;
+  var newCaps = planCaps[newPlan];
+
+  // If moving to a smaller plan, trim selections down to the new caps so the
+  // host never has more selected than they're paying for. They can reselect
+  // within the new limit. (Photos are handled by renderPhotoGrid, which keeps
+  // the data but only shows up to the cap — but features/event types are a
+  // hard deselect here, per how hosts expect a downgrade to work.)
+  if (selectedFeatures.length > newCaps.features) {
+    selectedFeatures = selectedFeatures.slice(0, newCaps.features);
+  }
+  if (selectedEventTypes.length > newCaps.eventTypes) {
+    selectedEventTypes = selectedEventTypes.slice(0, newCaps.eventTypes);
+  }
+
+  activePlan = newPlan;
   document.getElementById('modal-plan-tag').textContent = activePlan + ' Plan';
   var summaryPlan = document.getElementById('summary-plan');
   if (summaryPlan) summaryPlan.textContent = activePlan;
   document.getElementById('draft-plan-overlay').classList.add('hidden');
+  markDirty();
   // Re-render so caps (which read activePlan via getCaps) apply on display.
   renderPhotoGrid();
   renderFeatures();
@@ -2663,12 +2690,37 @@ async function saveListing(isLive, silent) {
   document.querySelectorAll('.tab-btn')[1].classList.add('active');
 }
 
-function saveDraft() {
-  // When editing a live listing "Save changes" keeps it live — don't demote to draft
-  if (_isEditingLive && currentEditingListingId) {
-    saveListing(true);
-  } else {
-    saveListing(false);
+var _saveInProgress = false;
+
+async function saveDraft() {
+  // Guard against double-clicks / overlapping saves. Without this, clicking
+  // again while a save's async calls (getCurrentUser, the update, then
+  // loadUserListings) are still resolving fired a second racing request — one
+  // could error or return stale data, so the save "didn't work" until a retry.
+  if (_saveInProgress) return;
+  _saveInProgress = true;
+
+  var btn = document.getElementById('btn-draft');
+  var originalText = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; btn.style.cursor = 'wait'; btn.textContent = 'Saving…'; }
+
+  try {
+    // When editing a live listing "Save changes" keeps it live — don't demote to draft
+    if (_isEditingLive && currentEditingListingId) {
+      await saveListing(true);
+    } else {
+      await saveListing(false);
+    }
+  } catch (e) {
+    console.error('saveDraft failed:', e);
+    showToast('Could not save — please try again');
+  } finally {
+    _saveInProgress = false;
+    // The modal usually closes on success; only restore the button if it's
+    // still open (e.g. a validation return or an error left it open).
+    if (btn && !document.getElementById('modal-overlay').classList.contains('hidden')) {
+      btn.disabled = false; btn.style.opacity = ''; btn.style.cursor = ''; btn.textContent = originalText;
+    }
   }
 }
 
