@@ -3013,23 +3013,40 @@ function onDashAddressInput() {
   statusEl.innerHTML = '';
   statusEl.style.color = 'var(--text-muted)';
 
-  if (query.length < 3) {
+  if (query.length < 2) {
     hideDashAddressDropdown();
     return;
   }
 
-  // Debounce so we don't hit Nominatim on every keystroke (their usage policy
-  // asks for at most ~1 request/second).
-  _dashAddressTimer = setTimeout(function() { searchDashAddress(query); }, 350);
+  // Show an immediate "searching" hint so the field feels responsive the
+  // moment the user pauses, rather than looking frozen while the request is
+  // in flight.
+  var dd = document.getElementById('dash-address-dropdown');
+  dd.innerHTML = '<div style="padding:11px 14px;font-size:13px;color:var(--text-muted)">Searching…</div>';
+  dd.style.display = 'block';
+
+  // Debounce so we don't hit Nominatim on every keystroke. Their usage policy
+  // asks for roughly ≤1 request/second; 200ms is snappy but still collapses a
+  // burst of fast typing into a single request once the user pauses.
+  _dashAddressTimer = setTimeout(function() { searchDashAddress(query); }, 200);
 }
 
 async function searchDashAddress(query) {
   var dropdown = document.getElementById('dash-address-dropdown');
+
+  // Guard against out-of-order responses: if the user has typed more since
+  // this search fired, a slow reply could land after a newer one and show
+  // stale matches. Compare against the current field value before rendering.
+  var addrEl = document.getElementById('v-address');
   try {
     var fullQuery = query + (query.toLowerCase().includes('new zealand') ? '' : ', New Zealand');
     var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=nz&addressdetails=1&q=' + encodeURIComponent(fullQuery);
     var res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-    _dashAddressResults = await res.json();
+    var results = await res.json();
+
+    // The field changed while we were waiting — this response is stale, drop it.
+    if (addrEl.value.trim() !== query) return;
+    _dashAddressResults = results;
 
     if (!_dashAddressResults.length) {
       dropdown.innerHTML = '<div style="padding:12px 14px;font-size:13px;color:var(--text-muted)">No results found — try adding more detail</div>';
