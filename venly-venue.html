@@ -572,8 +572,9 @@ function loadVenue() {
   if (v.capacity) {
     pillsHtml += '<span class="meta-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Capacity ' + escapeHtmlVenue(v.capacity) + '</span>';
   }
-  if (v.priceFrom) {
-    pillsHtml += '<span class="meta-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>From $' + escapeHtmlVenue(v.priceFrom) + '/hr</span>';
+  var priceLabel = (typeof venlyFormatPrice === 'function') ? venlyFormatPrice(v) : (v.priceFrom ? 'From $' + v.priceFrom + '/hr' : '');
+  if (priceLabel) {
+    pillsHtml += '<span class="meta-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>' + escapeHtmlVenue(priceLabel) + '</span>';
   }
   document.getElementById('meta-pills').innerHTML = pillsHtml;
 
@@ -617,13 +618,24 @@ function loadVenue() {
     document.getElementById('host-email-val').textContent = hostContactEmail;
   }
 
-  // Enquiry price box — hide entirely if no price was set
-  if (v.priceFrom) {
+  // Enquiry price box — uses the structured formatter. Shows for any venue
+  // with a price type (including "Free hire" and "Enquire"), plus the
+  // free-text pricing details verbatim underneath when present.
+  var priceLabel = (typeof venlyFormatPrice === 'function') ? venlyFormatPrice(v) : '';
+  var hasDetails = v.pricingDetails && v.pricingDetails.trim();
+  if (priceLabel || hasDetails) {
     document.getElementById('enquiry-price-wrap').style.display = '';
-    var priceVal = v.priceTo && v.priceTo !== v.priceFrom
-      ? '$' + v.priceFrom + '–$' + v.priceTo
-      : '$' + v.priceFrom;
-    document.getElementById('enquiry-price-val').innerHTML = priceVal + ' <span>/ hr</span>';
+    // "Starting from" only reads right for from-style prices; use a neutral
+    // label otherwise.
+    var labelText = (v.priceType === 'hourly' || v.priceType === 'per_person' || !v.priceType)
+      ? 'Starting from' : 'Pricing';
+    document.getElementById('enquiry-price-label').textContent = labelText;
+    document.getElementById('enquiry-price-val').innerHTML =
+      escapeHtmlVenue(priceLabel || 'See details') +
+      (hasDetails
+        ? '<div style="font-size:13px;font-weight:400;color:var(--text-muted);line-height:1.5;margin-top:8px">' +
+            escapeHtmlVenue(v.pricingDetails).replace(/\n/g, '<br>') + '</div>'
+        : '');
   } else {
     document.getElementById('enquiry-price-wrap').style.display = 'none';
   }

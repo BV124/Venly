@@ -296,6 +296,8 @@ function _mapVenueFromDb(row) {
     website: row.website,
     priceFrom: row.price_from,
     priceTo: row.price_to,
+    priceType: row.price_type || null,
+    pricingDetails: row.pricing_details || null,
     plan: row.plan,
     hits: row.hits,
     hostUserId: row.host_user_id,
@@ -489,6 +491,62 @@ function saveAllVenues(venues) {
 }
 
 var VENLY_PLAN_CATEGORY_BY_TYPE = { 'Event space': 'event', 'Meeting space': 'meeting', 'Shoot Location': 'shoot' };
+
+// ---------------------------------------------------------------------------
+// PRICING — one formatter used everywhere (editor preview, cards, venue page)
+// so the host sees exactly what visitors will. A venue has a `priceType` plus
+// the reused priceFrom/priceTo numbers; older venues have neither and fall
+// back to the legacy from/to range.
+// ---------------------------------------------------------------------------
+function _venlyMoney(n) {
+  var num = parseFloat(n);
+  if (isNaN(num)) return '';
+  // Whole numbers show without decimals ($150), otherwise two dp ($20.50).
+  return '$' + (num % 1 === 0 ? num.toFixed(0) : num.toFixed(2));
+}
+
+// Short label for cards and the venue page header.
+function venlyFormatPrice(v) {
+  if (!v) return '';
+  var from = v.priceFrom, to = v.priceTo;
+  switch (v.priceType) {
+    case 'hourly':
+      if (!from) return 'Hourly rate';
+      return 'from ' + _venlyMoney(from) + '/hr';
+    case 'fixed':
+      return from ? _venlyMoney(from) : 'Fixed price';
+    case 'per_person':
+      return from ? 'from ' + _venlyMoney(from) + 'pp' : 'Per person';
+    case 'free':
+      return from ? 'Free hire · ' + _venlyMoney(from) + ' min. spend' : 'Free hire';
+    case 'enquire':
+      return 'Enquire for pricing';
+    default:
+      // Legacy from/to range (no priceType set).
+      if (from && to && from !== to) return _venlyMoney(from) + '–' + _venlyMoney(to);
+      if (from) return 'from ' + _venlyMoney(from);
+      return '';
+  }
+}
+
+// The single number used for sorting and the price filter. "from"-style prices
+// use their lowest figure; free = 0; enquire / unpriced = null (excluded from
+// numeric range filtering, always shown, sorted last).
+function venlyPriceValue(v) {
+  if (!v) return null;
+  var from = parseFloat(v.priceFrom);
+  switch (v.priceType) {
+    case 'free': return 0;
+    case 'enquire': return null;
+    case 'hourly':
+    case 'fixed':
+    case 'per_person':
+      return isNaN(from) ? null : from;
+    default:
+      return isNaN(from) ? null : from; // legacy
+  }
+}
+
 
 // ---------------------------------------------------------------------------
 // PLAN CAPS — how much of a venue's content each plan actually DISPLAYS.

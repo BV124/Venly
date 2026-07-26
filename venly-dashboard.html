@@ -649,10 +649,38 @@ tbody tr:last-child td { border-bottom: none; }
         </div>
         <div class="modal-section" style="margin-top:24px">
           <div class="modal-section-title">Pricing (optional)</div>
-          <div class="form-row">
-            <div class="form-group"><label>Price from (NZD/hr)</label><input type="number" id="v-price" placeholder="e.g. 150" /></div>
-            <div class="form-group"><label>Price to (NZD/hr)</label><input type="number" id="v-price-to" placeholder="e.g. 500" /></div>
+
+          <div class="form-group" style="margin-bottom:14px">
+            <label>How do you charge?</label>
+            <select id="v-price-type" onchange="onPriceTypeChange()">
+              <option value="">Choose…</option>
+              <option value="hourly">Hourly rate</option>
+              <option value="fixed">Fixed price</option>
+              <option value="per_person">Per person</option>
+              <option value="free">Free hire / minimum spend</option>
+              <option value="enquire">Enquire for pricing</option>
+            </select>
           </div>
+
+          <!-- Numeric fields — shown/hidden and relabelled by price type.
+               v-price reuses the existing price_from column, v-price-to the
+               price_to column, so their meaning changes with the type. -->
+          <div class="form-row" id="price-fields-row" style="display:none">
+            <div class="form-group" id="price-from-group">
+              <label id="price-from-label">Price</label>
+              <input type="number" id="v-price" placeholder="e.g. 150" oninput="markDirty()" />
+            </div>
+            <div class="form-group" id="price-to-group" style="display:none">
+              <label id="price-to-label">Up to</label>
+              <input type="number" id="v-price-to" placeholder="e.g. 500" oninput="markDirty()" />
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top:4px">
+            <label>Pricing details <span style="font-weight:400;color:var(--text-muted)">(optional — anything the fields above can't capture)</span></label>
+            <textarea id="v-pricing-details" rows="2" placeholder="e.g. Adults $45, children under 12 $20 · Free hire with $2,000 bar minimum · Weekends +20%" oninput="markDirty()"></textarea>
+          </div>
+          <div id="price-preview" style="font-size:12px;color:var(--text-muted);margin-top:8px"></div>
         </div>
       </div>
 
@@ -2261,6 +2289,9 @@ function openEditListing(i) {
   document.getElementById('v-website').value = (venue && venue.website) || '';
   document.getElementById('v-price').value = (venue && venue.priceFrom) || '';
   document.getElementById('v-price-to').value = (venue && venue.priceTo) || '';
+  document.getElementById('v-price-type').value = (venue && venue.priceType) || '';
+  document.getElementById('v-pricing-details').value = (venue && venue.pricingDetails) || '';
+  onPriceTypeChange(); // sets field visibility/labels + preview to match
   document.getElementById('h-name').value = (venue && venue.hostName) || '';
   document.getElementById('h-phone').value = (venue && venue.hostPhone) || '';
   document.getElementById('h-enquiry-email').value = (venue && venue.enquiryEmail) || '';
@@ -2444,6 +2475,7 @@ function markDirty() { _isDirty = true; }
 
 function attachDirtyListeners() {
   var ids = ['v-title','v-address','v-desc','v-capacity','v-website','v-price','v-price-to',
+             'v-price-type','v-pricing-details',
              'v-type','v-region','v-district','h-name','h-phone','h-enquiry-email'];
   ids.forEach(function(id) {
     var el = document.getElementById(id);
@@ -2576,6 +2608,8 @@ async function saveListing(isLive, silent) {
       website: document.getElementById('v-website').value.trim(),
       priceFrom: document.getElementById('v-price').value.trim(),
       priceTo: document.getElementById('v-price-to').value.trim(),
+      priceType: document.getElementById('v-price-type').value || null,
+      pricingDetails: document.getElementById('v-pricing-details').value.trim(),
       hostName: document.getElementById('h-name').value.trim(),
       hostPhone: document.getElementById('h-phone').value.trim(),
       enquiryEmail: enquiryEmailField,
@@ -2638,6 +2672,8 @@ async function saveListing(isLive, silent) {
     website: document.getElementById('v-website').value.trim(),
     priceFrom: document.getElementById('v-price').value.trim(),
     priceTo: document.getElementById('v-price-to').value.trim(),
+    priceType: document.getElementById('v-price-type').value || null,
+    pricingDetails: document.getElementById('v-pricing-details').value.trim(),
     hostUserId: user.id,
     hostEmail: user.email,
     hostName: document.getElementById('h-name').value.trim() || user.name || user.email,
@@ -3294,6 +3330,77 @@ function showToast(msg) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
 }
 
+// ─── Pricing: adaptive fields by type ────────────────────────────────────
+// One "price type" drives which numeric fields show and what they mean. The
+// numbers reuse price_from (v-price) and price_to (v-price-to); their meaning
+// shifts with the type, so we relabel rather than add more columns.
+var PRICE_TYPE_CONFIG = {
+  hourly:     { from: 'Rate ($/hr)',       to: 'Min. hours (optional)', showTo: true,  fromPh: 'e.g. 150', toPh: 'e.g. 3' },
+  fixed:      { from: 'Total price ($)',   to: null,                    showTo: false, fromPh: 'e.g. 500' },
+  per_person: { from: 'From ($ per head)', to: null,                    showTo: false, fromPh: 'e.g. 20' },
+  free:       { from: 'Min. spend (optional $)', to: null,              showTo: false, fromPh: 'e.g. 2000' },
+  enquire:    { from: null,                to: null,                    showTo: false }
+};
+
+function onPriceTypeChange() {
+  var type = document.getElementById('v-price-type').value;
+  var row = document.getElementById('price-fields-row');
+  var fromGroup = document.getElementById('price-from-group');
+  var toGroup = document.getElementById('price-to-group');
+  var cfg = PRICE_TYPE_CONFIG[type];
+
+  markDirty();
+
+  if (!type || !cfg || (!cfg.from && !cfg.showTo)) {
+    // No type, or "enquire" — no numeric fields at all.
+    row.style.display = 'none';
+    updatePricePreview();
+    return;
+  }
+
+  row.style.display = '';
+  if (cfg.from) {
+    fromGroup.style.display = '';
+    document.getElementById('price-from-label').textContent = cfg.from;
+    document.getElementById('v-price').placeholder = cfg.fromPh || '';
+  } else {
+    fromGroup.style.display = 'none';
+  }
+  if (cfg.showTo) {
+    toGroup.style.display = '';
+    document.getElementById('price-to-label').textContent = cfg.to;
+    document.getElementById('v-price-to').placeholder = cfg.toPh || '';
+  } else {
+    toGroup.style.display = 'none';
+  }
+  updatePricePreview();
+}
+
+// Live "this is how it'll show" preview, using the same formatter the public
+// pages use, so the host sees exactly what visitors will.
+function updatePricePreview() {
+  var preview = document.getElementById('price-preview');
+  if (!preview) return;
+  var type = document.getElementById('v-price-type').value;
+  if (!type) { preview.textContent = ''; return; }
+  var venueLike = {
+    priceType: type,
+    priceFrom: document.getElementById('v-price').value,
+    priceTo: document.getElementById('v-price-to').value
+  };
+  var label = (typeof venlyFormatPrice === 'function') ? venlyFormatPrice(venueLike) : '';
+  preview.innerHTML = label ? 'On your listing this shows as: <strong style="color:var(--text)">' + label + '</strong>' : '';
+}
+
+// keep the preview live as they type the numbers
+['v-price', 'v-price-to'].forEach(function(id) {
+  document.addEventListener('DOMContentLoaded', function() {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('input', updatePricePreview);
+  });
+});
+// ─── end pricing ─────────────────────────────────────────────────────────
+
 // ─── Capacity input: numbers and a range dash only ───────────────────────
 // Capacity is either a single number ("150") or a range ("20-150"). Letters
 // and other punctuation aren't meaningful, so strip anything that isn't a
@@ -3669,6 +3776,8 @@ async function loadUserListings() {
       website: v.website || '',
       priceFrom: v.price_from,
       priceTo: v.price_to,
+      priceType: v.price_type || null,
+      pricingDetails: v.pricing_details || null,
       hostName: v.host_name || '',
       hostPhone: v.host_phone || '',
       enquiryEmail: v.enquiry_email || '',
@@ -3744,6 +3853,8 @@ async function saveListingToSupabase(listingData) {
     website: listingData.website,
     price_from: listingData.priceFrom || null,
     price_to: listingData.priceTo || null,
+    price_type: listingData.priceType || null,
+    pricing_details: listingData.pricingDetails || null,
     host_name: listingData.hostName || '',
     host_phone: listingData.hostPhone,
     enquiry_email: listingData.enquiryEmail || null,
