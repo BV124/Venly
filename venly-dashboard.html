@@ -3004,15 +3004,19 @@ function onDashAddressInput() {
   clearTimeout(_dashAddressTimer);
   markDirty();
 
+  // Any edit to the address invalidates the previously-picked pin — including
+  // clearing the field entirely. Do this BEFORE the length check, otherwise
+  // deleting the address leaves a stale "✓ Map pin set" with no address.
+  document.getElementById('v-lat').value = '';
+  document.getElementById('v-lng').value = '';
+  var statusEl = document.getElementById('dash-geocode-status');
+  statusEl.innerHTML = '';
+  statusEl.style.color = 'var(--text-muted)';
+
   if (query.length < 3) {
     hideDashAddressDropdown();
     return;
   }
-
-  // Changing the address invalidates any previously-picked coordinates.
-  document.getElementById('v-lat').value = '';
-  document.getElementById('v-lng').value = '';
-  document.getElementById('dash-geocode-status').textContent = '';
 
   // Debounce so we don't hit Nominatim on every keystroke (their usage policy
   // asks for at most ~1 request/second).
