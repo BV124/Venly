@@ -2260,7 +2260,15 @@ function openEditListing(i) {
   openModal();
   // Update the draft/save button label based on live status
   var draftBtn = document.getElementById('btn-draft');
-  if (draftBtn) draftBtn.textContent = _isEditingLive ? 'Save changes' : 'Save as draft';
+  if (draftBtn) {
+    // Always reset to a clean, enabled state on open — guards against a button
+    // left disabled/"Saving…" by an earlier save.
+    draftBtn.disabled = false;
+    draftBtn.style.opacity = '';
+    draftBtn.style.cursor = '';
+    draftBtn.textContent = _isEditingLive ? 'Save changes' : 'Save as draft';
+  }
+  _saveInProgress = false;
 
   // openModal() already resets photos/features/event types to empty and
   // populates region options — now load the real saved values on top.
@@ -2752,10 +2760,16 @@ async function saveDraft() {
     showToast('Could not save — please try again');
   } finally {
     _saveInProgress = false;
-    // The modal usually closes on success; only restore the button if it's
-    // still open (e.g. a validation return or an error left it open).
-    if (btn && !document.getElementById('modal-overlay').classList.contains('hidden')) {
-      btn.disabled = false; btn.style.opacity = ''; btn.style.cursor = ''; btn.textContent = originalText;
+    // Always restore the button. The modal usually closes on a successful
+    // save, but the button element persists and is reused next time the modal
+    // opens — so if we skip the reset here it stays stuck on "Saving…" and
+    // disabled forever. (Previously this only reset when the modal was still
+    // open, which is exactly the case that DIDN'T need it.)
+    if (btn) {
+      btn.disabled = false;
+      btn.style.opacity = '';
+      btn.style.cursor = '';
+      btn.textContent = originalText;
     }
   }
 }
