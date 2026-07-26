@@ -3366,8 +3366,12 @@ function onPriceTypeChange() {
   markDirty();
 
   if (!type || !cfg || (!cfg.from && !cfg.showTo)) {
-    // No type, or "enquire" — no numeric fields at all.
+    // No type, or "enquire" — no numeric fields. CLEAR them so a stale number
+    // from a previous type isn't saved (e.g. switching hourly→enquire must not
+    // leave price_from = 150 behind, which would then display as "$150/hr").
     row.style.display = 'none';
+    document.getElementById('v-price').value = '';
+    document.getElementById('v-price-to').value = '';
     updatePricePreview();
     return;
   }
@@ -3379,6 +3383,7 @@ function onPriceTypeChange() {
     document.getElementById('v-price').placeholder = cfg.fromPh || '';
   } else {
     fromGroup.style.display = 'none';
+    document.getElementById('v-price').value = '';
   }
   if (cfg.showTo) {
     toGroup.style.display = '';
@@ -3386,6 +3391,7 @@ function onPriceTypeChange() {
     document.getElementById('v-price-to').placeholder = cfg.toPh || '';
   } else {
     toGroup.style.display = 'none';
+    document.getElementById('v-price-to').value = ''; // e.g. fixed/per_person have no "to"
   }
   updatePricePreview();
 }
