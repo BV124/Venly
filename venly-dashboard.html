@@ -785,9 +785,19 @@ tbody tr:last-child td { border-bottom: none; }
                   <strong id="discount-amount" class="discount-amount">-$0</strong>
                 </div>
 
+                <div class="plan-summary-row" id="subtotal-row">
+                  <span style="color:var(--text-muted)">Subtotal</span>
+                  <span id="subtotal-amount" style="color:var(--text-muted)">$89.00</span>
+                </div>
+
+                <div class="plan-summary-row" id="gst-row">
+                  <span style="color:var(--text-muted)">GST (15%)</span>
+                  <span id="gst-amount" style="color:var(--text-muted)">$13.35</span>
+                </div>
+
                 <div class="plan-summary-row pay-total-row">
                   <span>Total today</span>
-                  <span class="plan-price-display" id="summary-price">$89/mo</span>
+                  <span class="plan-price-display" id="summary-price">$102.35/mo</span>
                 </div>
 
                 <button class="btn-pay" id="btn-pay" onclick="handlePayment()">
@@ -1632,6 +1642,9 @@ async function loadSubscriptionPanel(listing) {
     // Show what they actually pay. With a partial discount the list price and
     // the charged amount differ, so show both rather than just the list price.
     var priceEl = document.getElementById('sub-current-price');
+    // Prices are GST-exclusive; show the GST-inclusive total the host actually
+    // pays, with the ex-GST figure alongside for clarity.
+    var GST = 1.15;
     if (info.discount && info.effectiveAmount != null && info.amount != null) {
       var discLabel = info.discount.percentOff
         ? info.discount.percentOff + '% off'
@@ -1646,9 +1659,12 @@ async function loadSubscriptionPanel(listing) {
                        dEnd.getTime() <= pEnd.getTime();
 
       priceEl.innerHTML =
-        '<span style="text-decoration:line-through;opacity:0.55">$' + info.amount + '</span> ' +
-        '<strong style="color:var(--text)">$' + info.effectiveAmount.toFixed(2) + '/month</strong>' +
+        '<strong style="color:var(--text)">$' + (info.effectiveAmount * GST).toFixed(2) + '/month</strong>' +
+        ' <span style="color:var(--text-muted);font-size:12px">incl. GST</span>' +
         ' · ' + listing.type +
+        '<div style="font-size:12px;color:var(--text-muted);margin-top:2px">$' +
+          info.effectiveAmount.toFixed(2) + ' + GST' +
+          (info.amount !== info.effectiveAmount ? ' (was $' + info.amount + ')' : '') + '</div>' +
         '<div style="margin-top:5px"><span style="display:inline-block;background:var(--red-light);color:var(--red);' +
         'font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px">' + discLabel +
         (info.discount.duration === 'forever' ? ''
@@ -1657,12 +1673,14 @@ async function loadSubscriptionPanel(listing) {
         (endingSoon
           ? '<div style="font-size:12px;color:#a06000;margin-top:7px;line-height:1.5">' +
               'Your discount ends before your next payment — you\'ll be charged $' +
-              info.amount + ' on ' +
+              (info.amount * GST).toFixed(2) + ' (incl. GST) on ' +
               pEnd.toLocaleDateString('en-NZ', { day: 'numeric', month: 'long' }) + '.</div>'
           : '');
     } else {
-      priceEl.textContent = info.amount != null
-        ? '$' + info.amount + '/month · ' + listing.type
+      priceEl.innerHTML = info.amount != null
+        ? '<strong style="color:var(--text)">$' + (info.amount * GST).toFixed(2) + '/month</strong>' +
+          ' <span style="color:var(--text-muted);font-size:12px">incl. GST</span> · ' + listing.type +
+          '<div style="font-size:12px;color:var(--text-muted);margin-top:2px">$' + info.amount + ' + GST</div>'
         : listing.type;
     }
 
@@ -1719,7 +1737,8 @@ async function loadSubscriptionPanel(listing) {
       var left = document.createElement('div');
       left.innerHTML = '<div style="font-size:14px;font-weight:700">' + name +
         (isCurrent ? ' <span style="font-size:11px;font-weight:600;color:var(--red)">· current</span>' : '') +
-        '</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px">$' + plan.monthly + '/month</div>';
+        '</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px">$' + plan.monthly +
+        ' + GST <span style="opacity:0.7">($' + (plan.monthly * 1.15).toFixed(2) + '/mo)</span></div>';
       row.appendChild(left);
 
       if (!isCurrent) {
@@ -1818,6 +1837,8 @@ async function changePlan(planName, newPriceId, direction, monthly) {
   // Today's prorated charge covers the CURRENT period, so it uses the discount
   // if one is active now. The ongoing monthly figure uses it only if the
   // discount survives past the next billing date.
+  // All figures shown to the host are GST-inclusive (prices are ex-GST).
+  var GST = 1.15;
   var newAmountNow = applyDiscount(monthly);
   var newAmountOngoing = discountAppliesNextCycle ? applyDiscount(monthly) : monthly;
 
@@ -1830,14 +1851,14 @@ async function changePlan(planName, newPriceId, direction, monthly) {
     // so this is explicitly framed as an estimate rather than an exact figure.
     if (periodEnd && currentAmount != null) {
       var daysLeft = Math.max(0, Math.ceil((periodEnd.getTime() - Date.now()) / 86400000));
-      var estimate = Math.max(0, (newAmountNow - currentAmount) * (daysLeft / 30));
+      var estimate = Math.max(0, (newAmountNow - currentAmount) * (daysLeft / 30)) * GST;
       detail = '<div style="display:flex;justify-content:space-between;margin-bottom:5px">' +
-                 '<span style="color:var(--text-muted)">Roughly today</span>' +
+                 '<span style="color:var(--text-muted)">Roughly today (incl. GST)</span>' +
                  '<strong>~$' + estimate.toFixed(2) + '</strong></div>' +
                '<div style="display:flex;justify-content:space-between">' +
                  '<span style="color:var(--text-muted)">Then from ' +
                    periodEnd.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' }) + '</span>' +
-                 '<strong>$' + newAmountOngoing.toFixed(2) + '/month</strong></div>' +
+                 '<strong>$' + (newAmountOngoing * GST).toFixed(2) + '/month</strong></div>' +
                (d && !discountAppliesNextCycle
                  ? '<div style="color:#a06000;font-size:12px;margin-top:9px;line-height:1.5">' +
                      'Your ' + (d.percentOff ? d.percentOff + '% off' : 'discount') +
@@ -1845,8 +1866,8 @@ async function changePlan(planName, newPriceId, direction, monthly) {
                      ', so this is the full price from then on.</div>'
                  : '') +
                '<div style="color:var(--text-muted);font-size:12px;margin-top:9px;line-height:1.5">' +
-                 'Estimate only — Stripe works out the exact prorated amount, ' +
-                 'including any discount on your account.</div>';
+                 'Includes 15% GST. Estimate only — Stripe works out the exact ' +
+                 'prorated amount, including any discount on your account.</div>';
     }
   } else if (currentAmount != null) {
     detail = '<div style="display:flex;justify-content:space-between;margin-bottom:5px">' +
@@ -1856,13 +1877,14 @@ async function changePlan(planName, newPriceId, direction, monthly) {
                '<span style="color:var(--text-muted)">' +
                  (periodEnd ? 'From ' + periodEnd.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })
                             : 'Next billing date') + '</span>' +
-               '<strong>$' + newAmountOngoing.toFixed(2) + '/month</strong></div>' +
+               '<strong>$' + (newAmountOngoing * GST).toFixed(2) + '/month</strong></div>' +
              (d && !discountAppliesNextCycle
                ? '<div style="color:#a06000;font-size:12px;margin-top:9px;line-height:1.5">' +
                    'Your ' + (d.percentOff ? d.percentOff + '% off' : 'discount') +
                    ' ends ' + (discountEndsAt ? discountEndsAt.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' }) : 'soon') +
                    ', so this is the full price.</div>'
-               : '');
+               : '') +
+             '<div style="color:var(--text-muted);font-size:12px;margin-top:9px;line-height:1.5">Includes 15% GST.</div>';
   }
 
   var ok = await showPlanChangeConfirm({
@@ -2516,12 +2538,14 @@ function getCurrentPlanInfo() {
 }
 
 // Recalculate the total with any applied discount and repaint the summary
+var GST_RATE = 0.15; // NZ GST — prices are GST-exclusive, so this is added on top
+
 function refreshPaymentTotals() {
   var planInfo = getCurrentPlanInfo();
   if (!planInfo) return;
 
   var base = planInfo.monthly;
-  var total = base;
+  var subtotal = base;
   var discount = 0;
 
   if (appliedCoupon) {
@@ -2530,8 +2554,13 @@ function refreshPaymentTotals() {
     } else if (appliedCoupon.amountOff) {
       discount = Math.min(appliedCoupon.amountOff, base);
     }
-    total = Math.max(0, base - discount);
+    subtotal = Math.max(0, base - discount);
   }
+
+  // GST is charged on the discounted amount, matching how Stripe applies a
+  // tax rate — tax comes after the coupon, not before.
+  var gst = subtotal * GST_RATE;
+  var total = subtotal + gst;
 
   var discountRow = document.getElementById('discount-row');
   if (discount > 0) {
@@ -2541,9 +2570,12 @@ function refreshPaymentTotals() {
     discountRow.style.display = 'none';
   }
 
+  document.getElementById('subtotal-amount').textContent = '$' + subtotal.toFixed(2);
+  document.getElementById('gst-amount').textContent = '$' + gst.toFixed(2);
+
   var totalLabel = (total === 0)
     ? 'Free'
-    : '$' + total.toFixed(2).replace(/\.00$/, '') + '/mo';
+    : '$' + total.toFixed(2) + '/mo';
   document.getElementById('summary-price').textContent = totalLabel;
 
   document.getElementById('btn-pay-text').textContent = (total === 0) ? 'Go Live' : 'Pay & Go Live';
