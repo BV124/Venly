@@ -551,7 +551,15 @@ function loadVenue() {
   if (v.capacity) {
     pillsHtml += '<span class="meta-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Capacity ' + escapeHtmlVenue(v.capacity) + '</span>';
   }
-  var priceLabel = (typeof venlyFormatPrice === 'function') ? venlyFormatPrice(v) : (v.priceFrom ? 'From $' + v.priceFrom + '/hr' : '');
+  // Always use the shared formatter. If it's somehow unavailable (a stale
+  // cached venly-config.js), fall back to a NEUTRAL label rather than the old
+  // "/hr" assumption — a fixed price must never be shown as hourly.
+  var priceLabel = '';
+  if (typeof venlyFormatPrice === 'function') {
+    priceLabel = venlyFormatPrice(v);
+  } else if (v.priceFrom) {
+    priceLabel = 'from $' + v.priceFrom; // no unit assumed
+  }
   if (priceLabel) {
     pillsHtml += '<span class="meta-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>' + escapeHtmlVenue(priceLabel) + '</span>';
   }
@@ -597,15 +605,24 @@ function loadVenue() {
     document.getElementById('host-email-val').textContent = hostContactEmail;
   }
 
-  // Enquiry price box — uses the structured formatter. Shows for any venue
-  // with a price type (including "Free hire" and "Enquire"), plus the
-  // free-text pricing details verbatim underneath when present.
-  var priceLabel = (typeof venlyFormatPrice === 'function') ? venlyFormatPrice(v) : '';
+  // Enquiry price box — shows the structured price (including "Free hire" and
+  // "Enquire for pricing") plus any free-text details. Resilient to a stale
+  // venly-config.js: if the formatter is missing we build a neutral label from
+  // the raw fields rather than hiding the price or assuming "/hr".
+  var priceLabel = '';
+  if (typeof venlyFormatPrice === 'function') {
+    priceLabel = venlyFormatPrice(v);
+  } else if (v.priceType === 'enquire') {
+    priceLabel = 'Enquire for pricing';
+  } else if (v.priceFrom) {
+    priceLabel = 'from $' + v.priceFrom;
+  }
   var hasDetails = v.pricingDetails && v.pricingDetails.trim();
+
   if (priceLabel || hasDetails) {
     document.getElementById('enquiry-price-wrap').style.display = '';
     // "Starting from" only reads right for from-style prices; use a neutral
-    // label otherwise.
+    // label otherwise (fixed, free, enquire).
     var labelText = (v.priceType === 'hourly' || v.priceType === 'per_person' || !v.priceType)
       ? 'Starting from' : 'Pricing';
     document.getElementById('enquiry-price-label').textContent = labelText;
