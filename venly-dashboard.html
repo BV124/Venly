@@ -570,7 +570,7 @@ tbody tr:last-child td { border-bottom: none; }
             </div>
             <div class="form-group">
               <label>Capacity (e.g. 1–10, 50–100)</label>
-              <input type="text" id="v-capacity" placeholder="e.g. 20–150" />
+              <input type="text" id="v-capacity" inputmode="numeric" placeholder="e.g. 20–150" oninput="filterCapacityInput(this)" onblur="tidyCapacity(this)" />
             </div>
           </div>
           <!-- Region and District sit together: District's options depend on
@@ -2990,7 +2990,37 @@ function showToast(msg) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// ─── Address autocomplete + geocoding (OpenStreetMap Nominatim) ──────────
+// ─── Capacity input: numbers and a range dash only ───────────────────────
+// Capacity is either a single number ("150") or a range ("20-150"). Letters
+// and other punctuation aren't meaningful, so strip anything that isn't a
+// digit, space or hyphen as the user types.
+function filterCapacityInput(el) {
+  var cleaned = el.value.replace(/[^0-9\s-]/g, '');
+  if (cleaned !== el.value) {
+    // Preserve caret position when we remove an invalid character.
+    var pos = el.selectionStart - (el.value.length - cleaned.length);
+    el.value = cleaned;
+    try { el.setSelectionRange(pos, pos); } catch (e) {}
+  }
+  markDirty();
+}
+
+// On blur, normalise to a clean form: collapse spaces, render a range with a
+// single spaced dash ("20 - 150"), and drop a trailing/leading dash so a
+// half-typed range doesn't get saved.
+function tidyCapacity(el) {
+  var v = el.value.trim();
+  if (!v) return;
+  var nums = v.match(/\d+/g);
+  if (!nums) { el.value = ''; return; }
+  if (nums.length === 1) {
+    el.value = nums[0];               // single figure
+  } else {
+    el.value = nums[0] + ' - ' + nums[1]; // range: first two numbers
+  }
+}
+
+// ─── end capacity input ───────────────────────────────────────────────────
 // Ported from the admin dashboard, which already does this. The plain address
 // text can't place a map pin on the venue page — that needs lat/lng. As the
 // host types, we look the address up (NZ-filtered), they pick the right match,
