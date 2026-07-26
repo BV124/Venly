@@ -2993,12 +2993,27 @@ function renderPhotoGrid() {
   const cap = getCaps().photos;
   document.getElementById('photo-cap-label').textContent = cap;
 
-  // Trim or pad the working array to match the current plan's cap
-  photoDataUrls = photoDataUrls.slice(0, cap);
+  // IMPORTANT: never truncate photoDataUrls to the cap — that permanently
+  // discards photos, so downgrading then upgrading lost them. photoDataUrls is
+  // the SOURCE OF TRUTH and keeps every photo the host has added. The cap only
+  // limits how many slots we DISPLAY. On upgrade the extra photos are still
+  // here and reappear.
+  //
+  // We do pad up to at least `cap` so there are empty upload slots to fill, but
+  // if the host already has MORE photos than the cap (e.g. after a downgrade),
+  // we keep and show all of them here in the editor, with a note that the
+  // over-cap ones won't appear on the public listing until they upgrade. That
+  // matches "keep the data, restore on upgrade".
+  const filledCount = photoDataUrls.filter(u => !!u).length;
   while (photoDataUrls.length < cap) photoDataUrls.push('');
+  // Trim only trailing EMPTY slots beyond the cap, never filled ones.
+  while (photoDataUrls.length > cap && photoDataUrls[photoDataUrls.length - 1] === '') {
+    photoDataUrls.pop();
+  }
 
-  // If the cover slot no longer has a photo (removed, or trimmed by a plan
-  // change), fall back to the first slot that actually has one.
+  // If the cover slot no longer points at a photo, fall back to the first that
+  // does. (Cover only matters among visible photos; if cover is beyond the cap
+  // it'll be corrected on upgrade.)
   if (!photoDataUrls[coverPhotoIndex]) {
     const firstFilled = photoDataUrls.findIndex(u => !!u);
     coverPhotoIndex = firstFilled > -1 ? firstFilled : 0;
@@ -3010,13 +3025,18 @@ function renderPhotoGrid() {
 
   const grid = document.getElementById('photo-grid');
   grid.innerHTML = photoDataUrls.map((url, i) => {
+    // Photos in slots beyond the cap are over-limit: kept, but greyed with a
+    // note so the host understands they won't show publicly until they upgrade.
+    const overCap = i >= cap;
     if (url) {
-      const isCover = i === coverPhotoIndex;
-      return `<div class="photo-slot${isCover ? ' is-cover' : ''}" id="photo-slot-${i}" onclick="triggerUpload(${i})">
+      const isCover = i === coverPhotoIndex && !overCap;
+      return `<div class="photo-slot${isCover ? ' is-cover' : ''}" id="photo-slot-${i}" onclick="triggerUpload(${i})" style="${overCap ? 'opacity:0.45;position:relative' : ''}">
         <img src="${url}" alt="Uploaded" />
-        ${isCover
-          ? `<span class="photo-slot-cover-badge">${badgeSVG}Cover</span>`
-          : `<button class="set-cover-btn" onclick="setCoverPhoto(event, ${i})">${starSVG}Set as cover</button>`
+        ${overCap
+          ? `<span style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.6);color:#fff;font-size:9px;font-weight:600;text-align:center;padding:3px 2px;line-height:1.2">Upgrade to show</span>`
+          : (isCover
+            ? `<span class="photo-slot-cover-badge">${badgeSVG}Cover</span>`
+            : `<button class="set-cover-btn" onclick="setCoverPhoto(event, ${i})">${starSVG}Set as cover</button>`)
         }
         <button class="remove-photo" onclick="removePhoto(event, ${i})">×</button>
       </div>`;
@@ -3067,8 +3087,14 @@ function updatePhotoCount() {
   const filled = photoDataUrls.filter(u => !!u).length;
   const badge = document.getElementById('photo-count-badge');
   if (badge) {
-    badge.textContent = filled + ' / ' + cap;
-    badge.style.color = filled >= cap ? 'var(--red)' : 'var(--text-muted)';
+    if (filled > cap) {
+      // Over cap after a downgrade — all kept, only `cap` shown publicly.
+      badge.textContent = filled + ' saved · ' + cap + ' shown';
+      badge.style.color = '#a06000';
+    } else {
+      badge.textContent = filled + ' / ' + cap;
+      badge.style.color = filled >= cap ? 'var(--red)' : 'var(--text-muted)';
+    }
   }
 }
 
