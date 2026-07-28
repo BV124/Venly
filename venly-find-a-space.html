@@ -320,10 +320,21 @@ nav {
   border-radius: var(--radius); overflow: hidden;
   border: 1px solid var(--border); background: var(--white);
   cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+  /* Promote to its own compositing layer so the rounded clip is applied on
+     the GPU layer too — without this, a transformed child (the image zoom on
+     hover) can bleed past the rounded corners at the top edge. */
+  transform: translateZ(0);
+  will-change: transform;
 }
 .space-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
 
-.card-img { position: relative; aspect-ratio: 7 / 3; overflow: hidden; background: #ddd; }
+.card-img {
+  position: relative; aspect-ratio: 7 / 3; overflow: hidden; background: #ddd;
+  /* Round the image's own top corners to match the card, so it's clipped at
+     its own level rather than relying only on the parent's overflow clip. */
+  border-top-left-radius: var(--radius);
+  border-top-right-radius: var(--radius);
+}
 .card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
 .space-card:hover .card-img img { transform: scale(1.04); }
 
