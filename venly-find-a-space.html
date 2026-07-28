@@ -337,6 +337,19 @@ nav {
 }
 .card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
 .space-card:hover .card-img img { transform: scale(1.04); }
+/* Placeholder shown when a venue has no listing photo — mirrors the "No image"
+   box used on the dashboard favourites list. */
+.card-img-empty {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  background: #eee; color: #bbb; font-size: 14px; font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.gmap-tooltip-noimg {
+  width: 100%; height: 90px;
+  display: flex; align-items: center; justify-content: center;
+  background: #eee; color: #bbb; font-size: 12px; font-weight: 500;
+}
 
 .badge-type {
   position: absolute; top: 12px; left: 12px;
@@ -790,7 +803,7 @@ function getSpacesForDisplay() {
       district: v.district,
       capacity: v.capacity,
       premium: v.plan === 'Premium',
-      img: (v.photos && v.photos[0]) || 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&q=80',
+      img: (v.photos && v.photos[0]) || '',
       events: v.eventTypes || [],
       priceLabel: (typeof venlyFormatPrice === 'function') ? venlyFormatPrice(v) : '',
       priceValue: (typeof venlyPriceValue === 'function') ? venlyPriceValue(v) : null,
@@ -833,7 +846,9 @@ function renderCardGrid(list) {
     <div class="space-card" onclick="goToVenueCard(this, event)" data-venue="${encodeURIComponent(s.name)}" data-venue-id="${s.id}"
          onmouseenter="previewSpaceOnMap('${escAttr(s.name)}')" onmouseleave="clearMapPreview()" style="cursor:pointer">
       <div class="card-img">
-        <img src="${s.img}" alt="${s.name}" loading="lazy" />
+        ${s.img
+          ? '<img src="' + s.img + '" alt="' + escAttr(s.name) + '" loading="lazy" />'
+          : '<div class="card-img-empty">No image</div>'}
         <span class="badge-type">${s.type}</span>
         ${s.premium ? '<span class="badge-premium">Premium</span>' : ''}
       </div>
@@ -996,7 +1011,9 @@ function drawMarkers(list, opts) {
 
     marker.bindPopup(`
       <div class="gmap-tooltip">
-        <img src="${s.img}" alt="${s.name}" />
+        ${s.img
+          ? '<img src="' + s.img + '" alt="' + escAttr(s.name) + '" />'
+          : '<div class="gmap-tooltip-noimg">No image</div>'}
         <div class="gmap-tooltip-name">${s.name}</div>
         <div class="gmap-tooltip-meta">${s.type} · ${s.district}</div>
         <a href="venly-venue.html?${s.id ? 'id=' + encodeURIComponent(s.id) : 'name=' + encodeURIComponent(s.name)}" class="gmap-tooltip-link">View space →</a>
