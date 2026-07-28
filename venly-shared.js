@@ -342,10 +342,10 @@ function renderFooter() {
       <a href="index.html" style="font-size:26px;font-weight:800;color:#e03a2f;letter-spacing:-0.5px;text-decoration:none;display:block;margin-bottom:14px">Venly.</a>
       <p>The easiest way to find and list spaces across New Zealand. No ads, no stress.</p>
       <div class="vf-socials">
-        <a href="https://instagram.com/venly.co.nz" aria-label="Instagram" class="vf-social">
+        <a href="https://www.instagram.com/venly_nz/" aria-label="Instagram" class="vf-social" target="_blank" rel="noopener">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.4a4 4 0 11-8 0 4 4 0 018 0z"/><circle cx="16.5" cy="7.5" r="1.2" fill="currentColor" stroke="none"/></svg>
         </a>
-        <a href="https://linkedin.com/company/venly" aria-label="LinkedIn" class="vf-social">
+        <a href="https://www.linkedin.com/company/venly-nz" aria-label="LinkedIn" class="vf-social" target="_blank" rel="noopener">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
         </a>
       </div>
