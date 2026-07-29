@@ -43,11 +43,10 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
 .breadcrumb-current { color: var(--text); font-weight: 500; }
 
 /* PHOTO GALLERY */
-.gallery { display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; gap: 8px; height: 460px; padding: 0 64px; margin-bottom: 0; position: relative; }
-.gallery-main { grid-row: 1 / 3; border-radius: var(--radius) 0 0 var(--radius); overflow: hidden; cursor: pointer; position: relative; background: #eee; }
+.gallery { display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr; gap: 8px; height: 380px; padding: 0 64px; margin-bottom: 0; position: relative; }
+.gallery-main { border-radius: var(--radius) 0 0 var(--radius); overflow: hidden; cursor: pointer; position: relative; background: #eee; }
 .gallery-thumb { border-radius: 0; overflow: hidden; cursor: pointer; position: relative; background: #eee; }
-.gallery-thumb:first-of-type { border-radius: 0 var(--radius) 0 0; }
-.gallery-thumb:last-of-type { border-radius: 0 0 var(--radius) 0; }
+.gallery-thumb:last-of-type { border-radius: 0 var(--radius) var(--radius) 0; }
 .gallery img {
   width: 100%; height: 100%; object-fit: cover; object-position: center;
   transition: transform 0.4s ease; display: block;
@@ -691,25 +690,33 @@ function renderGallery() {
   mainImg.alt = (loadedVenue ? loadedVenue.name : 'Venue') + ' photo 1';
 
   var isMobile = window.matchMedia('(max-width: 680px)').matches;
+  var mainEl = document.querySelector('.gallery-main');
 
-  // With fewer than 3 photos, collapse to a single full-width hero rather than
-  // stretching one image across the wide main slot and leaving empty thumbs.
-  // This is the main cause of the "stretched" look on sparse listings.
-  // On mobile the CSS media query already forces a single hero, so we don't
-  // set inline grid styles there (they'd override the stylesheet).
   if (n < 3) {
+    // 1–2 photos: don't stretch across three panels. One photo -> single hero.
+    // Two photos -> two equal panels. On mobile the CSS handles a single hero.
     if (!isMobile) {
-      gallery.style.gridTemplateColumns = '1fr';
-      gallery.style.gridTemplateRows = '1fr';
-      document.querySelector('.gallery-main').style.borderRadius = 'var(--radius)';
+      if (n === 1) {
+        gallery.style.gridTemplateColumns = '1fr';
+        mainEl.style.borderRadius = 'var(--radius)';
+        thumb1.style.display = 'none';
+      } else {
+        gallery.style.gridTemplateColumns = '1fr 1fr';
+        mainEl.style.borderRadius = 'var(--radius) 0 0 var(--radius)';
+        thumb1.style.display = '';
+        thumb1Img.src = photos[1];
+        thumb1Img.alt = (loadedVenue ? loadedVenue.name : 'Venue') + ' photo 2';
+      }
+      thumb2.style.display = 'none';
+    } else {
+      thumb1.style.display = 'none';
+      thumb2.style.display = 'none';
     }
-    thumb1.style.display = 'none';
-    thumb2.style.display = 'none';
   } else {
+    // 3+ photos: three equal columns.
     if (!isMobile) {
-      gallery.style.gridTemplateColumns = '2fr 1fr';
-      gallery.style.gridTemplateRows = '1fr 1fr';
-      document.querySelector('.gallery-main').style.borderRadius = 'var(--radius) 0 0 var(--radius)';
+      gallery.style.gridTemplateColumns = '1fr 1fr 1fr';
+      mainEl.style.borderRadius = 'var(--radius) 0 0 var(--radius)';
       thumb1.style.display = '';
       thumb2.style.display = '';
     }
