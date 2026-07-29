@@ -2070,9 +2070,70 @@ async function loadSupabaseUsers() {
       '<td>' + u.phone + '</td><td>' + u.role + '</td>' +
       '<td style="color:var(--text-muted)">' + u.joined + '</td>' +
       '<td><span class="badge ' + badgeClass + '">' + u.status + '</span></td>' +
-      '<td><button class="action-btn" onclick="showToast(this.dataset.msg)" data-msg="Edit coming soon">Edit</button></td>' +
+      '<td>' +
+        (u.role === 'Admin'
+          ? '<span style="color:var(--text-muted);font-size:12px">Admin</span>'
+          : '<button class="action-btn" style="color:var(--red);border-color:var(--red)" ' +
+            'onclick="confirmDeleteUser(\'' + u.id + '\',\'' + (u.email || '').replace(/'/g, "\\'") + '\')">Delete</button>') +
+      '</td>' +
       '</tr>';
   }).join('');
+}
+
+// ---- ADMIN: delete a user completely (data + auth login) ----
+// Calls the admin-delete-user Edge Function, which holds the service-role key,
+// verifies we're a signed-in admin, cleans up the user's data, and removes
+// their auth.users record so they can no longer log in and their email frees
+// up for re-registration. The browser can't do this directly — the key that
+// can delete auth users must never be exposed client-side.
+var _deleteUserTarget = null;
+
+function confirmDeleteUser(userId, email) {
+  _deleteUserTarget = userId;
+  var msg = 'Permanently delete this user?\n\n' + (email || '') +
+    '\n\nThis removes their account, their listings, their favourites, and their login. This cannot be undone.';
+  if (typeof showConfirmModal === 'function') {
+    showConfirmModal('Delete user', msg, function() { doDeleteUser(userId); });
+  } else if (confirm(msg)) {
+    doDeleteUser(userId);
+  }
+}
+
+async function doDeleteUser(userId) {
+  try {
+    if (!SUPABASE_READY || typeof sb === 'undefined') {
+      showToast('Not connected — please refresh and try again');
+      return;
+    }
+    // Send the signed-in admin's access token so the function can verify us.
+    const { data: sessionData } = await sb.auth.getSession();
+    const token = sessionData && sessionData.session && sessionData.session.access_token;
+    if (!token) { showToast('Your session expired — please log in again'); return; }
+
+    const res = await fetch(VENLY_CONFIG.supabaseUrl + '/functions/v1/admin-delete-user', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json',
+        'apikey': VENLY_CONFIG.supabaseKey
+      },
+      body: JSON.stringify({ userId: userId })
+    });
+    const data = await res.json();
+
+    if (!res.ok || !data.ok) {
+      console.error('Delete failed:', data);
+      showToast(data.error || 'Could not delete user');
+      return;
+    }
+
+    showToast('User deleted');
+    // Refresh the table so the row disappears.
+    if (typeof loadSupabaseUsers === 'function') loadSupabaseUsers();
+  } catch (e) {
+    console.error('doDeleteUser error:', e);
+    showToast('Could not delete user — please try again');
+  }
 }
 
 // LIVE MODE: load real venues
