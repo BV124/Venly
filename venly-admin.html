@@ -2070,12 +2070,7 @@ async function loadSupabaseUsers() {
       '<td>' + u.phone + '</td><td>' + u.role + '</td>' +
       '<td style="color:var(--text-muted)">' + u.joined + '</td>' +
       '<td><span class="badge ' + badgeClass + '">' + u.status + '</span></td>' +
-      '<td>' +
-        (u.role === 'Admin'
-          ? '<span style="color:var(--text-muted);font-size:12px">Admin</span>'
-          : '<button class="action-btn" style="color:var(--red);border-color:var(--red)" ' +
-            'onclick="confirmDeleteUser(\'' + u.id + '\',\'' + (u.email || '').replace(/'/g, "\\'") + '\')">Delete</button>') +
-      '</td>' +
+      '<td><button class="action-btn" onclick="showToast(this.dataset.msg)" data-msg="Edit coming soon">Edit</button></td>' +
       '</tr>';
   }).join('');
 }
@@ -2211,7 +2206,14 @@ function buildUsersTable() {
       '<td style="color:var(--text-muted)">' + (u.joined || '—') + '</td>' +
       '<td><span class="badge ' + badgeClass + '">' + u.status + '</span></td>' +
       '<td><button class="action-btn" onclick="openUserModal(\'' + u.id + '\')">Edit</button>' +
-      '<button class="action-btn danger" onclick="suspendUser(' + i + ')">Suspend</button></td>' +
+      '<button class="action-btn" onclick="suspendUser(' + i + ')">Suspend</button>' +
+      // Delete: only for non-admins, and only in live mode where u.id is a real
+      // Supabase user id. Removes their data AND their auth login via the
+      // admin-delete-user Edge Function.
+      ((SUPABASE_READY && u.role !== 'Admin' && u.role !== 'admin')
+        ? '<button class="action-btn danger" onclick="confirmDeleteUser(\'' + u.id + '\',\'' + (u.email || '').replace(/'/g, "\\'") + '\')">Delete</button>'
+        : '') +
+      '</td>' +
       '</tr>';
   }).join('');
 }
