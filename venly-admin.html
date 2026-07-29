@@ -1431,7 +1431,14 @@ tbody tr:last-child td { border-bottom: none; }
     <div class="table-card">
       <div class="table-card-header">
         <div class="table-card-title" id="users-table-title">All users</div>
-        <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input class="search-input" placeholder="Search users..." oninput="filterTable(this,'users-table')" /></div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <select id="users-role-filter" class="search-input" style="width:auto;padding-right:32px;cursor:pointer" onchange="filterUsers()">
+            <option value="">All roles</option>
+            <option value="admin">Admin</option>
+            <option value="user">User</option>
+          </select>
+          <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input id="users-search-input" class="search-input" placeholder="Search users..." oninput="filterUsers()" /></div>
+        </div>
       </div>
       <table id="users-table">
         <thead><tr><th>User</th><th>Phone</th><th>Role</th><th>Joined</th><th>Status</th><th></th></tr></thead>
@@ -2198,7 +2205,8 @@ function buildUsersTable() {
     var roleLabel = (u.role === 'Admin' && u.permissions && u.permissions.length)
       ? 'Admin <span style="color:var(--text-muted);font-weight:400">· Restricted</span>'
       : (u.role || 'User');
-    return '<tr>' +
+    var roleNorm = (u.role === 'Admin' || u.role === 'admin') ? 'admin' : 'user';
+    return '<tr data-role="' + roleNorm + '">' +
       '<td><div class="cell-user"><div class="avatar-sm" style="background:' + u.color + '">' + u.initials + '</div>' +
       '<div><div class="cell-name">' + u.name + '</div><div class="cell-email">' + u.email + '</div></div></div></td>' +
       '<td>' + (u.phone || '—') + '</td>' +
@@ -5623,6 +5631,34 @@ function filterTable(input, tableId) {
   rows.forEach(function(row) {
     row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
   });
+}
+
+// Users table: combined text search + role filter. A row shows only if it
+// matches BOTH, so choosing "Admin" then typing narrows within admins. Reads
+// the row's role from a data-role attribute set in the render (reliable —
+// substring-matching the whole row text could false-match a name or email).
+function filterUsers() {
+  var searchEl = document.getElementById('users-search-input');
+  var roleEl = document.getElementById('users-role-filter');
+  var q = (searchEl ? searchEl.value : '').toLowerCase();
+  var role = roleEl ? roleEl.value : '';
+  var rows = document.querySelectorAll('#users-table tbody tr');
+  var shown = 0;
+  rows.forEach(function(row) {
+    var rowRole = (row.getAttribute('data-role') || '').toLowerCase();
+    var matchesRole = !role || rowRole === role;
+    var matchesText = !q || row.textContent.toLowerCase().includes(q);
+    var show = matchesRole && matchesText;
+    row.style.display = show ? '' : 'none';
+    if (show) shown++;
+  });
+  // Reflect the filtered count in the table title.
+  var title = document.getElementById('users-table-title');
+  if (title) {
+    title.textContent = (role || q)
+      ? 'Users (' + shown + ' shown)'
+      : 'All users (' + rows.length + ')';
+  }
 }
 
 // ---- TOGGLE LIVE ----
