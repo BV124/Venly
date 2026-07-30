@@ -1451,7 +1451,10 @@ tbody tr:last-child td { border-bottom: none; }
     </div>
     <div class="table-card">
       <div class="table-card-header">
-        <div id="messages-folder-tabs" style="display:flex;gap:6px"></div>
+        <div style="display:flex;flex-direction:column;gap:8px;flex:1">
+          <div id="messages-folder-tabs" style="display:flex;gap:6px"></div>
+          <div id="messages-source-tabs" style="display:flex;gap:6px"></div>
+        </div>
         <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input class="search-input" placeholder="Search messages..." oninput="filterMessagesList(this.value)" /></div>
       </div>
       <div id="messages-list"></div>
@@ -2370,6 +2373,13 @@ var MESSAGE_FOLDERS = [
 ];
 var currentMessageFolder = 'inbox';
 var currentMessageSearch = '';
+var currentMessageSource = ''; // '' = all, 'venue' = venue enquiries, 'contact' = contact form
+
+var MESSAGE_SOURCE_FILTERS = [
+  { key: '', label: 'All messages' },
+  { key: 'venue', label: 'Venue Enquiries' },
+  { key: 'contact', label: 'Contact' },
+];
 
 // Real Supabase messages, once migrated — same cache pattern as
 // venues/users/blog. Still two real tables underneath (contact_messages,
@@ -2508,6 +2518,27 @@ function renderMessageFolderTabs(all) {
   }).join('');
 }
 
+function renderMessageSourceTabs(all) {
+  var wrap = document.getElementById('messages-source-tabs');
+  if (!wrap) return;
+  wrap.innerHTML = MESSAGE_SOURCE_FILTERS.map(function(f) {
+    var count = f.key
+      ? all.filter(function(m) { return m.source === f.key && m.folder === currentMessageFolder; }).length
+      : all.filter(function(m) { return m.folder === currentMessageFolder; }).length;
+    var activeClass = currentMessageSource === f.key ? ' active' : '';
+    // Venue Enquiries gets a blue tint to make it stand out
+    var extraStyle = (f.key === 'venue' && currentMessageSource === 'venue')
+      ? ' style="background:#eef3fb;color:#1a6fa8;border-color:#cfe0f5"' : '';
+    return '<button class="action-btn msg-folder-tab' + activeClass + '"' + extraStyle +
+      ' onclick="setMessageSource(\'' + f.key + '\')">' + f.label + ' (' + count + ')</button>';
+  }).join('');
+}
+
+function setMessageSource(key) {
+  currentMessageSource = key;
+  buildMessagesList();
+}
+
 function setMessageFolder(key) {
   currentMessageFolder = key;
   buildMessagesList();
@@ -2524,6 +2555,7 @@ function buildMessagesList() {
 
   var all = getAllMessages();
   renderMessageFolderTabs(all);
+  renderMessageSourceTabs(all);
 
   var unreadInbox = all.filter(function(m) { return !m.read && m.folder === 'inbox'; }).length;
   var badge = document.getElementById('messages-unread-badge');
@@ -2535,6 +2567,9 @@ function buildMessagesList() {
   }
 
   var visible = all.filter(function(m) { return m.folder === currentMessageFolder; });
+  if (currentMessageSource) {
+    visible = visible.filter(function(m) { return m.source === currentMessageSource; });
+  }
   if (currentMessageSearch) {
     var q = currentMessageSearch.toLowerCase();
     visible = visible.filter(function(m) {
