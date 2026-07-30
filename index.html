@@ -929,6 +929,9 @@ section { padding: 80px 48px; }
 }
 .sts-slide.active { opacity: 1; }
 .sts-slideshow-link:hover .sts-slide.active { transform: scale(1.045); }
+/* When slides are div wrappers (with badges), scale the inner img instead */
+.sts-slide.active img { transition: transform 0.5s ease; }
+.sts-slideshow-link:hover .sts-slide.active img { transform: scale(1.045); }
 
 .sts-venue-label {
   position: absolute; bottom: 20px; left: 20px; z-index: 2;
@@ -1012,7 +1015,17 @@ section { padding: 80px 48px; }
       var img = (v.photos && v.photos[0]) ? v.photos[0] : '';
       if (!img) return '';
       var activeClass = idx === 0 ? ' active' : '';
-      return '<img class="sts-slide' + activeClass + '" src="' + img + '" alt="' + escapeHtmlOccasion(v.name) + '" loading="lazy" data-venue-id="' + escapeHtmlOccasion(v.id) + '" data-venue-name="' + escapeHtmlOccasion(v.name) + '" />';
+      var premiumBadge = v.plan === 'Premium'
+        ? '<span class="badge-premium" style="z-index:2">Premium</span>' : '';
+      var typeBadge = v.type
+        ? '<span class="badge-type" style="z-index:2">' + escapeHtmlOccasion(v.type) + '</span>' : '';
+      // Wrap in a div so badges can sit absolutely over the image. The div
+      // inherits the parent's dimensions so the crossfade still works.
+      return '<div class="sts-slide' + activeClass + '" data-venue-id="' + escapeHtmlOccasion(v.id) + '" data-venue-name="' + escapeHtmlOccasion(v.name) + '" style="position:relative;width:100%;height:100%;flex-shrink:0">' +
+        '<img src="' + img + '" alt="' + escapeHtmlOccasion(v.name) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block" />' +
+        typeBadge +
+        premiumBadge +
+      '</div>';
     }).join('');
 
     if (dotsWrap) {
