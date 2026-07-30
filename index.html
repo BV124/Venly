@@ -536,7 +536,12 @@ section { padding: 80px 48px; }
       </div>
     </div>
 
-    <div class="ja-grid" id="ja-grid"></div>
+    <div class="ja-grid" id="ja-grid">
+      <div class="ja-tile ja-tile-skeleton"><div class="ja-tile-img"></div><div class="ja-tile-info"><div class="ja-tile-row"></div></div></div>
+      <div class="ja-tile ja-tile-skeleton"><div class="ja-tile-img"></div><div class="ja-tile-info"><div class="ja-tile-row"></div></div></div>
+      <div class="ja-tile ja-tile-skeleton"><div class="ja-tile-img"></div><div class="ja-tile-info"><div class="ja-tile-row"></div></div></div>
+      <div class="ja-tile ja-tile-skeleton"><div class="ja-tile-img"></div><div class="ja-tile-info"><div class="ja-tile-row"></div></div></div>
+    </div>
   </div>
 </section>
 
@@ -619,6 +624,14 @@ section { padding: 80px 48px; }
 .ja-tile-skeleton { cursor: default; }
 .ja-tile-skeleton:hover { transform: none; box-shadow: none; }
 .ja-tile-skeleton .ja-tile-row { background: #eee; border-radius: 4px; height: 14px; width: 55%; margin-bottom: 0; }
+/* Shimmer effect so skeletons look alive while data loads */
+@keyframes shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+.ja-tile-skeleton .ja-tile-img,
+.ja-tile-skeleton .ja-tile-row {
+  background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.4s infinite linear;
+}
 
 @media (max-width: 1100px) {
   .ja-grid { grid-template-columns: repeat(3, 1fr); }
@@ -921,6 +934,12 @@ section { padding: 80px 48px; }
   position: relative; width: 100%; aspect-ratio: 5 / 3; border-radius: 24px;
   overflow: hidden; background: #ddd;
   transition: box-shadow 0.25s ease;
+}
+/* Shimmer on the slideshow container while it's empty (before venues load) */
+.sts-slideshow:empty {
+  background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.6s infinite linear;
 }
 .sts-slideshow-link:hover .sts-slideshow { box-shadow: 0 16px 40px rgba(0,0,0,0.18); }
 .sts-slide {
