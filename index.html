@@ -929,9 +929,20 @@ section { padding: 80px 48px; }
 }
 .sts-slide.active { opacity: 1; }
 .sts-slideshow-link:hover .sts-slide.active { transform: scale(1.045); }
-/* When slides are div wrappers (with badges), scale the inner img instead */
-.sts-slide.active img { transition: transform 0.5s ease; }
-.sts-slideshow-link:hover .sts-slide.active img { transform: scale(1.045); }
+
+/* Badge wrap sits outside .sts-slideshow so it's never clipped by its
+   overflow:hidden or border-radius, even on hover zoom. Positioned relative
+   to .sts-media which wraps both the slideshow and the badge layer. */
+.sts-badge-wrap {
+  position: absolute; top: 14px; left: 14px; right: 14px;
+  display: flex; justify-content: space-between; align-items: flex-start;
+  pointer-events: none; z-index: 3;
+}
+.sts-badge-wrap .badge-type,
+.sts-badge-wrap .badge-premium {
+  position: static; /* override the absolute from the card badge styles */
+  pointer-events: auto;
+}
 
 .sts-venue-label {
   position: absolute; bottom: 20px; left: 20px; z-index: 2;
@@ -1015,18 +1026,31 @@ section { padding: 80px 48px; }
       var img = (v.photos && v.photos[0]) ? v.photos[0] : '';
       if (!img) return '';
       var activeClass = idx === 0 ? ' active' : '';
-      var premiumBadge = v.plan === 'Premium'
-        ? '<span class="badge-premium">Premium</span>' : '';
-      var typeBadge = v.type
-        ? '<span class="badge-type">' + escapeHtmlOccasion(v.type) + '</span>' : '';
-      // Wrap in a div so badges can sit absolutely over the image. The div
-      // inherits the parent's dimensions so the crossfade still works.
-      return '<div class="sts-slide' + activeClass + '" data-venue-id="' + escapeHtmlOccasion(v.id) + '" data-venue-name="' + escapeHtmlOccasion(v.name) + '" style="position:relative;width:100%;height:100%;flex-shrink:0">' +
-        '<img src="' + img + '" alt="' + escapeHtmlOccasion(v.name) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block" />' +
-        typeBadge +
-        premiumBadge +
-      '</div>';
+      // Keep slides as plain img tags — the slideshow was designed for this and
+      // object-fit/positioning only work correctly on img, not a wrapper div.
+      return '<img class="sts-slide' + activeClass + '" src="' + img +
+        '" alt="' + escapeHtmlOccasion(v.name) + '" loading="lazy"' +
+        ' data-venue-id="' + escapeHtmlOccasion(v.id) + '"' +
+        ' data-venue-name="' + escapeHtmlOccasion(v.name) + '"' +
+        ' data-type="' + escapeHtmlOccasion(v.type || '') + '"' +
+        ' data-premium="' + (v.plan === 'Premium' ? '1' : '') + '"' +
+        ' />';
     }).join('');
+
+    // Badges live OUTSIDE .sts-slideshow so overflow:hidden + border-radius
+    // on the slideshow container doesn't clip them on hover. We inject them
+    // into the parent .sts-media and update them as slides rotate.
+    var media = slideshow.closest('.sts-media');
+    if (media) {
+      // Remove any existing badge container first.
+      var existing = media.querySelector('.sts-badge-wrap');
+      if (existing) existing.remove();
+      var badgeWrap = document.createElement('div');
+      badgeWrap.className = 'sts-badge-wrap';
+      media.appendChild(badgeWrap);
+      // Set badges for the initially-active slide.
+      updateBadgesForSlide(badgeWrap, venues[0]);
+    }
 
     if (dotsWrap) {
       dotsWrap.innerHTML = venues.map(function(v, idx) {
@@ -1055,8 +1079,13 @@ section { padding: 80px 48px; }
 // is guaranteed to run AFTER the slides above exist, not before.
 (function() {
   window.venlyReady.then(function() {
-  function updateLinkForSlide(slideshow, slide) {
-    var link = slideshow.closest('.sts-slideshow-link');
+  function updateBadgesForSlide(badgeWrap, venue) {
+    badgeWrap.innerHTML =
+      (venue.type ? '<span class="badge-type">' + escapeHtmlOccasion(venue.type) + '</span>' : '') +
+      (venue.plan === 'Premium' ? '<span class="badge-premium">Premium</span>' : '');
+  }
+
+  function updateLinkForSlide(slideshow, slide) {    var link = slideshow.closest('.sts-slideshow-link');
     if (!link || !slide) return;
     var id = slide.getAttribute('data-venue-id');
     var name = slide.getAttribute('data-venue-name');
@@ -1087,7 +1116,15 @@ section { padding: 80px 48px; }
       slides[i].classList.add('active');
       if (dots[i]) dots[i].classList.add('active');
       updateLinkForSlide(slideshow, slides[i]);
-    }, 4000 + Math.random() * 500); // tiny random offset so rows don't all crossfade in perfect unison
+      // Update the external badge wrap to match the new active slide.
+      var media = slideshow.closest('.sts-media');
+      var badgeWrap = media && media.querySelector('.sts-badge-wrap');
+      if (badgeWrap) {
+        var venueId = slides[i].getAttribute('data-venue-id');
+        var venue = venues.find(function(v) { return String(v.id) === String(venueId); });
+        if (venue) updateBadgesForSlide(badgeWrap, venue);
+      }
+    }, 4000 + Math.random() * 500);
   });
 
   var title = document.querySelector('.sts-title');
