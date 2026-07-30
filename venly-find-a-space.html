@@ -329,9 +329,7 @@ nav {
 .space-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
 
 .card-img {
-  position: relative; aspect-ratio: 3 / 2; overflow: hidden; background: #ddd;
-  /* Round the image's own top corners to match the card, so it's clipped at
-     its own level rather than relying only on the parent's overflow clip. */
+  position: relative; height: 200px; overflow: hidden; background: #ddd;
   border-top-left-radius: var(--radius);
   border-top-right-radius: var(--radius);
 }
@@ -362,7 +360,7 @@ nav {
   font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px;
 }
 
-.card-body { padding: 16px; }
+.card-body { padding: 14px 16px 16px; }
 .card-body-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
 .card-name { font-size: 15px; font-weight: 600; color: var(--text); }
 
