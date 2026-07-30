@@ -1155,18 +1155,23 @@ section { padding: 80px 48px; }
         var dot = e.target.closest('.sts-dot-indicator');
         if (!dot) return;
         var idx = parseInt(dot.getAttribute('data-idx'), 10);
-        if (!isNaN(idx) && idx !== i) goToSlide(idx);
-        // Pause briefly so the user can see the slide they picked.
+        if (isNaN(idx)) return;
+        goToSlide(idx);
+        // Pause briefly then resume regardless of hover state, so clicking
+        // the last dot never leaves the slideshow stuck.
         paused = true;
         clearTimeout(dotPauseTimer);
-        dotPauseTimer = setTimeout(function() { paused = false; }, 3000);
+        dotPauseTimer = setTimeout(function() { paused = false; dotPauseTimer = null; }, 3000);
       });
     }
     var dotPauseTimer = null;
 
     var hoverTarget = media || slideshow;
     hoverTarget.addEventListener('mouseenter', function() { paused = true; });
-    hoverTarget.addEventListener('mouseleave', function() { paused = false; });
+    hoverTarget.addEventListener('mouseleave', function() {
+      // Only clear the pause if a dot-click timer isn't still counting down.
+      if (!dotPauseTimer) paused = false;
+    });
 
     setInterval(function() {
       if (paused) return;
