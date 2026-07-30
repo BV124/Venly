@@ -316,6 +316,14 @@ nav {
   gap: 24px;
 }
 
+/* List view: fixed 200px image height matches the homepage Trending Spaces
+   cards exactly. Map view keeps the aspect-ratio so the narrower 2-column
+   cards don't end up too tall. */
+#map-split:not(.map-active) .card-img {
+  aspect-ratio: unset;
+  height: 200px;
+}
+
 .space-card {
   border-radius: var(--radius); overflow: hidden;
   border: 1px solid var(--border); background: var(--white);
