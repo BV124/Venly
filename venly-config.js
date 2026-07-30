@@ -246,7 +246,7 @@ var VENLY_SEED_VENUES = [
 // venue editor ("Homepage placement" card) — shared so the admin and the
 // homepage never disagree on how many slots exist.
 var VENLY_MAX_TRENDING_HOME_VENUES = 8;  // total slots in the "Trending Spaces" grid
-var VENLY_MAX_OCCASION_PER_TYPE = 4;     // slots per space type in "For all occasions"
+var VENLY_MAX_OCCASION_PER_TYPE = 5;     // slots per space type in "For all occasions"
 
 // ============================================================
 // LIVE DATA CACHE — bridges "Supabase queries are async" with
