@@ -886,10 +886,7 @@ tbody tr:last-child td { border-bottom: none; }
   </button>
 
   <div class="sidebar-section">Sales</div>
-  <button class="nav-item" onclick="showSection('stats',this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-    Stats
-  </button>
+
   <button class="nav-item" onclick="showSection('crm',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
     CRM
@@ -1462,32 +1459,6 @@ tbody tr:last-child td { border-bottom: none; }
   </div>
 
   <!-- ===== STATS ===== -->
-  <div id="section-stats" class="page-section">
-    <div class="section-header">
-      <div><div class="section-title">Stats</div><div class="section-subtitle">Platform-wide performance metrics.</div></div>
-    </div>
-    <div class="stats-grid">
-      <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="stat-label">Annualized Revenue</div><div class="stat-value" id="stat-arr">$0</div><div class="stat-change" id="stat-arr-note" style="color:var(--text-muted)">= Monthly Revenue × 12</div></div>
-      <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div><div class="stat-label">Live Venues</div><div class="stat-value" id="stat-live-venues">0</div></div>
-      <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="stat-label">Active Users</div><div class="stat-value" id="stat-active-users">0</div></div>
-      <div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="stat-label">Cancelled Subscriptions</div><div class="stat-value" id="stat-cancelled-subs">0</div></div>
-    </div>
-    <div class="filter-card-note" style="margin:-14px 0 24px">Swapped "Total Revenue (YTD)" and "Churn Rate" for numbers we can actually calculate today — both need payment/cancellation history over time, which isn't tracked yet.</div>
-    <div class="two-col">
-      <div class="chart-wrap">
-        <div class="chart-title">Revenue over time</div>
-        <div class="chart-subtitle" id="stats-revenue-subtitle">Monthly NZD · Last 6 months</div>
-        <div id="stats-revenue-chart-wrap"><div class="bar-chart" id="stats-revenue-chart"></div></div>
-      </div>
-      <div class="chart-wrap">
-        <div class="chart-title">Plan distribution</div>
-        <div class="chart-subtitle">Current active subscriptions</div>
-        <div id="plan-distribution-wrap" style="display:flex;flex-direction:column;gap:12px;margin-top:8px"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== CRM ===== -->
   <div id="section-crm" class="page-section">
     <div class="section-header">
       <div><div class="section-title">CRM</div><div class="section-subtitle">Track outreach to venues, hosts and prospects — one record, one timeline, always a next step.</div></div>
