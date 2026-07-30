@@ -951,12 +951,7 @@ tbody tr:last-child td { border-bottom: none; }
         <div class="table-card-header"><div class="table-card-title">Recent venues</div><button class="action-btn" onclick="showSection('venues', document.querySelector('[onclick*=venues]'))">View all</button></div>
         <table>
           <thead><tr><th>Name</th><th>Type</th><th>Plan</th><th>Status</th></tr></thead>
-          <tbody>
-            <tr><td class="cell-name">Brads – Shoot Location</td><td style="color:var(--text-muted)">Shoot Location</td><td><span class="badge badge-premium">Premium</span></td><td><span class="badge badge-draft">Draft</span></td></tr>
-            <tr><td class="cell-name">Okahu – Meeting Space</td><td style="color:var(--text-muted)">Meeting space</td><td><span class="badge badge-premium">Premium</span></td><td><span class="badge badge-live">Live</span></td></tr>
-            <tr><td class="cell-name">Brads Warehouse</td><td style="color:var(--text-muted)">Event space</td><td><span class="badge badge-standard">Standard</span></td><td><span class="badge badge-live">Live</span></td></tr>
-            <tr><td class="cell-name">City Rooftop</td><td style="color:var(--text-muted)">Event space</td><td><span class="badge badge-basic">Basic</span></td><td><span class="badge badge-draft">Draft</span></td></tr>
-          </tbody>
+          <tbody id="recent-venues-tbody"></tbody>
         </table>
       </div>
       <div class="table-card">
@@ -2230,11 +2225,40 @@ function buildUsersTable() {
   }).join('');
 }
 
+function buildRecentVenues() {
+  var tbody = document.getElementById('recent-venues-tbody');
+  if (!tbody) return;
+  var venues = getAllVenues();
+  if (!venues.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text-muted);text-align:center;padding:20px">No venues yet</td></tr>';
+    return;
+  }
+  // getAllVenues() returns newest-first (ordered by created_at DESC from Supabase).
+  var recent = venues.slice(0, 5);
+  tbody.innerHTML = recent.map(function(v) {
+    var planClass = v.plan === 'Premium' ? 'badge-premium' : v.plan === 'Standard' ? 'badge-standard' : 'badge-basic';
+    var statusClass = v.isLive ? 'badge-live' : 'badge-draft';
+    var statusLabel = v.isLive ? 'Live' : 'Draft';
+    return '<tr>' +
+      '<td class="cell-name">' + (v.name || '—') + '</td>' +
+      '<td style="color:var(--text-muted)">' + (v.type || '—') + '</td>' +
+      '<td><span class="badge ' + planClass + '">' + (v.plan || 'Basic') + '</span></td>' +
+      '<td><span class="badge ' + statusClass + '">' + statusLabel + '</span></td>' +
+      '</tr>';
+  }).join('');
+}
+
 function buildRecentSignups() {
   var users = getAllUsers();
-  var recent = users.slice().reverse().slice(0, 5);
   var tbody = document.getElementById('recent-signups-tbody');
   if (!tbody) return;
+  if (!users.length) {
+    tbody.innerHTML = '<tr><td colspan="3" style="color:var(--text-muted);text-align:center;padding:20px">No sign ups yet</td></tr>';
+    return;
+  }
+  // Users come back from Supabase newest-first (created_at DESC) — don't
+  // reverse, just take the first 5.
+  var recent = users.slice(0, 5);
   tbody.innerHTML = recent.map(function(u) {
     var badgeClass = u.status === 'New' ? 'badge-new' : 'badge-active';
     var time = u.joinedRaw ? timeSince(u.joinedRaw) : u.joined;
@@ -2242,7 +2266,7 @@ function buildRecentSignups() {
       '<td><div class="cell-user"><div class="avatar-sm" style="background:' + u.color + '">' + u.initials + '</div>' +
       '<div><div class="cell-name">' + u.name + '</div><div class="cell-email">' + u.email + '</div></div></div></td>' +
       '<td style="color:var(--text-muted)">' + time + '</td>' +
-      '<td><span class="badge ' + badgeClass + '">' + u.status + '</span></td>' +
+      '<td><span class="badge ' + badgeClass + '">' + (u.status || 'Active') + '</span></td>' +
       '</tr>';
   }).join('');
 }
@@ -5563,7 +5587,7 @@ function saveCrmActivity() {
 // though almost nothing else here actually depends on it.
 Promise.all([window.venlyReady, adminBootstrapUsers(), adminBootstrapBlog(), adminBootstrapMessages()]).then(function() {
 buildUsersTable();
-buildRecentSignups();
+buildRecentSignups(); buildRecentVenues();
 buildBlogTable();
 renderAllFilters();
 buildVenuesTable();
@@ -5829,7 +5853,7 @@ async function saveUserModal(id) {
   var box = document.querySelector('#add-modal .modal-box');
   if (box) box.style.maxWidth = '';
   buildUsersTable();
-  buildRecentSignups();
+  buildRecentSignups(); buildRecentVenues();
   applyAdminAccessRestrictions(); // covers the case where you just edited your own account's access
 }
 
