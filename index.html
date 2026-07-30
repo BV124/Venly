@@ -1069,23 +1069,11 @@ section { padding: 80px 48px; }
 </script>
 
 <script>
-// Each space-type photo is a small auto-rotating slideshow (crossfade,
-// no controls needed — purely ambient). The section heading + each row
-// fade in as they scroll into view, same "always live" reverse-on-scroll
-// pattern used elsewhere on this page.
-//
-// Chained onto the same venlyReady promise as the render script above —
-// promise .then() callbacks fire in the order they were attached, so this
-// is guaranteed to run AFTER the slides above exist, not before.
 (function() {
   window.venlyReady.then(function() {
-  function updateBadgesForSlide(badgeWrap, venue) {
-    badgeWrap.innerHTML =
-      (venue.type ? '<span class="badge-type">' + escapeHtmlOccasion(venue.type) + '</span>' : '') +
-      (venue.plan === 'Premium' ? '<span class="badge-premium">Premium</span>' : '');
-  }
 
-  function updateLinkForSlide(slideshow, slide) {    var link = slideshow.closest('.sts-slideshow-link');
+  function updateLinkForSlide(slideshow, slide) {
+    var link = slideshow.closest('.sts-slideshow-link');
     if (!link || !slide) return;
     var id = slide.getAttribute('data-venue-id');
     var name = slide.getAttribute('data-venue-name');
@@ -1097,33 +1085,47 @@ section { padding: 80px 48px; }
     }
   }
 
+  function updateBadgesForSlide(badgeWrap, slide) {
+    if (!badgeWrap || !slide) return;
+    var type = slide.getAttribute('data-type') || '';
+    var premium = slide.getAttribute('data-premium') === '1';
+    badgeWrap.innerHTML =
+      (type ? '<span class="badge-type">' + type + '</span>' : '<span></span>') +
+      (premium ? '<span class="badge-premium">Premium</span>' : '');
+  }
+
   document.querySelectorAll('.sts-slideshow').forEach(function(slideshow) {
     var slides = slideshow.querySelectorAll('.sts-slide');
     if (!slides.length) return;
 
-    // Make sure the link/label match the initially-active slide on load.
     updateLinkForSlide(slideshow, slides[0]);
 
-    if (slides.length < 2) return;
     var category = slideshow.getAttribute('data-slideshow');
+    var media = slideshow.closest('.sts-media');
     var dotsWrap = document.querySelector('.sts-dots[data-dots="' + category + '"]');
-    var dots = dotsWrap ? dotsWrap.querySelectorAll('.sts-dot-indicator') : [];
+    var badgeWrap = media && media.querySelector('.sts-badge-wrap');
+
+    if (badgeWrap) updateBadgesForSlide(badgeWrap, slides[0]);
+
+    if (slides.length < 2) return;
+
     var i = 0;
+    var paused = false;
+
+    var hoverTarget = media || slideshow;
+    hoverTarget.addEventListener('mouseenter', function() { paused = true; });
+    hoverTarget.addEventListener('mouseleave', function() { paused = false; });
+
     setInterval(function() {
+      if (paused) return;
+      var dots = dotsWrap ? dotsWrap.querySelectorAll('.sts-dot-indicator') : [];
       slides[i].classList.remove('active');
       if (dots[i]) dots[i].classList.remove('active');
       i = (i + 1) % slides.length;
       slides[i].classList.add('active');
       if (dots[i]) dots[i].classList.add('active');
       updateLinkForSlide(slideshow, slides[i]);
-      // Update the external badge wrap to match the new active slide.
-      var media = slideshow.closest('.sts-media');
-      var badgeWrap = media && media.querySelector('.sts-badge-wrap');
-      if (badgeWrap) {
-        var venueId = slides[i].getAttribute('data-venue-id');
-        var venue = venues.find(function(v) { return String(v.id) === String(venueId); });
-        if (venue) updateBadgesForSlide(badgeWrap, venue);
-      }
+      if (badgeWrap) updateBadgesForSlide(badgeWrap, slides[i]);
     }, 4000 + Math.random() * 500);
   });
 
