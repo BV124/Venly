@@ -739,7 +739,9 @@ function escapeHtmlVenue(str) {
 
 function renderSimilarSpaces() {
   if (typeof getAllVenues !== 'function') return;
-  var all = getAllVenues().filter(function(v) { return v.isLive && v.photos && v.photos[0]; });
+  // Show all live venues — not just ones with photos. A venue without a photo
+  // shows a "No image" placeholder, the same as the find-a-space cards.
+  var all = getAllVenues().filter(function(v) { return v.isLive; });
   var currentId = loadedVenue ? loadedVenue.id : null;
   var currentType = loadedVenue ? loadedVenue.type : '';
 
@@ -762,13 +764,16 @@ function renderSimilarSpaces() {
   }
 
   grid.innerHTML = picks.map(function(v) {
-    var img = v.photos[0];
+    var img = v.photos && v.photos[0] ? v.photos[0] : '';
+    var imgHtml = img
+      ? '<img src="' + img + '" alt="' + escapeHtmlVenue(v.name) + '" loading="lazy" />'
+      : '<div class="card-img-empty">No image</div>';
     var premiumBadge = v.plan === 'Premium' ? '<span class="badge-premium">Premium</span>' : '';
     var location = [v.district, v.region].filter(Boolean).join(', ');
     var favActive = (typeof isVenueFavourited === 'function' && isVenueFavourited(v.id));
     return '<div class="space-card" onclick="window.location.href=\'venly-venue.html?id=' + encodeURIComponent(v.id) + '\'" style="cursor:pointer">' +
       '<div class="card-img">' +
-        '<img src="' + img + '" alt="' + escapeHtmlVenue(v.name) + '" loading="lazy" />' +
+        imgHtml +
         '<span class="badge-type">' + escapeHtmlVenue(v.type) + '</span>' +
         premiumBadge +
       '</div>' +
