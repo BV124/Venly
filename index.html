@@ -1042,16 +1042,21 @@ section { padding: 80px 48px; }
     // into the parent .sts-media and update them as slides rotate.
     var media = slideshow.closest('.sts-media');
     if (media) {
-      // Remove any existing badge container first.
       var existing = media.querySelector('.sts-badge-wrap');
       if (existing) existing.remove();
       var badgeWrap = document.createElement('div');
       badgeWrap.className = 'sts-badge-wrap';
       media.appendChild(badgeWrap);
-      // Set badges for the initially-active slide.
-      updateBadgesForSlide(badgeWrap, venues[0]);
+      // Initial badge — use venue object directly since slides may not be
+      // queryable yet. Rotation script uses data attributes on the slide element.
+      var v0 = venues[0];
+      badgeWrap.innerHTML =
+        (v0.type ? '<span class="badge-type">' + escapeHtmlOccasion(v0.type) + '</span>' : '<span></span>') +
+        (v0.plan === 'Premium' ? '<span class="badge-premium">Premium</span>' : '');
     }
 
+    // Always inject dots — even 1 dot gives a visual indicator that the
+    // section is alive. Multiple dots show progress through the rotation.
     if (dotsWrap) {
       dotsWrap.innerHTML = venues.map(function(v, idx) {
         return '<span class="sts-dot-indicator' + (idx === 0 ? ' active' : '') + '"></span>';
@@ -1126,7 +1131,7 @@ section { padding: 80px 48px; }
       if (dots[i]) dots[i].classList.add('active');
       updateLinkForSlide(slideshow, slides[i]);
       if (badgeWrap) updateBadgesForSlide(badgeWrap, slides[i]);
-    }, 4000 + Math.random() * 500);
+    }, 7000 + Math.random() * 1000);
   });
 
   var title = document.querySelector('.sts-title');
