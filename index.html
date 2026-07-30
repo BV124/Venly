@@ -1042,13 +1042,20 @@ section { padding: 80px 48px; }
     var venues = selected.slice(0, MAX);
     if (!venues.length) return;
 
-    slideshow.innerHTML = venues.map(function(v, idx) {
-      var img = (v.photos && v.photos[0]) ? v.photos[0] : '';
-      if (!img) return '';
+    // Filter to only venues with photos — slides without images would show as
+    // empty grey boxes in the slideshow. A console warning tells you which
+    // venue needs a photo added to appear here.
+    var venuesToShow = venues.filter(function(v) {
+      if (!v.photos || !v.photos[0]) {
+        console.warn('[Venly] "For all occasions": venue "' + v.name + '" is flagged for this section but has no photos — add a photo to make it appear.');
+        return false;
+      }
+      return true;
+    });
+
+    slideshow.innerHTML = venuesToShow.map(function(v, idx) {
       var activeClass = idx === 0 ? ' active' : '';
-      // Keep slides as plain img tags — the slideshow was designed for this and
-      // object-fit/positioning only work correctly on img, not a wrapper div.
-      return '<img class="sts-slide' + activeClass + '" src="' + img +
+      return '<img class="sts-slide' + activeClass + '" src="' + v.photos[0] +
         '" alt="' + escapeHtmlOccasion(v.name) + '" loading="lazy"' +
         ' data-venue-id="' + escapeHtmlOccasion(v.id) + '"' +
         ' data-venue-name="' + escapeHtmlOccasion(v.name) + '"' +
@@ -1057,9 +1064,7 @@ section { padding: 80px 48px; }
         ' />';
     }).join('');
 
-    // Badges live OUTSIDE .sts-slideshow so overflow:hidden + border-radius
-    // on the slideshow container doesn't clip them on hover. We inject them
-    // into the parent .sts-media and update them as slides rotate.
+    // Initial badge — use first visible venue.
     var media = slideshow.closest('.sts-media');
     if (media) {
       var existing = media.querySelector('.sts-badge-wrap');
@@ -1067,19 +1072,16 @@ section { padding: 80px 48px; }
       var badgeWrap = document.createElement('div');
       badgeWrap.className = 'sts-badge-wrap';
       media.appendChild(badgeWrap);
-      // Initial badge — use venue object directly since slides may not be
-      // queryable yet. Rotation script uses data attributes on the slide element.
-      var v0 = venues[0];
-      badgeWrap.innerHTML =
-        (v0.type ? '<span class="badge-type">' + escapeHtmlOccasion(v0.type) + '</span>' : '<span></span>') +
-        (v0.plan === 'Premium' ? '<span class="badge-premium">Premium</span>' : '');
+      var v0 = venuesToShow[0];
+      if (v0) {
+        badgeWrap.innerHTML =
+          (v0.type ? '<span class="badge-type">' + escapeHtmlOccasion(v0.type) + '</span>' : '<span></span>') +
+          (v0.plan === 'Premium' ? '<span class="badge-premium">Premium</span>' : '');
+      }
     }
 
-    // Only venues that actually produced a slide (i.e. have a photo) get dots.
-    // If we generate dots from all venues but some were skipped for missing
-    // photos, the dot index won't match the slide index and the 4th dot
-    // (or wherever the gap is) points at a non-existent slide.
-    var venuesWithSlides = venues.filter(function(v) { return v.photos && v.photos[0]; });
+    // Dots match only venues that have slides.
+    var venuesWithSlides = venuesToShow;
 
     if (dotsWrap) {
       dotsWrap.innerHTML = venuesWithSlides.map(function(v, idx) {
