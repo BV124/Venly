@@ -827,7 +827,7 @@ section { padding: 80px 48px; }
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </div>
         </a>
-        <span class="sts-tag"><span class="sts-tag-dot"></span>Event spaces</span>
+        <span class="sts-tag" style="display:none"><span class="sts-tag-dot"></span>Event spaces</span>
         <div class="sts-dots" data-dots="event"></div>
       </div>
       <div class="sts-copy">
@@ -851,7 +851,7 @@ section { padding: 80px 48px; }
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </div>
         </a>
-        <span class="sts-tag"><span class="sts-tag-dot"></span>Meeting spaces</span>
+        <span class="sts-tag" style="display:none"><span class="sts-tag-dot"></span>Meeting spaces</span>
         <div class="sts-dots" data-dots="meeting"></div>
       </div>
       <div class="sts-copy">
@@ -875,7 +875,7 @@ section { padding: 80px 48px; }
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </div>
         </a>
-        <span class="sts-tag"><span class="sts-tag-dot"></span>Shoot locations</span>
+        <span class="sts-tag" style="display:none"><span class="sts-tag-dot"></span>Shoot locations</span>
         <div class="sts-dots" data-dots="shoot"></div>
       </div>
       <div class="sts-copy">
@@ -1016,9 +1016,9 @@ section { padding: 80px 48px; }
       if (!img) return '';
       var activeClass = idx === 0 ? ' active' : '';
       var premiumBadge = v.plan === 'Premium'
-        ? '<span class="badge-premium" style="z-index:2">Premium</span>' : '';
+        ? '<span class="badge-premium">Premium</span>' : '';
       var typeBadge = v.type
-        ? '<span class="badge-type" style="z-index:2">' + escapeHtmlOccasion(v.type) + '</span>' : '';
+        ? '<span class="badge-type">' + escapeHtmlOccasion(v.type) + '</span>' : '';
       // Wrap in a div so badges can sit absolutely over the image. The div
       // inherits the parent's dimensions so the crossfade still works.
       return '<div class="sts-slide' + activeClass + '" data-venue-id="' + escapeHtmlOccasion(v.id) + '" data-venue-name="' + escapeHtmlOccasion(v.name) + '" style="position:relative;width:100%;height:100%;flex-shrink:0">' +
