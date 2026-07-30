@@ -1450,12 +1450,12 @@ tbody tr:last-child td { border-bottom: none; }
       <span id="messages-unread-badge" style="font-size:12px;color:#1a8a4a;font-weight:600;background:#e8f8ee;padding:4px 12px;border-radius:20px;border:1px solid #b8e8c8"></span>
     </div>
     <div class="table-card">
-      <div class="table-card-header">
-        <div style="display:flex;flex-direction:column;gap:8px;flex:1">
-          <div id="messages-folder-tabs" style="display:flex;gap:6px"></div>
-          <div id="messages-source-tabs" style="display:flex;gap:6px"></div>
+      <div class="table-card-header" style="flex-wrap:wrap;gap:10px">
+        <div id="messages-tabs" style="display:flex;gap:6px;flex-wrap:wrap;flex:1"></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button id="empty-trash-btn" class="action-btn" style="display:none;color:var(--red);border-color:var(--red)" onclick="emptyTrash()">Empty trash</button>
+          <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input class="search-input" placeholder="Search messages..." oninput="filterMessagesList(this.value)" /></div>
         </div>
-        <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input class="search-input" placeholder="Search messages..." oninput="filterMessagesList(this.value)" /></div>
       </div>
       <div id="messages-list"></div>
     </div>
@@ -1722,7 +1722,7 @@ tbody tr:last-child td { border-bottom: none; }
       <select id="msg-detail-folder-select" style="padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit">
         <option value="inbox">Inbox</option>
         <option value="archived">Archived</option>
-        <option value="spam">Spam</option>
+        <option value="trash">Trash</option>
       </select>
     </div>
     <div class="modal-actions">
@@ -2360,25 +2360,30 @@ function showSection(name, btn) {
 }
 
 // ---- MESSAGES (unified inbox: contact form + venue enquiries) ----
-// Two real data sources, unified into one shape for display:
-//  - venly_contact_messages: submitted via venly-contact.html (sendMessage)
-//  - venly_enquiries: submitted via venly-venue.html (submitEnquiry)
-// Both are written back to their own original storage key when marked
-// read or moved to a folder, via updateMessageMeta() — this file never
-// merges them into a single stored array, only for display.
+// Tab structure:
+//   Inbox           — all messages not archived/trashed
+//   Venue Enquiries — inbox filtered to source='venue'
+//   Contact Forms   — inbox filtered to source='contact'
+//   Archived        — messages moved to archive
+//   Trash           — messages moved to trash (soft-delete; emptied manually)
+//
+// Two real Supabase tables underneath (contact_messages, enquiries) merged
+// for display. folder column = 'inbox' | 'archived' | 'trash'.
+
+var MESSAGE_TABS = [
+  { key: 'inbox',    label: 'Inbox',            folder: 'inbox',    source: '' },
+  { key: 'venue',    label: 'Venue Enquiries',   folder: 'inbox',    source: 'venue' },
+  { key: 'contact',  label: 'Contact Forms',     folder: 'inbox',    source: 'contact' },
+  { key: 'archived', label: 'Archived',          folder: 'archived', source: '' },
+  { key: 'trash',    label: 'Trash',             folder: 'trash',    source: '' },
+];
+var currentMessageTab = 'inbox';
+var currentMessageSearch = '';
+var currentMessageSource = '';
 var MESSAGE_FOLDERS = [
   { key: 'inbox', label: 'Inbox' },
   { key: 'archived', label: 'Archived' },
-  { key: 'spam', label: 'Spam' },
-];
-var currentMessageFolder = 'inbox';
-var currentMessageSearch = '';
-var currentMessageSource = ''; // '' = all, 'venue' = venue enquiries, 'contact' = contact form
-
-var MESSAGE_SOURCE_FILTERS = [
-  { key: '', label: 'All messages' },
-  { key: 'venue', label: 'Venue Enquiries' },
-  { key: 'contact', label: 'Contact' },
+  { key: 'trash', label: 'Trash' },
 ];
 
 // Real Supabase messages, once migrated — same cache pattern as
@@ -2486,9 +2491,25 @@ function renderMessageRow(m) {
   var sourceBadge = m.source === 'venue'
     ? '<span class="badge" style="background:#eef3fb;color:#1a6fa8;border:1px solid #cfe0f5;margin-left:6px">Venue</span>'
     : '<span class="badge" style="background:#f3f0fb;color:#5a4fcf;border:1px solid #ddd3f7;margin-left:6px">Contact</span>';
-  var folderOptions = MESSAGE_FOLDERS.map(function(f) {
-    return '<option value="' + f.key + '"' + (m.folder === f.key ? ' selected' : '') + '>' + f.label + '</option>';
-  }).join('');
+
+  // Action buttons depend on which tab we're on
+  var actions = '';
+  var tab = MESSAGE_TABS.find(function(t) { return t.key === currentMessageTab; }) || MESSAGE_TABS[0];
+  if (tab.folder === 'trash') {
+    // In trash: restore to inbox or permanently delete (via empty trash)
+    actions =
+      '<button class="action-btn" onclick="event.stopPropagation();moveMessage(\'' + m.source + '\',\'' + m.id + '\',\'inbox\')">Restore</button>';
+  } else if (tab.folder === 'archived') {
+    actions =
+      '<button class="action-btn" onclick="event.stopPropagation();moveMessage(\'' + m.source + '\',\'' + m.id + '\',\'inbox\')">Restore</button>' +
+      '<button class="action-btn" style="color:var(--red)" onclick="event.stopPropagation();moveMessage(\'' + m.source + '\',\'' + m.id + '\',\'trash\')">Trash</button>';
+  } else {
+    // Inbox / venue / contact tabs
+    actions =
+      '<button class="action-btn" onclick="event.stopPropagation();toggleMessageRead(\'' + m.source + '\',\'' + m.id + '\')">' + (m.read ? 'Mark unread' : 'Mark read') + '</button>' +
+      '<button class="action-btn" onclick="event.stopPropagation();moveMessage(\'' + m.source + '\',\'' + m.id + '\',\'archived\')">Archive</button>' +
+      '<button class="action-btn" style="color:var(--red)" onclick="event.stopPropagation();moveMessage(\'' + m.source + '\',\'' + m.id + '\',\'trash\')">Trash</button>';
+  }
 
   return '<div class="msg-row' + unreadClass + '" onclick="openMessageDetail(\'' + m.source + '\',\'' + m.id + '\')">' +
     '<div style="display:flex;align-items:flex-start;gap:14px;flex:1;min-width:0">' +
@@ -2501,51 +2522,66 @@ function renderMessageRow(m) {
       '</div>' +
     '</div>' +
     '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0" onclick="event.stopPropagation()">' +
-      '<select class="msg-folder-select" onchange="moveMessage(\'' + m.source + '\',\'' + m.id + '\',this.value)">' + folderOptions + '</select>' +
-      '<button class="action-btn" onclick="toggleMessageRead(\'' + m.source + '\',\'' + m.id + '\')">' + (m.read ? 'Mark unread' : 'Mark read') + '</button>' +
+      actions +
       '<a class="action-btn" style="text-decoration:none;display:inline-flex;align-items:center" href="mailto:' + encodeURIComponent(m.email || '') + '?subject=' + encodeURIComponent('Re: ' + m.subject) + '" onclick="event.stopPropagation()">Reply</a>' +
     '</div>' +
   '</div>';
 }
 
-function renderMessageFolderTabs(all) {
-  var wrap = document.getElementById('messages-folder-tabs');
+function renderMessageTabs(all) {
+  var wrap = document.getElementById('messages-tabs');
   if (!wrap) return;
-  wrap.innerHTML = MESSAGE_FOLDERS.map(function(f) {
-    var count = all.filter(function(m) { return m.folder === f.key; }).length;
-    var activeClass = currentMessageFolder === f.key ? ' active' : '';
-    return '<button class="action-btn msg-folder-tab' + activeClass + '" onclick="setMessageFolder(\'' + f.key + '\')">' + f.label + ' (' + count + ')</button>';
+  wrap.innerHTML = MESSAGE_TABS.map(function(t) {
+    var count = all.filter(function(m) {
+      return m.folder === t.folder && (!t.source || m.source === t.source);
+    }).length;
+    var isActive = currentMessageTab === t.key;
+    var style = '';
+    if (t.key === 'venue' && isActive) style = ' style="background:#eef3fb;color:#1a6fa8;border-color:#cfe0f5"';
+    else if (t.key === 'contact' && isActive) style = ' style="background:#f3f0fb;color:#5a4fcf;border-color:#ddd3f7"';
+    else if (t.key === 'trash') style = ' style="color:var(--red)"';
+    return '<button class="action-btn msg-folder-tab' + (isActive ? ' active' : '') + '"' + style +
+      ' onclick="setMessageTab(\'' + t.key + '\')">' + t.label +
+      ' <span style="opacity:0.65">(' + count + ')</span></button>';
   }).join('');
 }
 
-function renderMessageSourceTabs(all) {
-  var wrap = document.getElementById('messages-source-tabs');
-  if (!wrap) return;
-  wrap.innerHTML = MESSAGE_SOURCE_FILTERS.map(function(f) {
-    var count = f.key
-      ? all.filter(function(m) { return m.source === f.key && m.folder === currentMessageFolder; }).length
-      : all.filter(function(m) { return m.folder === currentMessageFolder; }).length;
-    var activeClass = currentMessageSource === f.key ? ' active' : '';
-    // Venue Enquiries gets a blue tint to make it stand out
-    var extraStyle = (f.key === 'venue' && currentMessageSource === 'venue')
-      ? ' style="background:#eef3fb;color:#1a6fa8;border-color:#cfe0f5"' : '';
-    return '<button class="action-btn msg-folder-tab' + activeClass + '"' + extraStyle +
-      ' onclick="setMessageSource(\'' + f.key + '\')">' + f.label + ' (' + count + ')</button>';
-  }).join('');
-}
-
-function setMessageSource(key) {
-  currentMessageSource = key;
+function setMessageTab(key) {
+  currentMessageTab = key;
+  var emptyBtn = document.getElementById('empty-trash-btn');
+  if (emptyBtn) emptyBtn.style.display = key === 'trash' ? '' : 'none';
   buildMessagesList();
 }
 
 function setMessageFolder(key) {
-  currentMessageFolder = key;
-  buildMessagesList();
+  // Legacy compatibility — map folder to tab key
+  var tabMap = { inbox: 'inbox', archived: 'archived', trash: 'trash' };
+  setMessageTab(tabMap[key] || 'inbox');
 }
 
 function filterMessagesList(q) {
   currentMessageSearch = q;
+  buildMessagesList();
+}
+
+async function emptyTrash() {
+  var all = getAllMessages();
+  var trashed = all.filter(function(m) { return m.folder === 'trash'; });
+  if (!trashed.length) { showToast('Trash is already empty'); return; }
+  if (!confirm('Permanently delete all ' + trashed.length + ' message' + (trashed.length === 1 ? '' : 's') + ' in Trash? This cannot be undone.')) return;
+  for (var i = 0; i < trashed.length; i++) {
+    var m = trashed[i];
+    if (SUPABASE_READY) {
+      var table = m.source === 'contact' ? 'contact_messages' : 'enquiries';
+      await sb.from(table).delete().eq('id', m.id);
+    } else {
+      var key = m.source === 'contact' ? 'venly_contact_messages' : 'venly_enquiries';
+      var arr = JSON.parse(localStorage.getItem(key) || '[]');
+      localStorage.setItem(key, JSON.stringify(arr.filter(function(x) { return String(x.id) !== String(m.id); })));
+    }
+  }
+  if (SUPABASE_READY) await adminBootstrapMessages();
+  showToast('Trash emptied');
   buildMessagesList();
 }
 
@@ -2554,9 +2590,9 @@ function buildMessagesList() {
   if (!listEl) return;
 
   var all = getAllMessages();
-  renderMessageFolderTabs(all);
-  renderMessageSourceTabs(all);
+  renderMessageTabs(all);
 
+  // Unread count is always across inbox only (all sources)
   var unreadInbox = all.filter(function(m) { return !m.read && m.folder === 'inbox'; }).length;
   var badge = document.getElementById('messages-unread-badge');
   if (badge) badge.textContent = unreadInbox + ' unread';
@@ -2566,10 +2602,16 @@ function buildMessagesList() {
     sidebarBadge.style.display = unreadInbox > 0 ? '' : 'none';
   }
 
-  var visible = all.filter(function(m) { return m.folder === currentMessageFolder; });
-  if (currentMessageSource) {
-    visible = visible.filter(function(m) { return m.source === currentMessageSource; });
-  }
+  // Show/hide empty trash button
+  var emptyBtn = document.getElementById('empty-trash-btn');
+  if (emptyBtn) emptyBtn.style.display = currentMessageTab === 'trash' ? '' : 'none';
+
+  // Determine what to show from the active tab
+  var tab = MESSAGE_TABS.find(function(t) { return t.key === currentMessageTab; }) || MESSAGE_TABS[0];
+  var visible = all.filter(function(m) {
+    return m.folder === tab.folder && (!tab.source || m.source === tab.source);
+  });
+
   if (currentMessageSearch) {
     var q = currentMessageSearch.toLowerCase();
     visible = visible.filter(function(m) {
@@ -2581,7 +2623,8 @@ function buildMessagesList() {
 
   listEl.innerHTML = visible.length
     ? visible.map(renderMessageRow).join('')
-    : '<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-size:13px">No messages here.</div>';
+    : '<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-size:13px">' +
+        (currentMessageTab === 'trash' ? 'Trash is empty.' : 'No messages here.') + '</div>';
 }
 
 async function toggleMessageRead(source, id) {
