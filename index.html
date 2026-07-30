@@ -1134,22 +1134,21 @@ section { padding: 80px 48px; }
     if (slides.length < 2) return;
 
     var i = 0;
-    var paused = false;
+    var hovering = false;
+    var dotClicked = false;
+    var dotPauseTimer = null;
 
-    // Jump to a specific slide — used by both dot clicks and the interval.
     function goToSlide(target) {
       var dots = dotsWrap ? dotsWrap.querySelectorAll('.sts-dot-indicator') : [];
       slides[i].classList.remove('active');
       if (dots[i]) dots[i].classList.remove('active');
-      i = target;
+      i = target % slides.length; // always wrap so we never go out of bounds
       slides[i].classList.add('active');
       if (dots[i]) dots[i].classList.add('active');
       updateLinkForSlide(slideshow, slides[i]);
       if (badgeWrap) updateBadgesForSlide(badgeWrap, slides[i]);
     }
 
-    // Clicking a dot jumps straight to that slide and briefly pauses
-    // auto-rotation so the click doesn't immediately get overridden.
     if (dotsWrap) {
       dotsWrap.addEventListener('click', function(e) {
         var dot = e.target.closest('.sts-dot-indicator');
@@ -1157,25 +1156,26 @@ section { padding: 80px 48px; }
         var idx = parseInt(dot.getAttribute('data-idx'), 10);
         if (isNaN(idx)) return;
         goToSlide(idx);
-        // Pause briefly then resume regardless of hover state, so clicking
-        // the last dot never leaves the slideshow stuck.
-        paused = true;
+        // Briefly suppress auto-rotation after a click so the slide the user
+        // picked stays visible for a moment before the interval resumes.
+        dotClicked = true;
         clearTimeout(dotPauseTimer);
-        dotPauseTimer = setTimeout(function() { paused = false; dotPauseTimer = null; }, 3000);
+        dotPauseTimer = setTimeout(function() {
+          dotClicked = false;
+          dotPauseTimer = null;
+        }, 3000);
       });
     }
-    var dotPauseTimer = null;
 
+    // Hover pause is completely separate from dot-click pause.
     var hoverTarget = media || slideshow;
-    hoverTarget.addEventListener('mouseenter', function() { paused = true; });
-    hoverTarget.addEventListener('mouseleave', function() {
-      // Only clear the pause if a dot-click timer isn't still counting down.
-      if (!dotPauseTimer) paused = false;
-    });
+    hoverTarget.addEventListener('mouseenter', function() { hovering = true; });
+    hoverTarget.addEventListener('mouseleave', function() { hovering = false; });
 
     setInterval(function() {
-      if (paused) return;
-      goToSlide((i + 1) % slides.length);
+      // Only skip if hovered OR in the 3s dot-click cooldown.
+      if (hovering || dotClicked) return;
+      goToSlide(i + 1); // goToSlide wraps with % so last slide loops to first
     }, 7000 + Math.random() * 1000);
   });
 
