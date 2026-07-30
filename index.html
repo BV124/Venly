@@ -966,7 +966,8 @@ section { padding: 80px 48px; }
 .sts-dots { display: flex; justify-content: center; gap: 10px; margin-top: 14px; }
 .sts-dot-indicator {
   width: 8px; height: 8px; border-radius: 50%; background: var(--border);
-  transition: background 0.3s ease, transform 0.3s ease; cursor: default;
+  transition: background 0.3s ease, transform 0.3s ease;
+  cursor: pointer; padding: 3px; box-sizing: content-box;
 }
 .sts-dot-indicator.active { background: var(--red); transform: scale(1.35); }
 
@@ -1055,11 +1056,10 @@ section { padding: 80px 48px; }
         (v0.plan === 'Premium' ? '<span class="badge-premium">Premium</span>' : '');
     }
 
-    // Always inject dots — even 1 dot gives a visual indicator that the
-    // section is alive. Multiple dots show progress through the rotation.
+    // Inject dots with click handlers so clicking a dot jumps to that slide.
     if (dotsWrap) {
       dotsWrap.innerHTML = venues.map(function(v, idx) {
-        return '<span class="sts-dot-indicator' + (idx === 0 ? ' active' : '') + '"></span>';
+        return '<span class="sts-dot-indicator' + (idx === 0 ? ' active' : '') + '" data-idx="' + idx + '"></span>';
       }).join('');
     }
   });
@@ -1117,20 +1117,41 @@ section { padding: 80px 48px; }
     var i = 0;
     var paused = false;
 
+    // Jump to a specific slide — used by both dot clicks and the interval.
+    function goToSlide(target) {
+      var dots = dotsWrap ? dotsWrap.querySelectorAll('.sts-dot-indicator') : [];
+      slides[i].classList.remove('active');
+      if (dots[i]) dots[i].classList.remove('active');
+      i = target;
+      slides[i].classList.add('active');
+      if (dots[i]) dots[i].classList.add('active');
+      updateLinkForSlide(slideshow, slides[i]);
+      if (badgeWrap) updateBadgesForSlide(badgeWrap, slides[i]);
+    }
+
+    // Clicking a dot jumps straight to that slide and briefly pauses
+    // auto-rotation so the click doesn't immediately get overridden.
+    if (dotsWrap) {
+      dotsWrap.addEventListener('click', function(e) {
+        var dot = e.target.closest('.sts-dot-indicator');
+        if (!dot) return;
+        var idx = parseInt(dot.getAttribute('data-idx'), 10);
+        if (!isNaN(idx) && idx !== i) goToSlide(idx);
+        // Pause briefly so the user can see the slide they picked.
+        paused = true;
+        clearTimeout(dotPauseTimer);
+        dotPauseTimer = setTimeout(function() { paused = false; }, 3000);
+      });
+    }
+    var dotPauseTimer = null;
+
     var hoverTarget = media || slideshow;
     hoverTarget.addEventListener('mouseenter', function() { paused = true; });
     hoverTarget.addEventListener('mouseleave', function() { paused = false; });
 
     setInterval(function() {
       if (paused) return;
-      var dots = dotsWrap ? dotsWrap.querySelectorAll('.sts-dot-indicator') : [];
-      slides[i].classList.remove('active');
-      if (dots[i]) dots[i].classList.remove('active');
-      i = (i + 1) % slides.length;
-      slides[i].classList.add('active');
-      if (dots[i]) dots[i].classList.add('active');
-      updateLinkForSlide(slideshow, slides[i]);
-      if (badgeWrap) updateBadgesForSlide(badgeWrap, slides[i]);
+      goToSlide((i + 1) % slides.length);
     }, 7000 + Math.random() * 1000);
   });
 
