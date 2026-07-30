@@ -1075,9 +1075,14 @@ section { padding: 80px 48px; }
         (v0.plan === 'Premium' ? '<span class="badge-premium">Premium</span>' : '');
     }
 
-    // Inject dots with click handlers so clicking a dot jumps to that slide.
+    // Only venues that actually produced a slide (i.e. have a photo) get dots.
+    // If we generate dots from all venues but some were skipped for missing
+    // photos, the dot index won't match the slide index and the 4th dot
+    // (or wherever the gap is) points at a non-existent slide.
+    var venuesWithSlides = venues.filter(function(v) { return v.photos && v.photos[0]; });
+
     if (dotsWrap) {
-      dotsWrap.innerHTML = venues.map(function(v, idx) {
+      dotsWrap.innerHTML = venuesWithSlides.map(function(v, idx) {
         return '<span class="sts-dot-indicator' + (idx === 0 ? ' active' : '') + '" data-idx="' + idx + '"></span>';
       }).join('');
     }
