@@ -2257,9 +2257,14 @@ var _venueStatsMonthlyViews = {};
 var _venueStatsMonthlyEnquiries = {};
 
 async function openVenueStats(venueId, venueName) {
+  console.log('[VenueStats] called with', venueId, venueName);
   _venueStatsId = venueId;
   _venueStatsMonthlyViews = {};
   _venueStatsMonthlyEnquiries = {};
+
+  var overlay = document.getElementById('venue-stats-overlay');
+  console.log('[VenueStats] overlay element:', overlay);
+  if (!overlay) { alert('Stats modal not found in DOM'); return; }
 
   document.getElementById('venue-stats-title').textContent = venueName || 'Venue stats';
   document.getElementById('vstats-views').textContent = '—';
@@ -2270,7 +2275,8 @@ async function openVenueStats(venueId, venueName) {
   document.getElementById('vstats-enqs-month').textContent = '';
   document.getElementById('vstats-loading').style.display = '';
   document.getElementById('vstats-chart-wrap').style.display = 'none';
-  document.getElementById('venue-stats-overlay').classList.remove('hidden');
+  overlay.classList.remove('hidden');
+  console.log('[VenueStats] modal opened, overlay classes:', overlay.className);
 
   // Totals from existing caches (fast, already loaded)
   var venue = getAllVenues().find(function(v) { return String(v.id) === String(venueId); });
