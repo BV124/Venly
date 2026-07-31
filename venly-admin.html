@@ -96,6 +96,8 @@ nav {
 .search-wrap { position: relative; }
 .search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--text-muted); pointer-events: none; }
 .search-input:focus { outline: none; border-color: var(--red); }
+.crm-input { width: 100%; padding: 7px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-family: "Inter", sans-serif; color: var(--text); background: var(--bg); box-sizing: border-box; }
+.crm-input:focus { outline: none; border-color: var(--red); }
 
 /* Venues filter bar */
 .venues-filter-bar {
@@ -1439,7 +1441,7 @@ tbody tr:last-child td { border-bottom: none; }
         <div class="table-card-header" style="flex-direction:column;align-items:stretch;gap:10px">
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
             <div id="crm-status-tabs" style="display:flex;gap:6px;flex-wrap:wrap"></div>
-            <div style="display:flex;gap:8px;align-items:center;margin-left:auto">
+            <div style="display:flex;gap:8px;align-items:center">
               <select id="crm-filter-category" class="search-input" style="width:auto;padding-left:10px;cursor:pointer" onchange="renderCrmList()">
                 <option value="">All types</option>
                 <option value="Event space">Event space</option>
@@ -5993,27 +5995,27 @@ document.querySelector('nav .btn-red') && document.querySelector('nav .btn-red')
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:20px 28px">
           <div>
             <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Contact name</div>
-            <input id="crm-modal-contact" class="search-input" style="width:100%" placeholder="Jane Smith" onblur="saveCrmField('contactName',this.value)" />
+            <input id="crm-modal-contact" class="crm-input" placeholder="Jane Smith" onblur="saveCrmField('contactName',this.value)" />
           </div>
           <div>
             <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Email</div>
-            <input id="crm-modal-email" class="search-input" style="width:100%" placeholder="jane@venue.co.nz" onblur="saveCrmField('email',this.value)" />
+            <input id="crm-modal-email" class="crm-input" placeholder="jane@venue.co.nz" onblur="saveCrmField('email',this.value)" />
           </div>
           <div>
             <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Phone</div>
-            <input id="crm-modal-phone" class="search-input" style="width:100%" placeholder="021 000 0000" onblur="saveCrmField('phone',this.value)" />
+            <input id="crm-modal-phone" class="crm-input" placeholder="021 000 0000" onblur="saveCrmField('phone',this.value)" />
           </div>
           <div>
             <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Website</div>
-            <input id="crm-modal-website" class="search-input" style="width:100%" placeholder="https://..." onblur="saveCrmField('website',this.value)" />
+            <input id="crm-modal-website" class="crm-input" placeholder="https://..." onblur="saveCrmField('website',this.value)" />
           </div>
           <div style="grid-column:1/-1">
             <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Address</div>
-            <input id="crm-modal-address" class="search-input" style="width:100%" placeholder="123 Main St, Auckland" onblur="saveCrmField('address',this.value)" />
+            <input id="crm-modal-address" class="crm-input" placeholder="123 Main St, Auckland" onblur="saveCrmField('address',this.value)" />
           </div>
           <div style="grid-column:1/-1">
             <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Next step</div>
-            <input id="crm-modal-nextstep" class="search-input" style="width:100%" placeholder="e.g. Follow up call on Friday" onblur="saveCrmField('nextStep',this.value)" />
+            <input id="crm-modal-nextstep" class="crm-input" placeholder="e.g. Follow up call on Friday" onblur="saveCrmField('nextStep',this.value)" />
           </div>
         </div>
 
