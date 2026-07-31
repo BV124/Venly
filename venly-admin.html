@@ -1208,6 +1208,201 @@ tbody tr:last-child td { border-bottom: none; }
   </div>
 
   <!-- ===== ANALYTICS ===== -->
+  <div id="section-blog" class="page-section">
+    <!-- ===== BLOG LIST VIEW ===== -->
+    <div id="blog-list-view">
+      <div class="section-header">
+        <div><div class="section-title">Blog</div><div class="section-subtitle">Manage blog posts and content.</div></div>
+        <button class="btn-sm btn-red" onclick="openBlogEditor()">+ New post</button>
+      </div>
+      <div class="table-card">
+        <div class="table-card-header">
+          <div class="table-card-title" id="blog-posts-title">All posts</div>
+          <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input class="search-input" placeholder="Search posts..." oninput="filterTable(this,'blog-table')" /></div>
+        </div>
+        <table id="blog-table">
+          <thead><tr><th>Title</th><th>Category</th><th>Published</th><th>Views</th><th>Status</th><th></th></tr></thead>
+          <tbody id="blog-posts-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== BLOG EDITOR VIEW ===== -->
+    <div id="blog-editor-view" style="display:none">
+      <div class="section-header">
+        <div>
+          <div class="section-title" id="editor-heading">New post</div>
+          <div class="section-subtitle">Write and format your blog post below.</div>
+        </div>
+        <button class="action-btn" onclick="closeBlogEditor()">← Back to all posts</button>
+      </div>
+
+      <div class="editor-layout">
+        <!-- MAIN EDITOR -->
+        <div class="editor-main">
+          <div class="editor-card">
+            <h4>Post details</h4>
+            <div class="editor-field">
+              <label>Title</label>
+              <input type="text" id="ed-title" placeholder="e.g. How to Choose the Perfect Space for Your Next Event" oninput="updatePreview()" />
+            </div>
+            <div class="editor-row">
+              <div class="editor-field">
+                <label>Category</label>
+                <select id="ed-category">
+                  <option value="HOSTING TIPS">Hosting Tips</option>
+                  <option value="EVENT SPACE">Event Space</option>
+                  <option value="MEETING SPACE">Meeting Space</option>
+                  <option value="SHOOT LOCATION">Shoot Location</option>
+                  <option value="GUIDE">Guide</option>
+                  <option value="VENLY NEWS">Venly News</option>
+                </select>
+              </div>
+              <div class="editor-field">
+                <label>Read time</label>
+                <input type="text" id="ed-read" placeholder="4 min read" value="4 min read" />
+              </div>
+            </div>
+            <div class="editor-field">
+              <label>Hero image</label>
+              <div class="hero-upload-zone" id="hero-upload-zone" onclick="document.getElementById('hero-file-input').click()"
+                   ondragover="event.preventDefault(); this.classList.add('drag-over')"
+                   ondragleave="this.classList.remove('drag-over')"
+                   ondrop="handleHeroDrop(event)">
+                <input type="file" id="hero-file-input" accept="image/*" style="display:none" onchange="handleHeroFile(this.files[0])" />
+                <img id="ed-hero-preview" class="editor-hero-preview" style="display:none" />
+                <div id="hero-upload-placeholder" class="hero-upload-placeholder">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  <div><strong>Click to upload</strong> or drag an image here</div>
+                  <span>PNG, JPG up to ~2MB looks best</span>
+                </div>
+                <button type="button" id="hero-remove-btn" class="hero-remove-btn" style="display:none" onclick="removeHeroImage(event)" title="Remove image">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+              <button type="button" class="use-url-toggle" onclick="toggleUrlInput()" id="use-url-toggle-btn">or paste an image URL instead</button>
+              <input type="text" id="ed-img" placeholder="https://images.unsplash.com/..." oninput="updateHeroPreviewFromUrl()" style="display:none" />
+            </div>
+          </div>
+
+          <div class="editor-card">
+            <h4>Post content</h4>
+            <div class="block-list" id="block-list"></div>
+            <div class="add-block-row" style="margin-top:14px">
+              <button class="add-block-btn" onclick="addBlock('paragraph')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="14" y2="18"/></svg>
+                Paragraph
+              </button>
+              <button class="add-block-btn" onclick="addBlock('heading')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4v16M18 4v16M6 12h12"/></svg>
+                Heading
+              </button>
+              <button class="add-block-btn" onclick="addBlock('list')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>
+                List
+              </button>
+              <button class="add-block-btn" onclick="addBlock('quote')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21c0 0 0 0 1 0z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 3-1.75 3v3c0 0 0 2 1 2z"/></svg>
+                Quote
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SIDEBAR -->
+        <div class="editor-sidebar">
+          <div class="editor-card">
+            <h4>Publish</h4>
+            <div class="publish-status-row">
+              <span>Published</span>
+              <div class="toggle-switch" id="ed-published-toggle" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div class="publish-status-row">
+              <div>
+                <span>Featured on homepage</span>
+                <div style="font-size:10px;color:#bbb;margin-top:2px" id="featured-slots-label">0 of 3 homepage slots used</div>
+              </div>
+              <div class="toggle-switch" id="ed-featured-toggle" onclick="toggleFeatured(this)"></div>
+            </div>
+          </div>
+
+          <div class="editor-card">
+            <h4>Preview</h4>
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.6" id="ed-preview-text">Start typing to see a live preview of how this post will appear.</div>
+          </div>
+
+          <div class="editor-sidebar-actions">
+            <button class="btn-sm" style="background:var(--white);color:var(--red);border:1.5px solid var(--red)" onclick="openBlogPreview()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              Preview
+            </button>
+            <button class="btn-sm btn-red" onclick="saveBlogPost()">Save post</button>
+            <button class="btn-sm" style="background:var(--bg);color:var(--text)" onclick="closeBlogEditor()">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== FULL-SCREEN PREVIEW OVERLAY ===== -->
+    <div class="preview-overlay" id="preview-overlay">
+      <div class="preview-topbar">
+        <div class="preview-topbar-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Previewing
+          <span class="pill" id="preview-status-pill">Draft</span>
+        </div>
+        <button class="preview-close-btn" onclick="closeBlogPreview()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Close preview
+        </button>
+      </div>
+      <div class="preview-body" id="preview-body"></div>
+    </div>
+  </div>
+
+  <!-- ===== ACCOUNTS ===== -->
+  <div id="section-accounts" class="page-section">
+    <div class="section-header">
+      <div><div class="section-title">Accounts</div><div class="section-subtitle">All host accounts and their subscription status.</div></div>
+    </div>
+    <div class="table-card">
+      <div class="table-card-header">
+        <div class="table-card-title" id="accounts-table-title">All accounts</div>
+        <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input class="search-input" placeholder="Search accounts..." oninput="filterTable(this,'accounts-table')" /></div>
+      </div>
+      <table id="accounts-table">
+        <thead><tr><th>Account</th><th>Email</th><th>Venues</th><th>Monthly value</th><th>Joined</th><th>Status</th><th></th></tr></thead>
+        <tbody id="accounts-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== USERS ===== -->
+  <div id="section-users" class="page-section">
+    <div class="section-header">
+      <div><div class="section-title">Users</div><div class="section-subtitle">All registered users on the platform.</div></div>
+      <button class="btn-sm btn-red" onclick="openUserModal(null)">+ Add user</button>
+    </div>
+    <div class="table-card">
+      <div class="table-card-header">
+        <div class="table-card-title" id="users-table-title">All users</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <select id="users-role-filter" class="search-input" style="width:auto;padding-right:32px;cursor:pointer" onchange="filterUsers()">
+            <option value="">All roles</option>
+            <option value="admin">Admin</option>
+            <option value="user">User</option>
+          </select>
+          <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input id="users-search-input" class="search-input" placeholder="Search users..." oninput="filterUsers()" /></div>
+        </div>
+      </div>
+      <table id="users-table">
+        <thead><tr><th>User</th><th>Phone</th><th>Role</th><th>Joined</th><th>Status</th><th></th></tr></thead>
+        <tbody id="users-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== MESSAGES ===== -->
   <div id="section-messages" class="page-section">
     <div class="section-header">
       <div><div class="section-title">Messages</div><div class="section-subtitle">Contact form submissions and venue enquiries, in one inbox.</div></div>
