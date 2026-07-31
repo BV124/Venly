@@ -2357,10 +2357,8 @@ function renderVenueStatsChart(metric) {
     return { label: label, label2: String(val), val: val };
   });
 
-  var wrap = document.getElementById('vstats-chart-wrap');
-  var chartDiv = document.getElementById('vstats-chart');
   if (typeof renderBarChart === 'function') {
-    renderBarChart(chartDiv, data, wrap);
+    renderBarChart('vstats-chart', data, 'var(--red)');
   }
 }
 
