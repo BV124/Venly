@@ -5966,85 +5966,94 @@ document.querySelector('nav .btn-red') && document.querySelector('nav .btn-red')
 
 <!-- PROSPECT DETAIL MODAL -->
     <div class="modal-overlay hidden" id="crm-detail-modal" style="z-index:1500">
-      <div style="background:var(--white);border-radius:16px;width:90%;max-width:620px;max-height:88vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,0.15)">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:24px 28px 0">
-          <div style="flex:1">
-            <div id="crm-modal-name" contenteditable="true" style="font-size:18px;font-weight:800;outline:none;border-bottom:2px solid transparent;padding-bottom:2px" onblur="saveCrmField('venueName',this.textContent)" onfocus="this.style.borderColor='var(--red)'" onblur2="this.style.borderColor='transparent'" placeholder="Venue name"></div>
-            <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center">
-              <select id="crm-modal-status" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-family:Inter,sans-serif;font-size:13px;color:var(--text);background:var(--bg);cursor:pointer" onchange="saveCrmField('status',this.value)">
-                <option value="New">New</option>
-                <option value="Contacted">Contacted</option>
-                <option value="Interested">Interested</option>
-                <option value="Listed">Listed</option>
-                <option value="Not Now">Not Now</option>
-                <option value="Lost">Lost</option>
-                <option value="Do Not Contact">Do Not Contact</option>
-              </select>
-              <select id="crm-modal-category" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-family:Inter,sans-serif;font-size:13px;color:var(--text);background:var(--bg);cursor:pointer" onchange="saveCrmField('category',this.value)">
-                <option value="Event space">Event space</option>
-                <option value="Meeting space">Meeting space</option>
-                <option value="Shoot Location">Shoot Location</option>
-              </select>
+      <div style="background:var(--white);border-radius:16px;width:90%;max-width:620px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,0.15)">
+
+        <!-- HEADER — always visible -->
+        <div style="padding:24px 28px 0;flex-shrink:0">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between">
+            <div style="flex:1">
+              <div id="crm-modal-name" contenteditable="true" style="font-size:18px;font-weight:800;outline:none;border-bottom:2px solid transparent;padding-bottom:2px" onblur="saveCrmField('venueName',this.textContent)" onfocus="this.style.borderColor='var(--red)'" placeholder="Venue name"></div>
+              <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center">
+                <select id="crm-modal-status" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-family:Inter,sans-serif;font-size:13px;color:var(--text);background:var(--bg);cursor:pointer" onchange="saveCrmField('status',this.value)">
+                  <option value="New">New</option>
+                  <option value="Contacted">Contacted</option>
+                  <option value="Interested">Interested</option>
+                  <option value="Listed">Listed</option>
+                  <option value="Not Now">Not Now</option>
+                  <option value="Lost">Lost</option>
+                  <option value="Do Not Contact">Do Not Contact</option>
+                </select>
+                <select id="crm-modal-category" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-family:Inter,sans-serif;font-size:13px;color:var(--text);background:var(--bg);cursor:pointer" onchange="saveCrmField('category',this.value)">
+                  <option value="Event space">Event space</option>
+                  <option value="Meeting space">Meeting space</option>
+                  <option value="Shoot Location">Shoot Location</option>
+                </select>
+              </div>
+            </div>
+            <button onclick="closeCrmDetail()" style="background:none;border:none;cursor:pointer;padding:8px;color:var(--text-muted);margin-left:12px;flex-shrink:0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- SCROLLABLE BODY — contact info + activity -->
+        <div style="overflow-y:auto;flex:1;padding:0">
+
+          <!-- Contact info -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:20px 28px">
+            <div>
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Contact name</div>
+              <input id="crm-modal-contact" class="crm-input" placeholder="Jane Smith" onblur="saveCrmField('contactName',this.value)" />
+            </div>
+            <div>
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Email</div>
+              <input id="crm-modal-email" class="crm-input" placeholder="jane@venue.co.nz" onblur="saveCrmField('email',this.value)" />
+            </div>
+            <div>
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Phone</div>
+              <input id="crm-modal-phone" class="crm-input" placeholder="021 000 0000" onblur="saveCrmField('phone',this.value)" />
+            </div>
+            <div>
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Website</div>
+              <input id="crm-modal-website" class="crm-input" placeholder="https://..." onblur="saveCrmField('website',this.value)" />
+            </div>
+            <div style="grid-column:1/-1">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Address</div>
+              <input id="crm-modal-address" class="crm-input" placeholder="123 Main St, Auckland" onblur="saveCrmField('address',this.value)" />
+            </div>
+            <div style="grid-column:1/-1">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Next step</div>
+              <input id="crm-modal-nextstep" class="crm-input" placeholder="e.g. Follow up call on Friday" onblur="saveCrmField('nextStep',this.value)" />
             </div>
           </div>
-          <button onclick="closeCrmDetail()" style="background:none;border:none;cursor:pointer;padding:8px;color:var(--text-muted);margin-left:12px">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        </div>
 
-        <!-- Contact info -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:20px 28px">
-          <div>
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Contact name</div>
-            <input id="crm-modal-contact" class="crm-input" placeholder="Jane Smith" onblur="saveCrmField('contactName',this.value)" />
-          </div>
-          <div>
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Email</div>
-            <input id="crm-modal-email" class="crm-input" placeholder="jane@venue.co.nz" onblur="saveCrmField('email',this.value)" />
-          </div>
-          <div>
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Phone</div>
-            <input id="crm-modal-phone" class="crm-input" placeholder="021 000 0000" onblur="saveCrmField('phone',this.value)" />
-          </div>
-          <div>
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Website</div>
-            <input id="crm-modal-website" class="crm-input" placeholder="https://..." onblur="saveCrmField('website',this.value)" />
-          </div>
-          <div style="grid-column:1/-1">
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Address</div>
-            <input id="crm-modal-address" class="crm-input" placeholder="123 Main St, Auckland" onblur="saveCrmField('address',this.value)" />
-          </div>
-          <div style="grid-column:1/-1">
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Next step</div>
-            <input id="crm-modal-nextstep" class="crm-input" placeholder="e.g. Follow up call on Friday" onblur="saveCrmField('nextStep',this.value)" />
-          </div>
-        </div>
-
-        <!-- Activity timeline -->
-        <div style="padding:0 28px 16px">
-          <div style="font-size:13px;font-weight:700;margin-bottom:12px">Activity</div>
-          <!-- Quick add buttons -->
-          <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
-            <button class="action-btn" onclick="openCrmActivityInput('note')">+ Note</button>
-            <button class="action-btn" onclick="openCrmActivityInput('email')">+ Email</button>
-            <button class="action-btn" onclick="openCrmActivityInput('call')">+ Call</button>
-            <button class="action-btn" onclick="openCrmActivityInput('meeting')">+ Meeting</button>
-          </div>
-          <div id="crm-timeline-input-wrap" style="display:none;margin-bottom:12px">
-            <textarea id="crm-activity-text" placeholder="What happened?" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:8px;font-family:Inter,sans-serif;font-size:13px;resize:vertical;min-height:72px"></textarea>
-            <div style="display:flex;gap:8px;margin-top:6px">
-              <button class="action-btn" onclick="closeCrmActivityInput()">Cancel</button>
-              <button class="action-btn" style="background:var(--red);color:#fff;border-color:var(--red)" onclick="saveCrmActivity()">Save</button>
+          <!-- Activity timeline -->
+          <div style="padding:0 28px 20px;border-top:1px solid var(--border)">
+            <div style="font-size:13px;font-weight:700;margin:16px 0 12px">Activity</div>
+            <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+              <button class="action-btn" onclick="openCrmActivityInput('note')">+ Note</button>
+              <button class="action-btn" onclick="openCrmActivityInput('email')">+ Email</button>
+              <button class="action-btn" onclick="openCrmActivityInput('call')">+ Call</button>
+              <button class="action-btn" onclick="openCrmActivityInput('meeting')">+ Meeting</button>
             </div>
+            <div id="crm-timeline-input-wrap" style="display:none;margin-bottom:12px">
+              <textarea id="crm-activity-text" placeholder="What happened?" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:8px;font-family:Inter,sans-serif;font-size:13px;resize:vertical;min-height:72px;box-sizing:border-box"></textarea>
+              <div style="display:flex;gap:8px;margin-top:6px">
+                <button class="action-btn" onclick="closeCrmActivityInput()">Cancel</button>
+                <button class="action-btn" style="background:var(--red);color:#fff;border-color:var(--red)" onclick="saveCrmActivity()">Save</button>
+              </div>
+            </div>
+            <div id="crm-timeline-scroll" style="display:flex;flex-direction:column;gap:8px"></div>
           </div>
-          <div id="crm-timeline-scroll" style="display:flex;flex-direction:column;gap:8px"></div>
+
         </div>
 
-        <!-- Footer actions -->
-        <div style="display:flex;justify-content:space-between;padding:16px 28px;border-top:1px solid var(--border)">
+        <!-- FOOTER — always visible, never scrolls away -->
+        <div style="display:flex;justify-content:space-between;padding:14px 28px;border-top:1px solid var(--border);flex-shrink:0;background:var(--white);border-radius:0 0 16px 16px">
           <button class="action-btn" style="color:var(--red);border-color:var(--red)" onclick="deleteCrmRecordWithConfirm()">Delete prospect</button>
           <button class="action-btn" onclick="closeCrmDetail()">Done</button>
         </div>
+
       </div>
     </div>
 <!-- ADMIN CONFIRM MODAL -->
