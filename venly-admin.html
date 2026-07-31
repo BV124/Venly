@@ -2617,15 +2617,8 @@ function adminConfirm(title, body, okLabel) {
 async function emptyTrash() {
   var all = getAllMessages();
   var trashed = all.filter(function(m) { return m.folder === 'trash'; });
-  console.log('[emptyTrash] trashed count:', trashed.length, 'all:', all.length);
   if (!trashed.length) { showToast('Trash is already empty'); return; }
-  var ok = await adminConfirm(
-    'Empty trash?',
-    'This will permanently delete ' + trashed.length + ' message' + (trashed.length === 1 ? '' : 's') + '. This cannot be undone.',
-    'Empty trash'
-  );
-  console.log('[emptyTrash] adminConfirm returned:', ok);
-  if (!ok) return;
+  if (!confirm('Permanently delete ' + trashed.length + ' message' + (trashed.length === 1 ? '' : 's') + '? This cannot be undone.')) return;
 
   var errors = [];
   for (var i = 0; i < trashed.length; i++) {
@@ -2648,8 +2641,7 @@ async function emptyTrash() {
   buildMessagesList();
 
   if (errors.length) {
-    showToast('Some messages could not be deleted: ' + errors[0]);
-    console.error('emptyTrash errors:', errors);
+    showToast('Could not delete: ' + errors[0]);
   } else {
     showToast('Trash emptied');
   }
