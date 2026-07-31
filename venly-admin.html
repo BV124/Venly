@@ -5442,8 +5442,8 @@ function deleteCrmRecordWithConfirm() {
     var updated = getAllCrmRecords().filter(function(r) { return r.id !== crmSelectedId; });
     saveAllCrmRecords(updated);
     crmSelectedId = null;
-    closeCrmDetail();
     closeConfirmDelete();
+    closeCrmDetail();
     confirmBtn.textContent = 'Remove';
     showToast('Venue removed from CRM');
   };
