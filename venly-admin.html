@@ -2569,20 +2569,33 @@ async function emptyTrash() {
   var trashed = all.filter(function(m) { return m.folder === 'trash'; });
   if (!trashed.length) { showToast('Trash is already empty'); return; }
   if (!confirm('Permanently delete all ' + trashed.length + ' message' + (trashed.length === 1 ? '' : 's') + ' in Trash? This cannot be undone.')) return;
+
+  var errors = [];
   for (var i = 0; i < trashed.length; i++) {
     var m = trashed[i];
     if (SUPABASE_READY) {
       var table = m.source === 'contact' ? 'contact_messages' : 'enquiries';
-      await sb.from(table).delete().eq('id', m.id);
+      var res = await sb.from(table).delete().eq('id', m.id);
+      if (res.error) {
+        console.error('emptyTrash delete failed:', m.id, res.error);
+        errors.push(res.error.message);
+      }
     } else {
-      var key = m.source === 'contact' ? 'venly_contact_messages' : 'venly_enquiries';
-      var arr = JSON.parse(localStorage.getItem(key) || '[]');
-      localStorage.setItem(key, JSON.stringify(arr.filter(function(x) { return String(x.id) !== String(m.id); })));
+      var lsKey = m.source === 'contact' ? 'venly_contact_messages' : 'venly_enquiries';
+      var arr = JSON.parse(localStorage.getItem(lsKey) || '[]');
+      localStorage.setItem(lsKey, JSON.stringify(arr.filter(function(x) { return String(x.id) !== String(m.id); })));
     }
   }
+
   if (SUPABASE_READY) await adminBootstrapMessages();
-  showToast('Trash emptied');
   buildMessagesList();
+
+  if (errors.length) {
+    showToast('Some messages could not be deleted: ' + errors[0]);
+    console.error('emptyTrash errors:', errors);
+  } else {
+    showToast('Trash emptied');
+  }
 }
 
 function buildMessagesList() {
