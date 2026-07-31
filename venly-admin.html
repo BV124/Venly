@@ -1385,6 +1385,23 @@ tbody tr:last-child td { border-bottom: none; }
     </div>
 
     <!-- ===== FULL-SCREEN PREVIEW OVERLAY ===== -->
+<!-- CONFIRM MODAL (reusable for destructive actions) -->
+<div class="modal-overlay hidden" id="admin-confirm-overlay" style="z-index:2000">
+  <div style="background:var(--white);border-radius:16px;padding:32px;max-width:420px;width:90%;box-shadow:0 16px 48px rgba(0,0,0,0.15)">
+    <div id="admin-confirm-icon" style="width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;background:#fef2f2">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" width="24" height="24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+    </div>
+    <h3 id="admin-confirm-title" style="font-size:17px;font-weight:800;text-align:center;margin-bottom:10px"></h3>
+    <p id="admin-confirm-body" style="font-size:14px;color:var(--text-muted);text-align:center;line-height:1.6;margin-bottom:24px"></p>
+    <div style="display:flex;gap:10px">
+      <button id="admin-confirm-cancel" style="flex:1;padding:12px;border:1.5px solid var(--border);border-radius:8px;background:var(--white);font-family:Inter,sans-serif;font-size:14px;font-weight:600;cursor:pointer"
+              onmouseover="this.style.borderColor='var(--text)'" onmouseout="this.style.borderColor='var(--border)'">Cancel</button>
+      <button id="admin-confirm-ok" style="flex:1;padding:12px;border:none;border-radius:8px;background:var(--red);color:#fff;font-family:Inter,sans-serif;font-size:14px;font-weight:600;cursor:pointer"
+              onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'"></button>
+    </div>
+  </div>
+</div>
+
     <div class="preview-overlay" id="preview-overlay">
       <div class="preview-topbar">
         <div class="preview-topbar-label">
@@ -2564,11 +2581,34 @@ function filterMessagesList(q) {
   buildMessagesList();
 }
 
+// Venly-styled confirm dialog — returns a Promise that resolves true/false.
+// Replaces native confirm() for destructive actions in the admin.
+function adminConfirm(title, body, okLabel) {
+  return new Promise(function(resolve) {
+    document.getElementById('admin-confirm-title').textContent = title;
+    document.getElementById('admin-confirm-body').textContent = body;
+    document.getElementById('admin-confirm-ok').textContent = okLabel || 'Confirm';
+    var overlay = document.getElementById('admin-confirm-overlay');
+    overlay.classList.remove('hidden');
+    function done(result) {
+      overlay.classList.add('hidden');
+      resolve(result);
+    }
+    document.getElementById('admin-confirm-cancel').onclick = function() { done(false); };
+    document.getElementById('admin-confirm-ok').onclick = function() { done(true); };
+  });
+}
+
 async function emptyTrash() {
   var all = getAllMessages();
   var trashed = all.filter(function(m) { return m.folder === 'trash'; });
   if (!trashed.length) { showToast('Trash is already empty'); return; }
-  if (!confirm('Permanently delete all ' + trashed.length + ' message' + (trashed.length === 1 ? '' : 's') + ' in Trash? This cannot be undone.')) return;
+  var ok = await adminConfirm(
+    'Empty trash?',
+    'This will permanently delete ' + trashed.length + ' message' + (trashed.length === 1 ? '' : 's') + '. This cannot be undone.',
+    'Empty trash'
+  );
+  if (!ok) return;
 
   var errors = [];
   for (var i = 0; i < trashed.length; i++) {
