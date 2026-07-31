@@ -2585,17 +2585,32 @@ function filterMessagesList(q) {
 // Replaces native confirm() for destructive actions in the admin.
 function adminConfirm(title, body, okLabel) {
   return new Promise(function(resolve) {
+    var overlay = document.getElementById('admin-confirm-overlay');
+    var okBtn = document.getElementById('admin-confirm-ok');
+    var cancelBtn = document.getElementById('admin-confirm-cancel');
+    if (!overlay || !okBtn || !cancelBtn) {
+      console.error('adminConfirm: modal elements not found');
+      resolve(false);
+      return;
+    }
     document.getElementById('admin-confirm-title').textContent = title;
     document.getElementById('admin-confirm-body').textContent = body;
-    document.getElementById('admin-confirm-ok').textContent = okLabel || 'Confirm';
-    var overlay = document.getElementById('admin-confirm-overlay');
+    okBtn.textContent = okLabel || 'Confirm';
     overlay.classList.remove('hidden');
+
     function done(result) {
       overlay.classList.add('hidden');
       resolve(result);
     }
-    document.getElementById('admin-confirm-cancel').onclick = function() { done(false); };
-    document.getElementById('admin-confirm-ok').onclick = function() { done(true); };
+
+    // Use cloneNode to strip any old listeners before adding new ones
+    var newOk = okBtn.cloneNode(true);
+    var newCancel = cancelBtn.cloneNode(true);
+    okBtn.parentNode.replaceChild(newOk, okBtn);
+    cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+
+    newOk.addEventListener('click', function() { done(true); }, { once: true });
+    newCancel.addEventListener('click', function() { done(false); }, { once: true });
   });
 }
 
@@ -2609,6 +2624,7 @@ async function emptyTrash() {
     'This will permanently delete ' + trashed.length + ' message' + (trashed.length === 1 ? '' : 's') + '. This cannot be undone.',
     'Empty trash'
   );
+  console.log('[emptyTrash] adminConfirm returned:', ok);
   if (!ok) return;
 
   var errors = [];
