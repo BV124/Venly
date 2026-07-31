@@ -1372,54 +1372,6 @@ tbody tr:last-child td { border-bottom: none; }
     </div>
 
     <!-- ===== FULL-SCREEN PREVIEW OVERLAY ===== -->
-<!-- VENUE STATS MODAL -->
-<div class="modal-overlay hidden" id="venue-stats-overlay" style="z-index:1500">
-  <div style="background:var(--white);border-radius:16px;width:90%;max-width:680px;max-height:85vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,0.15)">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:24px 28px 0">
-      <div>
-        <h3 id="venue-stats-title" style="font-size:18px;font-weight:800;margin-bottom:4px"></h3>
-        <div id="venue-stats-subtitle" style="font-size:13px;color:var(--text-muted)"></div>
-      </div>
-      <button onclick="closeVenueStats()" style="background:none;border:none;cursor:pointer;padding:8px;color:var(--text-muted);font-size:20px;line-height:1">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-
-    <!-- Summary stat tiles -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:20px 28px">
-      <div style="background:var(--bg);border-radius:10px;padding:16px">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:6px">Total Views</div>
-        <div id="vstats-views" style="font-size:28px;font-weight:800">—</div>
-        <div id="vstats-views-month" style="font-size:12px;color:var(--text-muted);margin-top:3px"></div>
-      </div>
-      <div style="background:var(--bg);border-radius:10px;padding:16px">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:6px">Favourites</div>
-        <div id="vstats-favs" style="font-size:28px;font-weight:800">—</div>
-        <div id="vstats-favs-month" style="font-size:12px;color:var(--text-muted);margin-top:3px"></div>
-      </div>
-      <div style="background:var(--bg);border-radius:10px;padding:16px">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:6px">Enquiries</div>
-        <div id="vstats-enqs" style="font-size:28px;font-weight:800">—</div>
-        <div id="vstats-enqs-month" style="font-size:12px;color:var(--text-muted);margin-top:3px"></div>
-      </div>
-    </div>
-
-    <!-- Monthly breakdown chart -->
-    <div style="padding:0 28px 28px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <div style="font-size:14px;font-weight:700">Monthly breakdown</div>
-        <div style="display:flex;gap:6px">
-          <button class="action-btn vstats-toggle active" data-metric="views" onclick="renderVenueStatsChart('views')">Views</button>
-          <button class="action-btn vstats-toggle" data-metric="enquiries" onclick="renderVenueStatsChart('enquiries')">Enquiries</button>
-        </div>
-      </div>
-      <div id="vstats-loading" style="padding:32px;text-align:center;color:var(--text-muted);font-size:13px">Loading…</div>
-      <div id="vstats-chart-wrap" style="display:none"><div class="bar-chart" id="vstats-chart"></div></div>
-      <div style="font-size:11px;color:var(--text-muted);margin-top:12px">Showing all available months. Views are tracked from when the venue was first listed.</div>
-    </div>
-  </div>
-</div>
-
 <!-- CONFIRM MODAL (reusable for destructive actions) -->
 <div class="modal-overlay hidden" id="admin-confirm-overlay" style="z-index:2000">
   <div style="background:var(--white);border-radius:16px;padding:32px;max-width:420px;width:90%;box-shadow:0 16px 48px rgba(0,0,0,0.15)">
@@ -2257,14 +2209,12 @@ var _venueStatsMonthlyViews = {};
 var _venueStatsMonthlyEnquiries = {};
 
 async function openVenueStats(venueId, venueName) {
-  console.log('[VenueStats] called with', venueId, venueName);
   _venueStatsId = venueId;
   _venueStatsMonthlyViews = {};
   _venueStatsMonthlyEnquiries = {};
 
   var overlay = document.getElementById('venue-stats-overlay');
-  console.log('[VenueStats] overlay element:', overlay);
-  if (!overlay) { alert('Stats modal not found in DOM'); return; }
+  if (!overlay) return;
 
   document.getElementById('venue-stats-title').textContent = venueName || 'Venue stats';
   document.getElementById('vstats-views').textContent = '—';
@@ -2276,7 +2226,6 @@ async function openVenueStats(venueId, venueName) {
   document.getElementById('vstats-loading').style.display = '';
   document.getElementById('vstats-chart-wrap').style.display = 'none';
   overlay.classList.remove('hidden');
-  console.log('[VenueStats] modal opened, overlay classes:', overlay.className);
 
   // Totals from existing caches (fast, already loaded)
   var venue = getAllVenues().find(function(v) { return String(v.id) === String(venueId); });
@@ -6138,5 +6087,53 @@ document.querySelector('nav .btn-red') && document.querySelector('nav .btn-red')
   showToast('Logged out');
 });
 </script>
+<!-- VENUE STATS MODAL -->
+<div class="modal-overlay hidden" id="venue-stats-overlay" style="z-index:1500">
+  <div style="background:var(--white);border-radius:16px;width:90%;max-width:680px;max-height:85vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,0.15)">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:24px 28px 0">
+      <div>
+        <h3 id="venue-stats-title" style="font-size:18px;font-weight:800;margin-bottom:4px"></h3>
+        <div id="venue-stats-subtitle" style="font-size:13px;color:var(--text-muted)"></div>
+      </div>
+      <button onclick="closeVenueStats()" style="background:none;border:none;cursor:pointer;padding:8px;color:var(--text-muted);font-size:20px;line-height:1">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Summary stat tiles -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:20px 28px">
+      <div style="background:var(--bg);border-radius:10px;padding:16px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:6px">Total Views</div>
+        <div id="vstats-views" style="font-size:28px;font-weight:800">—</div>
+        <div id="vstats-views-month" style="font-size:12px;color:var(--text-muted);margin-top:3px"></div>
+      </div>
+      <div style="background:var(--bg);border-radius:10px;padding:16px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:6px">Favourites</div>
+        <div id="vstats-favs" style="font-size:28px;font-weight:800">—</div>
+        <div id="vstats-favs-month" style="font-size:12px;color:var(--text-muted);margin-top:3px"></div>
+      </div>
+      <div style="background:var(--bg);border-radius:10px;padding:16px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:6px">Enquiries</div>
+        <div id="vstats-enqs" style="font-size:28px;font-weight:800">—</div>
+        <div id="vstats-enqs-month" style="font-size:12px;color:var(--text-muted);margin-top:3px"></div>
+      </div>
+    </div>
+
+    <!-- Monthly breakdown chart -->
+    <div style="padding:0 28px 28px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="font-size:14px;font-weight:700">Monthly breakdown</div>
+        <div style="display:flex;gap:6px">
+          <button class="action-btn vstats-toggle active" data-metric="views" onclick="renderVenueStatsChart('views')">Views</button>
+          <button class="action-btn vstats-toggle" data-metric="enquiries" onclick="renderVenueStatsChart('enquiries')">Enquiries</button>
+        </div>
+      </div>
+      <div id="vstats-loading" style="padding:32px;text-align:center;color:var(--text-muted);font-size:13px">Loading…</div>
+      <div id="vstats-chart-wrap" style="display:none"><div class="bar-chart" id="vstats-chart"></div></div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:12px">Showing all available months. Views are tracked from when the venue was first listed.</div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
