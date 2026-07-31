@@ -1423,110 +1423,37 @@ tbody tr:last-child td { border-bottom: none; }
   <!-- ===== STATS ===== -->
   <div id="section-crm" class="page-section">
     <div class="section-header">
-      <div><div class="section-title">CRM</div><div class="section-subtitle">Track outreach to venues, hosts and prospects — one record, one timeline, always a next step.</div></div>
+      <div><div class="section-title">CRM</div><div class="section-subtitle">Track outreach to venue prospects — notes, calls, emails and next steps.</div></div>
+      <button class="btn-sm btn-red" onclick="createCrmRecord()">+ Add prospect</button>
     </div>
 
-    <div id="crm-access-denied" style="display:none; padding:60px 20px; text-align:center; color:var(--text-muted)">
+    <div id="crm-access-denied" style="display:none;padding:60px 20px;text-align:center;color:var(--text-muted)">
       <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom:12px;color:#ddd"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
       <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">You don't have access to the CRM</div>
       <div style="font-size:13px">This area is restricted to admin accounts.</div>
     </div>
 
-    <div class="crm-shell" id="crm-shell">
-
-      <!-- LEFT: searchable/filterable list -->
-      <div class="crm-list-panel">
-        <div class="crm-list-header">
-          <div class="crm-list-search">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-            <input type="text" id="crm-search" placeholder="Search venues, contacts..." oninput="renderCrmList()" />
-          </div>
-          <div class="crm-filter-row">
-            <select class="crm-filter-select" id="crm-filter-status" onchange="renderCrmList()">
-              <option value="">Status: All</option>
-              <option value="New">New</option>
-              <option value="Contacted">Contacted</option>
-              <option value="Interested">Interested</option>
-              <option value="Listed">Listed</option>
-              <option value="Not Now">Not Now</option>
-              <option value="Lost">Lost</option>
-              <option value="Do Not Contact">Do Not Contact</option>
-            </select>
-            <select class="crm-filter-select" id="crm-filter-category" onchange="renderCrmList()">
-              <option value="">Category: All</option>
+    <div id="crm-shell">
+      <div class="table-card">
+        <!-- Tab bar: one tab per status -->
+        <div class="table-card-header" style="flex-wrap:wrap;gap:10px">
+          <div id="crm-status-tabs" style="display:flex;gap:6px;flex-wrap:wrap;flex:1"></div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select id="crm-filter-category" class="search-input" style="width:auto;cursor:pointer" onchange="renderCrmList()">
+              <option value="">All types</option>
               <option value="Event space">Event space</option>
               <option value="Meeting space">Meeting space</option>
               <option value="Shoot Location">Shoot Location</option>
             </select>
-          </div>
-          <div class="crm-filter-row" style="margin-top:6px">
-            <select class="crm-filter-select" id="crm-filter-due" onchange="renderCrmList()">
-              <option value="">Due date: All</option>
-              <option value="overdue">Overdue</option>
-              <option value="today">Due today</option>
-              <option value="week">Due this week</option>
-              <option value="later">Later (1 week+)</option>
-              <option value="none">No due date</option>
-            </select>
-            <button class="venues-filter-clear" onclick="resetCrmFilters()" title="Reset all filters" style="flex-shrink:0">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              Reset
-            </button>
+            <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input id="crm-search" class="search-input" placeholder="Search prospects..." oninput="renderCrmList()" /></div>
           </div>
         </div>
-        <div id="crm-due-summary" class="crm-due-summary"></div>
-        <div class="crm-list-count" id="crm-list-count">0 venues</div>
-        <div class="crm-list-scroll">
-          <button class="crm-add-btn" onclick="createCrmRecord()">+ Add venue</button>
-          <div id="crm-list-rows"></div>
-        </div>
+        <div id="crm-list-rows"></div>
       </div>
-
-      <!-- MIDDLE: selected venue's details -->
-      <div class="crm-detail-panel" id="crm-detail-panel">
-        <div class="crm-detail-empty">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-          Select a venue from the list, or add a new one
-        </div>
-      </div>
-
-      <!-- RIGHT: activity timeline -->
-      <div class="crm-timeline-panel" id="crm-timeline-panel" style="display:none">
-        <div class="crm-timeline-header">
-          <h4>Activity</h4>
-          <div class="crm-quick-add">
-            <button onclick="openCrmActivityInput('note')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4z"/></svg>
-              Note
-            </button>
-            <button onclick="openCrmActivityInput('email')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-              Email
-            </button>
-            <button onclick="openCrmActivityInput('call')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.12 1.18 2 2 0 012.1 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-              Call
-            </button>
-            <button onclick="openCrmActivityInput('meeting')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              Meeting
-            </button>
-          </div>
-        </div>
-        <div class="crm-timeline-scroll" id="crm-timeline-scroll"></div>
-        <div class="crm-timeline-input-wrap" id="crm-timeline-input-wrap" style="display:none">
-          <textarea id="crm-activity-text" placeholder="What happened?"></textarea>
-          <div class="crm-timeline-input-actions">
-            <button class="btn-sm" style="background:var(--bg);color:var(--text);margin-right:6px" onclick="closeCrmActivityInput()">Cancel</button>
-            <button class="btn-sm btn-red" onclick="saveCrmActivity()">Add</button>
-          </div>
-        </div>
-      </div>
-
     </div>
+
   </div>
 
-  <!-- ===== FILTERS ===== -->
   <div id="section-filters" class="page-section">
     <div class="section-header">
       <div><div class="section-title">Filters</div><div class="section-subtitle">Manage the dropdown options shown to users when searching for spaces and writing blog posts.</div></div>
@@ -5388,115 +5315,99 @@ function formatCrmDueLabel(dueDate, bucket) {
 
 var CRM_DUE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>';
 
-function renderCrmList() {
+var CRM_STATUSES = ['All', 'New', 'Contacted', 'Interested', 'Listed', 'Not Now', 'Lost', 'Do Not Contact'];
+var _crmActiveStatus = 'All';
+
+function renderCrmStatusTabs() {
+  var wrap = document.getElementById('crm-status-tabs');
+  if (!wrap) return;
   var records = getAllCrmRecords();
-  var search = (document.getElementById('crm-search').value || '').toLowerCase();
-  var statusFilter = document.getElementById('crm-filter-status').value;
-  var categoryFilter = document.getElementById('crm-filter-category').value;
-  var dueFilter = document.getElementById('crm-filter-due').value;
+  wrap.innerHTML = CRM_STATUSES.map(function(s) {
+    var count = s === 'All' ? records.length : records.filter(function(r) { return r.status === s; }).length;
+    var isActive = _crmActiveStatus === s;
+    var colors = s !== 'All' ? CRM_STATUS_COLORS[s] : null;
+    var style = (isActive && colors) ? ' style="background:' + colors.bg + ';color:' + colors.text + ';border-color:' + colors.border + '"' : '';
+    return '<button class="action-btn msg-folder-tab' + (isActive ? ' active' : '') + '"' + style +
+      ' onclick="setCrmStatusTab(\'' + s + '\')">' + s +
+      ' <span style="opacity:0.65">(' + count + ')</span></button>';
+  }).join('');
+}
 
-  // Counts across ALL records (ignoring search/status/category) so the
-  // summary buttons always show the true overdue/due-soon totals, the
-  // same way the venues table's status counts work elsewhere in the admin.
-  var dueCounts = { overdue: 0, today: 0, week: 0 };
-  records.forEach(function(r) {
-    var bucket = getCrmDueBucket(r.dueDate);
-    if (bucket === 'overdue') dueCounts.overdue++;
-    else if (bucket === 'today') dueCounts.today++;
-    else if (bucket === 'soon') dueCounts.week++;
-  });
+function setCrmStatusTab(status) {
+  _crmActiveStatus = status;
+  renderCrmList();
+}
 
-  document.getElementById('crm-due-summary').innerHTML =
-    '<button class="' + (dueCounts.overdue > 0 ? 'has-overdue' : '') + (dueFilter === 'overdue' ? ' is-active' : '') + '" onclick="setCrmDueFilter(\'overdue\')"><span class="num">' + dueCounts.overdue + '</span><span class="lbl">Overdue</span></button>' +
-    '<button class="' + (dueFilter === 'today' ? 'is-active' : '') + '" onclick="setCrmDueFilter(\'today\')"><span class="num">' + dueCounts.today + '</span><span class="lbl">Today</span></button>' +
-    '<button class="' + (dueFilter === 'week' ? 'is-active' : '') + '" onclick="setCrmDueFilter(\'week\')"><span class="num">' + dueCounts.week + '</span><span class="lbl">This week</span></button>';
+function renderCrmList() {
+  renderCrmStatusTabs();
+  var records = getAllCrmRecords();
+  var search = (document.getElementById('crm-search') ? document.getElementById('crm-search').value : '').toLowerCase();
+  var categoryFilter = document.getElementById('crm-filter-category') ? document.getElementById('crm-filter-category').value : '';
 
   var filtered = records.filter(function(r) {
+    var matchStatus = _crmActiveStatus === 'All' || r.status === _crmActiveStatus;
     var matchSearch = !search ||
       (r.venueName || '').toLowerCase().includes(search) ||
       (r.contactName || '').toLowerCase().includes(search) ||
       (r.email || '').toLowerCase().includes(search);
-    var matchStatus = !statusFilter || r.status === statusFilter;
     var matchCategory = !categoryFilter || r.category === categoryFilter;
-
-    var dueBucket = getCrmDueBucket(r.dueDate);
-    var matchDue = !dueFilter
-      || (dueFilter === 'overdue' && dueBucket === 'overdue')
-      || (dueFilter === 'today' && dueBucket === 'today')
-      || (dueFilter === 'week' && (dueBucket === 'today' || dueBucket === 'soon'))
-      || (dueFilter === 'later' && dueBucket === 'future')
-      || (dueFilter === 'none' && dueBucket === 'none');
-
-    return matchSearch && matchStatus && matchCategory && matchDue;
+    return matchStatus && matchSearch && matchCategory;
   });
 
-  // Only re-sort by urgency when the person has actually asked to see a
-  // due-date view (via the filter or a summary button) — otherwise leave
-  // the list in its normal order so browsing everything else doesn't feel
-  // like it's being reshuffled around venues that aren't due for anything.
-  if (dueFilter) {
-    filtered.sort(function(a, b) {
-      if (!a.dueDate && !b.dueDate) return 0;
-      if (!a.dueDate) return 1;
-      if (!b.dueDate) return -1;
-      return new Date(a.dueDate) - new Date(b.dueDate);
-    });
-  }
-
-  // Highlight active filter dropdowns
-  document.getElementById('crm-filter-status').classList.toggle('is-active', !!statusFilter);
-  document.getElementById('crm-filter-category').classList.toggle('is-active', !!categoryFilter);
-  document.getElementById('crm-filter-due').classList.toggle('is-active', !!dueFilter);
-
-  document.getElementById('crm-list-count').textContent =
-    filtered.length + (filtered.length === 1 ? ' venue' : ' venues') + (filtered.length !== records.length ? ' of ' + records.length : '');
-
   var rowsEl = document.getElementById('crm-list-rows');
+  if (!rowsEl) return;
 
   if (filtered.length === 0) {
-    rowsEl.innerHTML = '<div class="crm-empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>No venues match</div>';
+    rowsEl.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-size:13px">' +
+      (_crmActiveStatus === 'All' ? 'No prospects yet — click "+ Add prospect" to get started.' : 'No prospects with status "' + _crmActiveStatus + '".') +
+      '</div>';
     return;
   }
 
   rowsEl.innerHTML = filtered.map(function(r) {
     var colors = CRM_STATUS_COLORS[r.status] || CRM_STATUS_COLORS['New'];
-    var hasStatusOrAction = !!(r.status) || !!(r.nextAction && r.nextAction.trim());
-    var missingFlag = !hasStatusOrAction
-      ? '<span class="crm-missing-flag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>Needs next step</span>'
-      : '';
-
     var dueBucket = getCrmDueBucket(r.dueDate);
-    var dueBadgeClass = dueBucket === 'overdue' ? 'overdue' : dueBucket === 'today' ? 'today' : dueBucket === 'soon' ? 'soon' : 'future';
-    var showDueBadge = (dueBucket === 'overdue' || dueBucket === 'today' || dueBucket === 'soon') || (dueFilter === 'later' && dueBucket === 'future');
-    var dueBadge = showDueBadge
-      ? '<span class="crm-due-badge ' + dueBadgeClass + '">' + CRM_DUE_ICON + formatCrmDueLabel(r.dueDate, dueBucket) + '</span>'
-      : '';
+    var dueHtml = '';
+    if (dueBucket === 'overdue') {
+      dueHtml = '<span style="font-size:11px;color:#c0392b;font-weight:600">⚠ Overdue</span>';
+    } else if (dueBucket === 'today') {
+      dueHtml = '<span style="font-size:11px;color:#a06000;font-weight:600">Due today</span>';
+    } else if (dueBucket === 'soon') {
+      dueHtml = '<span style="font-size:11px;color:var(--text-muted)">Due ' + formatCrmDueLabel(r.dueDate, dueBucket) + '</span>';
+    }
+    var lastActivity = r.timeline && r.timeline.length
+      ? timeSince(r.timeline[r.timeline.length - 1].ts)
+      : 'No activity yet';
+    var initials = ((r.venueName || '?')[0] || '?').toUpperCase();
+    var avatarColor = msgAvatarColor(r.venueName || '');
 
-    return '<div class="crm-row' + (r.id === crmSelectedId ? ' active' : '') + '" onclick="selectCrmRecord(\'' + r.id + '\')">' +
-      '<div class="crm-row-top">' +
-        '<span class="crm-row-name">' + escapeHtml(r.venueName || 'Untitled') + '</span>' +
-      '</div>' +
-      '<div class="crm-row-meta">' + escapeHtml(r.contactName || 'No contact') + (r.category ? ' \u00b7 ' + escapeHtml(r.category) : '') + '</div>' +
-      '<div class="crm-row-bottom">' +
-        '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:' + colors.bg + ';color:' + colors.text + ';border:1px solid ' + colors.border + '">' + escapeHtml(r.status || 'No status') + '</span>' +
-        dueBadge +
-        missingFlag +
+    return '<div class="msg-row" onclick="selectCrmRecord(\'' + r.id + '\')" style="cursor:pointer">' +
+      '<div style="display:flex;align-items:flex-start;gap:14px;flex:1;min-width:0">' +
+        '<div class="msg-avatar" style="background:' + avatarColor + ';flex-shrink:0">' + initials + '</div>' +
+        '<div style="min-width:0;flex:1">' +
+          '<div class="msg-top">' +
+            '<span class="msg-name">' + escapeHtml(r.venueName || 'Untitled') + '</span>' +
+            '<span class="msg-time">' + lastActivity + '</span>' +
+          '</div>' +
+          '<div class="msg-subject">' + escapeHtml(r.contactName || 'No contact') +
+            (r.category ? ' · ' + escapeHtml(r.category) : '') +
+            ' <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:' + colors.bg + ';color:' + colors.text + ';border:1px solid ' + colors.border + ';margin-left:4px">' + escapeHtml(r.status || 'New') + '</span>' +
+          '</div>' +
+          '<div class="msg-preview">' +
+            (r.nextStep ? '→ ' + escapeHtml(r.nextStep) : '<span style="color:#bbb">No next step set</span>') +
+            (dueHtml ? ' &nbsp;' + dueHtml : '') +
+          '</div>' +
+        '</div>' +
       '</div>' +
     '</div>';
   }).join('');
 }
 
-function setCrmDueFilter(value) {
-  var select = document.getElementById('crm-filter-due');
-  select.value = select.value === value ? '' : value; // clicking an active summary button toggles it off
-  renderCrmList();
-}
-
+function setCrmDueFilter(value) { renderCrmList(); }
 function resetCrmFilters() {
-  document.getElementById('crm-search').value = '';
-  document.getElementById('crm-filter-status').value = '';
-  document.getElementById('crm-filter-category').value = '';
-  document.getElementById('crm-filter-due').value = '';
+  if (document.getElementById('crm-search')) document.getElementById('crm-search').value = '';
+  if (document.getElementById('crm-filter-category')) document.getElementById('crm-filter-category').value = '';
+  _crmActiveStatus = 'All';
   renderCrmList();
 }
 
@@ -5531,8 +5442,7 @@ function deleteCrmRecordWithConfirm() {
     var updated = getAllCrmRecords().filter(function(r) { return r.id !== crmSelectedId; });
     saveAllCrmRecords(updated);
     crmSelectedId = null;
-    renderCrmList();
-    renderCrmDetailEmpty();
+    closeCrmDetail();
     closeConfirmDelete();
     confirmBtn.textContent = 'Remove';
     showToast('Venue removed from CRM');
@@ -5543,140 +5453,93 @@ function deleteCrmRecordWithConfirm() {
 // ── Middle panel: selected venue's details ──────────────────
 function selectCrmRecord(id) {
   crmSelectedId = id;
-  renderCrmList(); // refresh active highlight
-  renderCrmDetail();
-  renderCrmTimeline();
+  var r = getCrmRecord(id);
+  if (!r) return;
+
+  var nameEl = document.getElementById('crm-modal-name');
+  if (nameEl) nameEl.textContent = r.venueName || '';
+  var statusEl = document.getElementById('crm-modal-status');
+  if (statusEl) statusEl.value = r.status || 'New';
+  var catEl = document.getElementById('crm-modal-category');
+  if (catEl) catEl.value = r.category || 'Event space';
+  var contactEl = document.getElementById('crm-modal-contact');
+  if (contactEl) contactEl.value = r.contactName || '';
+  var emailEl = document.getElementById('crm-modal-email');
+  if (emailEl) emailEl.value = r.email || '';
+  var phoneEl = document.getElementById('crm-modal-phone');
+  if (phoneEl) phoneEl.value = r.phone || '';
+  var websiteEl = document.getElementById('crm-modal-website');
+  if (websiteEl) websiteEl.value = r.website || '';
+  var addressEl = document.getElementById('crm-modal-address');
+  if (addressEl) addressEl.value = r.address || '';
+  var nextEl = document.getElementById('crm-modal-nextstep');
+  if (nextEl) nextEl.value = r.nextStep || r.nextAction || '';
+
+  var timelineEl = document.getElementById('crm-timeline-scroll');
+  if (timelineEl) {
+    var items = r.timeline || [];
+    timelineEl.innerHTML = items.length
+      ? items.slice().reverse().map(function(e) {
+          var icon = e.type === 'email' ? '📧' : e.type === 'call' ? '📞' : e.type === 'meeting' ? '📅' : '📝';
+          return '<div style="padding:10px 0;border-bottom:1px solid var(--border)">' +
+            '<div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">' + icon + ' ' +
+              (e.type || 'note').charAt(0).toUpperCase() + (e.type || 'note').slice(1) +
+              ' · ' + timeSince(e.ts) + '</div>' +
+            '<div style="font-size:13px;line-height:1.5">' + escapeHtml(e.text || '') + '</div>' +
+          '</div>';
+        }).join('')
+      : '<div style="padding:20px 0;text-align:center;color:var(--text-muted);font-size:13px">No activity logged yet.</div>';
+  }
+
+  closeCrmActivityInput();
+  var modal = document.getElementById('crm-detail-modal');
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeCrmDetail() {
+  var modal = document.getElementById('crm-detail-modal');
+  if (modal) modal.classList.add('hidden');
+  crmSelectedId = null;
+  renderCrmList();
 }
 
 function getCrmRecord(id) {
   return getAllCrmRecords().find(function(r) { return r.id === id; });
 }
 
-function renderCrmDetailEmpty() {
-  document.getElementById('crm-detail-panel').innerHTML =
-    '<div class="crm-detail-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Select a venue from the list, or add a new one</div>';
-  document.getElementById('crm-timeline-panel').style.display = 'none';
-}
-
-function renderCrmDetail() {
-  var r = getCrmRecord(crmSelectedId);
-  if (!r) { renderCrmDetailEmpty(); return; }
-
-  document.getElementById('crm-timeline-panel').style.display = 'flex';
-
-  var hasStatusOrAction = !!(r.status) || !!(r.nextAction && r.nextAction.trim());
-  var warningHtml = !hasStatusOrAction
-    ? '<div class="crm-warning-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>This venue has no status and no next action \u2014 set at least one so it doesn\'t get lost.</div>'
-    : '';
-
-  var isOverdue = r.dueDate && new Date(r.dueDate) < new Date(new Date().toDateString());
-  var nextActionHtml = (r.nextAction && r.nextAction.trim())
-    ? '<div class="crm-next-action-card' + (isOverdue ? ' overdue' : '') + '">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>' +
-        '<div class="crm-next-action-text"><strong>' + escapeHtml(r.nextAction) + '</strong>' + (r.dueDate ? (isOverdue ? 'Overdue \u2014 was due ' : 'Due ') + escapeHtml(r.dueDate) : 'No due date set') + '</div>' +
-      '</div>'
-    : '';
-
-  var statusOptionsHtml = CRM_STATUSES.map(function(s) {
-    return '<option value="' + s + '"' + (r.status === s ? ' selected' : '') + '>' + s + '</option>';
-  }).join('');
-
-  var lostReasonFieldHtml = (r.status === 'Lost') ? (
-    '<div class="crm-field full">' +
-      '<label>Lost reason</label>' +
-      '<select onchange="saveCrmField(\'lostReason\', this.value)">' +
-        '<option value="">Select a reason\u2026</option>' +
-        CRM_LOST_REASONS.map(function(lr) { return '<option value="' + lr + '"' + (r.lostReason === lr ? ' selected' : '') + '>' + lr + '</option>'; }).join('') +
-      '</select>' +
-    '</div>'
-  ) : '';
-
-  var categoryOptionsHtml = CRM_CATEGORIES.map(function(c) {
-    return '<option value="' + c + '"' + (r.category === c ? ' selected' : '') + '>' + c + '</option>';
-  }).join('');
-
-  var tagsHtml = (r.tags || []).map(function(t, i) {
-    return '<span class="crm-tag-chip">' + escapeHtml(t) + '<button onclick="removeCrmTag(' + i + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="10" height="10"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></span>';
-  }).join('');
-
-  var colors = CRM_STATUS_COLORS[r.status] || CRM_STATUS_COLORS['New'];
-
-  document.getElementById('crm-detail-panel').innerHTML =
-    '<div class="crm-detail-header">' +
-      '<div class="crm-detail-title-row">' +
-        '<input type="text" class="crm-detail-name-input" value="' + escapeHtml(r.venueName || '') + '" placeholder="Venue name" onblur="saveCrmField(\'venueName\', this.value)" />' +
-        '<div class="crm-detail-actions">' +
-          '<select class="crm-status-select" style="background-color:' + colors.bg + ';color:' + colors.text + ';border-color:' + colors.border + '" onchange="saveCrmField(\'status\', this.value); renderCrmDetail();">' + statusOptionsHtml + '</select>' +
-          '<button class="action-btn danger" onclick="deleteCrmRecordWithConfirm()" title="Delete"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>' +
-        '</div>' +
-      '</div>' +
-    '</div>' +
-    '<div class="crm-detail-body">' +
-      warningHtml +
-      nextActionHtml +
-      '<div class="crm-field-grid">' +
-        '<div class="crm-field"><label>Category</label><select onchange="saveCrmField(\'category\', this.value)">' + categoryOptionsHtml + '</select></div>' +
-        '<div class="crm-field"><label>Website</label><input type="text" value="' + escapeHtml(r.website || '') + '" placeholder="https://\u2026" onblur="saveCrmField(\'website\', this.value)" /></div>' +
-        '<div class="crm-field full"><label>Address</label><input type="text" value="' + escapeHtml(r.address || '') + '" placeholder="123 Queen St, Auckland" onblur="saveCrmField(\'address\', this.value)" /></div>' +
-        '<div class="crm-field"><label>Contact name</label><input type="text" value="' + escapeHtml(r.contactName || '') + '" placeholder="Jane Smith" onblur="saveCrmField(\'contactName\', this.value)" /></div>' +
-        '<div class="crm-field"><label>Phone</label><input type="tel" value="' + escapeHtml(r.phone || '') + '" placeholder="021 000 0000" onblur="saveCrmField(\'phone\', this.value)" /></div>' +
-        '<div class="crm-field full"><label>Email</label><input type="email" value="' + escapeHtml(r.email || '') + '" placeholder="jane@example.com" onblur="saveCrmField(\'email\', this.value)" /></div>' +
-        lostReasonFieldHtml +
-        '<div class="crm-field"><label>Next action</label><input type="text" value="' + escapeHtml(r.nextAction || '') + '" placeholder="e.g. Send pricing info" onblur="saveCrmField(\'nextAction\', this.value)" /></div>' +
-        '<div class="crm-field"><label>Due date</label><input type="date" value="' + escapeHtml(r.dueDate || '') + '" onblur="saveCrmField(\'dueDate\', this.value)" /></div>' +
-        '<div class="crm-field full"><label>Tags</label><div class="crm-tags-wrap">' + tagsHtml + '<button class="crm-tag-add-btn" onclick="addCrmTag()">+ Add tag</button></div></div>' +
-      '</div>' +
-    '</div>';
-}
+function renderCrmDetailEmpty() {}
+function renderCrmDetail() {}
+function renderCrmTimeline() {}
 
 function saveCrmField(field, value) {
   var records = getAllCrmRecords();
   var r = records.find(function(x) { return x.id === crmSelectedId; });
   if (!r) return;
-  var oldValue = r[field];
-  if (oldValue === value) return; // nothing actually changed
-  r[field] = value;
+  // nextStep is the new UI name; store as both for backward compat
+  if (field === 'nextStep') { r.nextStep = value; r.nextAction = value; }
+  else {
+    var oldValue = r[field];
+    if (oldValue === value) return;
+    r[field] = value;
+  }
 
-  // Log meaningful field changes to the timeline automatically
-  var fieldLabels = { venueName: 'Venue name', status: 'Status', category: 'Category', website: 'Website',
-    address: 'Address', contactName: 'Contact name', phone: 'Phone', email: 'Email', lostReason: 'Lost reason',
-    nextAction: 'Next action', dueDate: 'Due date' };
+  // Auto-log meaningful changes to the timeline
+  var fieldLabels = { venueName: 'Venue name', status: 'Status', category: 'Category',
+    website: 'Website', address: 'Address', contactName: 'Contact name', phone: 'Phone',
+    email: 'Email', nextStep: 'Next step', nextAction: 'Next step', dueDate: 'Due date' };
   if (fieldLabels[field] && value) {
     r.timeline = r.timeline || [];
-    if (field === 'status' && value === 'Lost') {
-      r.timeline.push(crmSystemEntry('Marked as Lost'));
-    } else if (field === 'status') {
+    if (field === 'status') {
       r.timeline.push(crmSystemEntry('Status changed to ' + value));
-    } else {
-      r.timeline.push(crmSystemEntry(fieldLabels[field] + ' updated to "' + value + '"'));
+    } else if (field === 'nextStep' || field === 'nextAction') {
+      r.timeline.push(crmSystemEntry('Next step: ' + value));
     }
   }
 
   saveAllCrmRecords(records);
-  renderCrmList(); // keep the left list's status pill / missing-flag in sync
-  renderCrmTimeline();
 }
 
-function addCrmTag() {
-  var tag = prompt('Add a tag (e.g. "Referral", "Cold outreach"):');
-  if (!tag || !tag.trim()) return;
-  var records = getAllCrmRecords();
-  var r = records.find(function(x) { return x.id === crmSelectedId; });
-  if (!r) return;
-  r.tags = r.tags || [];
-  r.tags.push(tag.trim());
-  saveAllCrmRecords(records);
-  renderCrmDetail();
-}
 
-function removeCrmTag(idx) {
-  var records = getAllCrmRecords();
-  var r = records.find(function(x) { return x.id === crmSelectedId; });
-  if (!r) return;
-  r.tags.splice(idx, 1);
-  saveAllCrmRecords(records);
-  renderCrmDetail();
-}
 
 // ── Right panel: activity timeline ──────────────────────────
 var CRM_ACTIVITY_ICONS = {
@@ -5687,51 +5550,34 @@ var CRM_ACTIVITY_ICONS = {
   system: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>',
 };
 
-function renderCrmTimeline() {
-  var r = getCrmRecord(crmSelectedId);
-  var scrollEl = document.getElementById('crm-timeline-scroll');
-  if (!r) { scrollEl.innerHTML = ''; return; }
-
-  var entries = (r.timeline || []).slice().sort(function(a, b) { return new Date(b.createdAt) - new Date(a.createdAt); });
-
-  if (entries.length === 0) {
-    scrollEl.innerHTML = '<div class="crm-timeline-empty">No activity yet \u2014 add a note, log a call, or send an email above.</div>';
-    return;
-  }
-
-  scrollEl.innerHTML = entries.map(function(e) {
-    return '<div class="crm-timeline-item">' +
-      '<div class="crm-timeline-icon ' + e.type + '">' + (CRM_ACTIVITY_ICONS[e.type] || CRM_ACTIVITY_ICONS.system) + '</div>' +
-      '<div class="crm-timeline-content">' +
-        '<div class="crm-timeline-text">' + escapeHtml(e.text) + '</div>' +
-        '<div class="crm-timeline-time">' + timeSince(e.createdAt) + '</div>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-}
 
 function openCrmActivityInput(type) {
-  if (!crmSelectedId) { showToast('Select a venue first'); return; }
+  if (!crmSelectedId) { showToast('Select a prospect first'); return; }
   crmActivityType = type;
-  document.getElementById('crm-timeline-input-wrap').style.display = 'block';
+  var wrap = document.getElementById('crm-timeline-input-wrap');
+  if (wrap) wrap.style.display = 'block';
   var textarea = document.getElementById('crm-activity-text');
-  textarea.value = '';
-  textarea.placeholder = {
-    note: 'What\u2019s the note?',
-    email: 'What did the email say?',
-    call: 'How did the call go?',
-    meeting: 'What was discussed at the meeting?',
-  }[type] || 'What happened?';
-  textarea.focus();
+  if (textarea) {
+    textarea.value = '';
+    textarea.placeholder = {
+      note: 'What\'s the note?',
+      email: 'What did the email say?',
+      call: 'How did the call go?',
+      meeting: 'What was discussed at the meeting?',
+    }[type] || 'What happened?';
+    textarea.focus();
+  }
 }
 
 function closeCrmActivityInput() {
-  document.getElementById('crm-timeline-input-wrap').style.display = 'none';
+  var wrap = document.getElementById('crm-timeline-input-wrap');
+  if (wrap) wrap.style.display = 'none';
   crmActivityType = null;
 }
 
 function saveCrmActivity() {
-  var text = document.getElementById('crm-activity-text').value.trim();
+  var textarea = document.getElementById('crm-activity-text');
+  var text = textarea ? textarea.value.trim() : '';
   if (!text) { showToast('Add some details first'); return; }
   if (!crmSelectedId || !crmActivityType) return;
 
@@ -5740,13 +5586,31 @@ function saveCrmActivity() {
   if (!r) return;
 
   r.timeline = r.timeline || [];
-  r.timeline.push({ id: 'a-' + Date.now(), type: crmActivityType, text: text, createdAt: new Date().toISOString() });
+  r.timeline.push({ id: 'a-' + Date.now(), type: crmActivityType, text: text, ts: new Date().toISOString(), createdAt: new Date().toISOString() });
   saveAllCrmRecords(records);
 
   closeCrmActivityInput();
-  renderCrmTimeline();
+
+  // Refresh timeline in modal
+  var timelineEl = document.getElementById('crm-timeline-scroll');
+  if (timelineEl) {
+    var items = r.timeline;
+    timelineEl.innerHTML = items.slice().reverse().map(function(e) {
+      var icon = e.type === 'email' ? '📧' : e.type === 'call' ? '📞' : e.type === 'meeting' ? '📅' : '📝';
+      return '<div style="padding:10px 0;border-bottom:1px solid var(--border)">' +
+        '<div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">' + icon + ' ' +
+          (e.type || 'note').charAt(0).toUpperCase() + (e.type || 'note').slice(1) +
+          ' · ' + timeSince(e.ts || e.createdAt) + '</div>' +
+        '<div style="font-size:13px;line-height:1.5">' + escapeHtml(e.text || '') + '</div>' +
+      '</div>';
+    }).join('');
+  }
+
   showToast('Activity logged');
 }
+
+function addCrmTag() {}    // tags removed from simplified UI
+function removeCrmTag() {} // tags removed from simplified UI
 
 // Users+Accounts+Blog+Messages+Analytics are migrated too now — their
 // bootstrap functions are defined in this same file (above), so they're
@@ -6090,5 +5954,88 @@ document.querySelector('nav .btn-red') && document.querySelector('nav .btn-red')
   </div>
 </div>
 
+<!-- PROSPECT DETAIL MODAL -->
+    <div class="modal-overlay hidden" id="crm-detail-modal" style="z-index:1500">
+      <div style="background:var(--white);border-radius:16px;width:90%;max-width:620px;max-height:88vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,0.15)">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:24px 28px 0">
+          <div style="flex:1">
+            <div id="crm-modal-name" contenteditable="true" style="font-size:18px;font-weight:800;outline:none;border-bottom:2px solid transparent;padding-bottom:2px" onblur="saveCrmField('venueName',this.textContent)" onfocus="this.style.borderColor='var(--red)'" onblur2="this.style.borderColor='transparent'" placeholder="Venue name"></div>
+            <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+              <select id="crm-modal-status" class="search-input" style="width:auto;cursor:pointer" onchange="saveCrmField('status',this.value)">
+                <option value="New">New</option>
+                <option value="Contacted">Contacted</option>
+                <option value="Interested">Interested</option>
+                <option value="Listed">Listed</option>
+                <option value="Not Now">Not Now</option>
+                <option value="Lost">Lost</option>
+                <option value="Do Not Contact">Do Not Contact</option>
+              </select>
+              <select id="crm-modal-category" class="search-input" style="width:auto;cursor:pointer" onchange="saveCrmField('category',this.value)">
+                <option value="Event space">Event space</option>
+                <option value="Meeting space">Meeting space</option>
+                <option value="Shoot Location">Shoot Location</option>
+              </select>
+            </div>
+          </div>
+          <button onclick="closeCrmDetail()" style="background:none;border:none;cursor:pointer;padding:8px;color:var(--text-muted);margin-left:12px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <!-- Contact info -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:20px 28px">
+          <div>
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Contact name</div>
+            <input id="crm-modal-contact" class="search-input" style="width:100%" placeholder="Jane Smith" onblur="saveCrmField('contactName',this.value)" />
+          </div>
+          <div>
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Email</div>
+            <input id="crm-modal-email" class="search-input" style="width:100%" placeholder="jane@venue.co.nz" onblur="saveCrmField('email',this.value)" />
+          </div>
+          <div>
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Phone</div>
+            <input id="crm-modal-phone" class="search-input" style="width:100%" placeholder="021 000 0000" onblur="saveCrmField('phone',this.value)" />
+          </div>
+          <div>
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Website</div>
+            <input id="crm-modal-website" class="search-input" style="width:100%" placeholder="https://..." onblur="saveCrmField('website',this.value)" />
+          </div>
+          <div style="grid-column:1/-1">
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Address</div>
+            <input id="crm-modal-address" class="search-input" style="width:100%" placeholder="123 Main St, Auckland" onblur="saveCrmField('address',this.value)" />
+          </div>
+          <div style="grid-column:1/-1">
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Next step</div>
+            <input id="crm-modal-nextstep" class="search-input" style="width:100%" placeholder="e.g. Follow up call on Friday" onblur="saveCrmField('nextStep',this.value)" />
+          </div>
+        </div>
+
+        <!-- Activity timeline -->
+        <div style="padding:0 28px 16px">
+          <div style="font-size:13px;font-weight:700;margin-bottom:12px">Activity</div>
+          <!-- Quick add buttons -->
+          <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+            <button class="action-btn" onclick="openCrmActivityInput('note')">+ Note</button>
+            <button class="action-btn" onclick="openCrmActivityInput('email')">+ Email</button>
+            <button class="action-btn" onclick="openCrmActivityInput('call')">+ Call</button>
+            <button class="action-btn" onclick="openCrmActivityInput('meeting')">+ Meeting</button>
+          </div>
+          <div id="crm-timeline-input-wrap" style="display:none;margin-bottom:12px">
+            <textarea id="crm-activity-text" placeholder="What happened?" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:8px;font-family:Inter,sans-serif;font-size:13px;resize:vertical;min-height:72px"></textarea>
+            <div style="display:flex;gap:8px;margin-top:6px">
+              <button class="action-btn" onclick="closeCrmActivityInput()">Cancel</button>
+              <button class="action-btn" style="background:var(--red);color:#fff;border-color:var(--red)" onclick="saveCrmActivity()">Save</button>
+            </div>
+          </div>
+          <div id="crm-timeline-scroll" style="display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+
+        <!-- Footer actions -->
+        <div style="display:flex;justify-content:space-between;padding:16px 28px;border-top:1px solid var(--border)">
+          <button class="action-btn" style="color:var(--red);border-color:var(--red)" onclick="deleteCrmRecordWithConfirm()">Delete prospect</button>
+          <button class="action-btn" onclick="closeCrmDetail()">Done</button>
+        </div>
+      </div>
+    </div>
 </body>
 </html>
