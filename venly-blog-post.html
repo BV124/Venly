@@ -407,6 +407,15 @@ function loadPost() {
     return;
   }
 
+  // Track this page view — fire-and-forget so it never blocks rendering.
+  // Uses an atomic increment (update with views = views + 1) so concurrent
+  // views from different readers don't clobber each other.
+  if (typeof sb !== 'undefined' && SUPABASE_READY && post.id) {
+    sb.rpc('increment_blog_views', { post_id: post.id }).then(function(res) {
+      if (res.error) console.warn('Blog view tracking failed:', res.error.message);
+    });
+  }
+
   document.title = 'Venly — ' + post.title;
   document.getElementById('breadcrumb-title').textContent = post.title;
   document.getElementById('post-hero-img').src = upgradeImageUrl(post.img);
