@@ -5434,20 +5434,19 @@ function deleteCrmRecordWithConfirm() {
   var record = records.find(function(r) { return r.id === crmSelectedId; });
   if (!record) return;
 
-  document.getElementById('confirm-delete-title').textContent = 'Delete "' + record.venueName + '"?';
-  document.getElementById('confirm-delete-desc').textContent = 'This permanently removes the record and its entire activity history. This can\'t be undone.';
-  var confirmBtn = document.getElementById('confirm-delete-btn');
-  confirmBtn.textContent = 'Delete';
-  confirmBtn.onclick = function() {
-    var updated = getAllCrmRecords().filter(function(r) { return r.id !== crmSelectedId; });
-    saveAllCrmRecords(updated);
-    crmSelectedId = null;
-    closeConfirmDelete();
-    closeCrmDetail();
-    confirmBtn.textContent = 'Remove';
-    showToast('Venue removed from CRM');
-  };
-  document.getElementById('confirm-delete-modal').classList.remove('hidden');
+  if (!confirm('Delete "' + (record.venueName || 'this prospect') + '"?\n\nThis permanently removes the record and its entire activity history. This cannot be undone.')) return;
+
+  var idToDelete = crmSelectedId;
+  var updated = records.filter(function(r) { return r.id !== idToDelete; });
+  console.log('[CRM delete] deleting', idToDelete, 'records before:', records.length, 'after:', updated.length);
+  saveAllCrmRecords(updated);
+  crmSelectedId = null;
+
+  // Close modal first, then refresh list
+  var modal = document.getElementById('crm-detail-modal');
+  if (modal) modal.classList.add('hidden');
+  renderCrmList();
+  showToast('Prospect removed from CRM');
 }
 
 // ── Middle panel: selected venue's details ──────────────────
