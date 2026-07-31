@@ -1437,10 +1437,10 @@ tbody tr:last-child td { border-bottom: none; }
       <div class="table-card">
         <!-- Tab bar: one tab per status -->
         <div class="table-card-header" style="flex-direction:column;align-items:stretch;gap:10px">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
             <div id="crm-status-tabs" style="display:flex;gap:6px;flex-wrap:wrap"></div>
-            <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
-              <select id="crm-filter-category" class="search-input" style="width:auto;cursor:pointer" onchange="renderCrmList()">
+            <div style="display:flex;gap:8px;align-items:center;margin-left:auto">
+              <select id="crm-filter-category" class="search-input" style="width:auto;padding-left:10px;cursor:pointer" onchange="renderCrmList()">
                 <option value="">All types</option>
                 <option value="Event space">Event space</option>
                 <option value="Meeting space">Meeting space</option>
@@ -5967,8 +5967,8 @@ document.querySelector('nav .btn-red') && document.querySelector('nav .btn-red')
         <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:24px 28px 0">
           <div style="flex:1">
             <div id="crm-modal-name" contenteditable="true" style="font-size:18px;font-weight:800;outline:none;border-bottom:2px solid transparent;padding-bottom:2px" onblur="saveCrmField('venueName',this.textContent)" onfocus="this.style.borderColor='var(--red)'" onblur2="this.style.borderColor='transparent'" placeholder="Venue name"></div>
-            <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-              <select id="crm-modal-status" class="search-input" style="width:auto;cursor:pointer" onchange="saveCrmField('status',this.value)">
+            <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center">
+              <select id="crm-modal-status" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-family:Inter,sans-serif;font-size:13px;color:var(--text);background:var(--bg);cursor:pointer" onchange="saveCrmField('status',this.value)">
                 <option value="New">New</option>
                 <option value="Contacted">Contacted</option>
                 <option value="Interested">Interested</option>
@@ -5977,7 +5977,7 @@ document.querySelector('nav .btn-red') && document.querySelector('nav .btn-red')
                 <option value="Lost">Lost</option>
                 <option value="Do Not Contact">Do Not Contact</option>
               </select>
-              <select id="crm-modal-category" class="search-input" style="width:auto;cursor:pointer" onchange="saveCrmField('category',this.value)">
+              <select id="crm-modal-category" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-family:Inter,sans-serif;font-size:13px;color:var(--text);background:var(--bg);cursor:pointer" onchange="saveCrmField('category',this.value)">
                 <option value="Event space">Event space</option>
                 <option value="Meeting space">Meeting space</option>
                 <option value="Shoot Location">Shoot Location</option>
