@@ -1372,6 +1372,54 @@ tbody tr:last-child td { border-bottom: none; }
     </div>
 
     <!-- ===== FULL-SCREEN PREVIEW OVERLAY ===== -->
+<!-- VENUE STATS MODAL -->
+<div class="modal-overlay hidden" id="venue-stats-overlay" style="z-index:1500">
+  <div style="background:var(--white);border-radius:16px;width:90%;max-width:680px;max-height:85vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,0.15)">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:24px 28px 0">
+      <div>
+        <h3 id="venue-stats-title" style="font-size:18px;font-weight:800;margin-bottom:4px"></h3>
+        <div id="venue-stats-subtitle" style="font-size:13px;color:var(--text-muted)"></div>
+      </div>
+      <button onclick="closeVenueStats()" style="background:none;border:none;cursor:pointer;padding:8px;color:var(--text-muted);font-size:20px;line-height:1">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Summary stat tiles -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:20px 28px">
+      <div style="background:var(--bg);border-radius:10px;padding:16px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:6px">Total Views</div>
+        <div id="vstats-views" style="font-size:28px;font-weight:800">—</div>
+        <div id="vstats-views-month" style="font-size:12px;color:var(--text-muted);margin-top:3px"></div>
+      </div>
+      <div style="background:var(--bg);border-radius:10px;padding:16px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:6px">Favourites</div>
+        <div id="vstats-favs" style="font-size:28px;font-weight:800">—</div>
+        <div id="vstats-favs-month" style="font-size:12px;color:var(--text-muted);margin-top:3px"></div>
+      </div>
+      <div style="background:var(--bg);border-radius:10px;padding:16px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:6px">Enquiries</div>
+        <div id="vstats-enqs" style="font-size:28px;font-weight:800">—</div>
+        <div id="vstats-enqs-month" style="font-size:12px;color:var(--text-muted);margin-top:3px"></div>
+      </div>
+    </div>
+
+    <!-- Monthly breakdown chart -->
+    <div style="padding:0 28px 28px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="font-size:14px;font-weight:700">Monthly breakdown</div>
+        <div style="display:flex;gap:6px">
+          <button class="action-btn vstats-toggle active" data-metric="views" onclick="renderVenueStatsChart('views')">Views</button>
+          <button class="action-btn vstats-toggle" data-metric="enquiries" onclick="renderVenueStatsChart('enquiries')">Enquiries</button>
+        </div>
+      </div>
+      <div id="vstats-loading" style="padding:32px;text-align:center;color:var(--text-muted);font-size:13px">Loading…</div>
+      <div id="vstats-chart-wrap" style="display:none"><div class="bar-chart" id="vstats-chart"></div></div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:12px">Showing all available months. Views are tracked from when the venue was first listed.</div>
+    </div>
+  </div>
+</div>
+
 <!-- CONFIRM MODAL (reusable for destructive actions) -->
 <div class="modal-overlay hidden" id="admin-confirm-overlay" style="z-index:2000">
   <div style="background:var(--white);border-radius:16px;padding:32px;max-width:420px;width:90%;box-shadow:0 16px 48px rgba(0,0,0,0.15)">
@@ -2201,6 +2249,124 @@ function buildUsersTable() {
       '</td>' +
       '</tr>';
   }).join('');
+}
+
+// ---- VENUE STATS MODAL ----
+var _venueStatsId = null;
+var _venueStatsMonthlyViews = {};
+var _venueStatsMonthlyEnquiries = {};
+
+async function openVenueStats(venueId, venueName) {
+  _venueStatsId = venueId;
+  _venueStatsMonthlyViews = {};
+  _venueStatsMonthlyEnquiries = {};
+
+  document.getElementById('venue-stats-title').textContent = venueName || 'Venue stats';
+  document.getElementById('vstats-views').textContent = '—';
+  document.getElementById('vstats-favs').textContent = '—';
+  document.getElementById('vstats-enqs').textContent = '—';
+  document.getElementById('vstats-views-month').textContent = '';
+  document.getElementById('vstats-favs-month').textContent = '';
+  document.getElementById('vstats-enqs-month').textContent = '';
+  document.getElementById('vstats-loading').style.display = '';
+  document.getElementById('vstats-chart-wrap').style.display = 'none';
+  document.getElementById('venue-stats-overlay').classList.remove('hidden');
+
+  // Totals from existing caches (fast, already loaded)
+  var venue = getAllVenues().find(function(v) { return String(v.id) === String(venueId); });
+  var totalViews = venue ? (venue.hits || 0) : 0;
+  var totalFavs = getVenueFavouriteCount(venueId);
+  var totalEnqs = getVenueEnquiryCount(venueId);
+
+  document.getElementById('vstats-views').textContent = totalViews.toLocaleString();
+  document.getElementById('vstats-favs').textContent = totalFavs.toLocaleString();
+  document.getElementById('vstats-enqs').textContent = totalEnqs.toLocaleString();
+
+  document.getElementById('venue-stats-subtitle').textContent =
+    venue ? (venue.type || '') + (venue.district ? ' · ' + venue.district : '') + (venue.region ? ', ' + venue.region : '') : '';
+
+  // Monthly breakdown — fetch per-venue page_views and enquiries from Supabase
+  if (SUPABASE_READY) {
+    try {
+      var results = await Promise.all([
+        sb.from('page_views').select('created_at').eq('venue_id', venueId),
+        sb.from('enquiries').select('created_at').eq('venue_id', venueId),
+        sb.from('favourites').select('created_at').eq('venue_id', venueId),
+      ]);
+
+      var monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var mk = _analyticsMonthKey();
+
+      // Build monthly stores
+      if (!results[0].error) {
+        results[0].data.forEach(function(r) {
+          var k = r.created_at.slice(0, 7);
+          _venueStatsMonthlyViews[k] = (_venueStatsMonthlyViews[k] || 0) + 1;
+        });
+      }
+      if (!results[1].error) {
+        results[1].data.forEach(function(r) {
+          var k = r.created_at.slice(0, 7);
+          _venueStatsMonthlyEnquiries[k] = (_venueStatsMonthlyEnquiries[k] || 0) + 1;
+        });
+      }
+
+      // "This month" deltas
+      document.getElementById('vstats-views-month').textContent =
+        '↑ ' + (_venueStatsMonthlyViews[mk] || 0) + ' this month';
+      document.getElementById('vstats-enqs-month').textContent =
+        '↑ ' + (_venueStatsMonthlyEnquiries[mk] || 0) + ' this month';
+
+      if (!results[2].error) {
+        var thisMoFavs = results[2].data.filter(function(r) { return r.created_at.slice(0, 7) === mk; }).length;
+        document.getElementById('vstats-favs-month').textContent = '↑ ' + thisMoFavs + ' this month';
+      }
+
+    } catch (e) {
+      console.error('openVenueStats fetch failed:', e);
+    }
+  }
+
+  document.getElementById('vstats-loading').style.display = 'none';
+  document.getElementById('vstats-chart-wrap').style.display = '';
+  renderVenueStatsChart('views');
+}
+
+function renderVenueStatsChart(metric) {
+  document.querySelectorAll('.vstats-toggle').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.metric === metric);
+  });
+  var store = metric === 'views' ? _venueStatsMonthlyViews : _venueStatsMonthlyEnquiries;
+
+  // Show ALL months we have data for, oldest first, not just the last 6
+  var keys = Object.keys(store).sort();
+  var now = new Date();
+  // Always include the last 6 months even if empty, so the chart isn't blank
+  for (var i = 5; i >= 0; i--) {
+    var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    var k = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    if (keys.indexOf(k) === -1) keys.push(k);
+  }
+  keys.sort();
+
+  var monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var data = keys.map(function(k) {
+    var parts = k.split('-');
+    var label = monthNames[parseInt(parts[1], 10) - 1] + ' \'' + parts[0].slice(2);
+    var val = store[k] || 0;
+    return { label: label, label2: String(val), val: val };
+  });
+
+  var wrap = document.getElementById('vstats-chart-wrap');
+  var chartDiv = document.getElementById('vstats-chart');
+  if (typeof renderBarChart === 'function') {
+    renderBarChart(chartDiv, data, wrap);
+  }
+}
+
+function closeVenueStats() {
+  document.getElementById('venue-stats-overlay').classList.add('hidden');
+  _venueStatsId = null;
 }
 
 function buildRecentVenues() {
@@ -4378,7 +4544,8 @@ function renderVenuesTable(venues, statusTotal, statusFilter) {
       '<td>' + escapeHtml(v.district || v.region || '—') + '</td>' +
       '<td><span class="badge badge-' + (v.plan || 'basic').toLowerCase() + '">' + escapeHtml(v.plan || 'Basic') + '</span></td>' +
       '<td>' + getVenueStatusBadge(v) + '</td>' +
-      '<td><button class="action-btn" onclick="openVenueEditor(\'' + v.id + '\')">Edit</button>' +
+      '<td><button class="action-btn" onclick="openVenueStats(\'' + v.id + '\',\'' + escapeHtml(v.name || '').replace(/'/g, "\\'") + '\')">Stats</button>' +
+      '<button class="action-btn" onclick="openVenueEditor(\'' + v.id + '\')">Edit</button>' +
       '<button class="action-btn danger" onclick="deleteVenueWithConfirm(\'' + v.id + '\')">Delete</button></td>' +
       '</tr>';
   }).join('');
