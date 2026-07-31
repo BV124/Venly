@@ -1448,7 +1448,7 @@ tbody tr:last-child td { border-bottom: none; }
                 <option value="Meeting space">Meeting space</option>
                 <option value="Shoot Location">Shoot Location</option>
               </select>
-              <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input id="crm-search" class="search-input" placeholder="Search prospects..." oninput="renderCrmList()" /></div>
+              <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input id="crm-search" class="search-input" style="padding-left:28px;width:200px" placeholder="Search prospects..." oninput="renderCrmList()" /></div>
             </div>
           </div>
         </div>
@@ -5355,6 +5355,7 @@ function renderCrmList() {
     var matchStatus = _crmActiveStatus === 'All' || r.status === _crmActiveStatus;
     var matchSearch = !search ||
       (r.venueName || '').toLowerCase().includes(search) ||
+      (r.category || '').toLowerCase().includes(search) ||
       (r.contactName || '').toLowerCase().includes(search) ||
       (r.email || '').toLowerCase().includes(search);
     var matchCategory = !categoryFilter || r.category === categoryFilter;
