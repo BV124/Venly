@@ -1919,7 +1919,7 @@ async function loadSupabaseUsers() {
       email: p.email,
       phone: p.phone || '—',
       initials: ((p.first_name||'?')[0] + (p.last_name||'?')[0]).toUpperCase(),
-      role: p.role === 'admin' ? 'Admin' : 'User',
+      role: p.role === 'admin' ? 'Admin' : p.role === 'Host' || p.role === 'host' ? 'Host' : 'User',
       joined: new Date(p.created_at).toLocaleDateString('en-NZ',{day:'numeric',month:'short',year:'numeric'}),
       joinedRaw: p.created_at,
       status: 'Active',
@@ -1934,7 +1934,7 @@ async function loadSupabaseUsers() {
   if (statEl) statEl.textContent = liveUsers.length;
   if (!tbody) return;
   tbody.innerHTML = liveUsers.map(function(u, i) {
-    var badgeClass = u.role === 'Admin' ? 'badge-premium' : 'badge-active';
+    var badgeClass = u.role === 'Admin' ? 'badge-premium' : u.role === 'Host' ? 'badge-standard' : 'badge-active';
     return '<tr>' +
       '<td><div class="cell-user"><div class="avatar-sm" style="background:' + u.color + '">' + u.initials + '</div>' +
       '<div><div class="cell-name">' + u.name.trim() + '</div><div class="cell-email">' + u.email + '</div></div></div></td>' +
@@ -2069,7 +2069,8 @@ function buildUsersTable() {
     var roleLabel = (u.role === 'Admin' && u.permissions && u.permissions.length)
       ? 'Admin <span style="color:var(--text-muted);font-weight:400">· Restricted</span>'
       : (u.role || 'User');
-    var roleNorm = (u.role === 'Admin' || u.role === 'admin') ? 'admin' : 'user';
+    var roleNorm = (u.role === 'Admin' || u.role === 'admin') ? 'admin'
+      : (u.role === 'Host' || u.role === 'host') ? 'host' : 'user';
     return '<tr data-role="' + roleNorm + '">' +
       '<td><div class="cell-user"><div class="avatar-sm" style="background:' + u.color + '">' + u.initials + '</div>' +
       '<div><div class="cell-name">' + u.name + '</div><div class="cell-email">' + u.email + '</div></div></div></td>' +
