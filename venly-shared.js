@@ -438,7 +438,9 @@ function _venlyMonthKey(d) {
 function trackPageView() {
   if (SUPABASE_READY) {
     var path = window.location.pathname.split('/').pop() || 'index.html';
-    sb.rpc('track_page_view', { path_input: path });
+    sb.rpc('track_page_view', { path_input: path }).then(function(res) {
+      if (res && res.error) console.warn('[trackPageView] failed:', res.error.message);
+    });
     return;
   }
   var store = JSON.parse(localStorage.getItem('venly_analytics_pageviews') || '{"total":0,"monthly":{}}');
