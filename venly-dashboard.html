@@ -630,7 +630,7 @@ tbody tr:last-child td { border-bottom: none; }
             <span id="photo-count-badge" style="font-size:12px;font-weight:600;color:var(--text-muted)">0 / 8</span>
           </div>
           <div class="photo-upload-grid" id="photo-grid"></div>
-          <input type="file" id="file-input" accept="image/*" style="display:none" onchange="handleFileUpload(event)" />
+          <input type="file" id="file-input" accept="image/*" multiple style="display:none" onchange="handleFileUpload(event)" />
         </div>
       </div>
 
@@ -3292,23 +3292,61 @@ function toggleEventType(name, btn) {
 
 // ---- PHOTO UPLOAD ----
 function triggerUpload(slot) {
+  // Store the clicked slot as the starting point for multi-select fills.
+  // If the user picks multiple files they fill from this slot onward.
   currentUploadSlot = slot;
   document.getElementById('file-input').click();
 }
 
 function handleFileUpload(e) {
-  const file = e.target.files[0];
-  if (!file || !file.type.startsWith('image/')) { e.target.value = ''; return; }
+  const files = Array.from(e.target.files).filter(function(f) {
+    return f.type.startsWith('image/');
+  });
+  if (!files.length) { e.target.value = ''; return; }
 
-  const reader = new FileReader();
-  reader.onload = function(ev) {
-    compressImage(ev.target.result, 1400, 0.82, function(compressed) {
-      photoDataUrls[currentUploadSlot] = compressed;
-      markDirty();
-      renderPhotoGrid();
-    });
-  };
-  reader.readAsDataURL(file);
+  const cap = getCaps().photos; // plan photo cap
+
+  // Fill from the clicked slot forward, skipping occupied slots, up to cap.
+  // If the user picked more files than there are empty slots, we just stop.
+  var slotsToFill = [];
+  var start = currentUploadSlot;
+
+  // First try to fill from the clicked slot onward
+  for (var i = start; i < cap && slotsToFill.length < files.length; i++) {
+    if (!photoDataUrls[i]) slotsToFill.push(i);
+  }
+  // If we started mid-grid and still have files, fill earlier empty slots too
+  for (var j = 0; j < start && slotsToFill.length < files.length; j++) {
+    if (!photoDataUrls[j]) slotsToFill.push(j);
+  }
+  // Cap at however many empty slots exist
+  var pairs = files.slice(0, slotsToFill.length).map(function(f, idx) {
+    return { file: f, slot: slotsToFill[idx] };
+  });
+
+  if (!pairs.length) {
+    showToast('No empty photo slots — remove a photo first');
+    e.target.value = '';
+    return;
+  }
+
+  // Process each file with compression, then render once all done
+  var remaining = pairs.length;
+  pairs.forEach(function(pair) {
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      compressImage(ev.target.result, 1400, 0.82, function(compressed) {
+        photoDataUrls[pair.slot] = compressed;
+        remaining--;
+        if (remaining === 0) {
+          markDirty();
+          renderPhotoGrid();
+        }
+      });
+    };
+    reader.readAsDataURL(pair.file);
+  });
+
   e.target.value = '';
 }
 
