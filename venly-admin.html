@@ -2351,6 +2351,8 @@ function showSection(name, btn) {
     buildOverviewRevenueStat();
     buildOverviewVenuesStat();
     renderAnalyticsChart('pageviews');
+    // Re-fetch page views so the count reflects visits since the admin loaded
+    adminBootstrapPageViews().then(function() { buildAnalyticsStats(); });
   }
   if (name === 'stats') {
     buildStatsPageStats();
