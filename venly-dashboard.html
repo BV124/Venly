@@ -172,6 +172,8 @@ tbody tr:last-child td { border-bottom: none; }
 
 /* Cover photo selection */
 .photo-slot.is-cover { border: 2px solid var(--red); box-shadow: 0 0 0 3px var(--red-light); }
+.photo-slot.drag-over { outline: 2px dashed var(--red); outline-offset:-2px; opacity:0.7; }
+.photo-slot.dragging { opacity:0.3; cursor:grabbing; }
 .photo-slot-cover-badge {
   position: absolute; top: 4px; left: 4px; display: flex; align-items: center; gap: 4px;
   background: var(--red); color: #fff; font-size: 9px; font-weight: 700;
@@ -3135,21 +3137,80 @@ function renderPhotoGrid() {
     const overCap = i >= cap;
     if (url) {
       const isCover = i === coverPhotoIndex && !overCap;
-      return `<div class="photo-slot${isCover ? ' is-cover' : ''}" id="photo-slot-${i}" onclick="triggerUpload(${i})" style="${overCap ? 'opacity:0.45;position:relative' : ''}">
-        <img src="${url}" alt="Uploaded" />
-        ${overCap
-          ? `<span style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.6);color:#fff;font-size:9px;font-weight:600;text-align:center;padding:3px 2px;line-height:1.2">Upgrade to show</span>`
-          : (isCover
-            ? `<span class="photo-slot-cover-badge">${badgeSVG}Cover</span>`
-            : `<button class="set-cover-btn" onclick="setCoverPhoto(event, ${i})">${starSVG}Set as cover</button>`)
-        }
-        <button class="remove-photo" onclick="removePhoto(event, ${i})">×</button>
-      </div>`;
+      const dragHandlers = !overCap
+        ? ' draggable="true" ondragstart="photoDragStart(event,' + i + ')" ondragover="photoDragOver(event)" ondrop="photoDrop(event,' + i + ')" ondragend="photoDragEnd(event)"'
+        : '';
+      const overCapStyle = overCap ? 'opacity:0.45;position:relative' : '';
+      const badge = overCap
+        ? '<span style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.6);color:#fff;font-size:9px;font-weight:600;text-align:center;padding:3px 2px;line-height:1.2">Upgrade to show</span>'
+        : isCover
+          ? '<span class="photo-slot-cover-badge">' + badgeSVG + 'Cover</span>'
+          : '<button class="set-cover-btn" onclick="setCoverPhoto(event,' + i + ')">' + starSVG + 'Set as cover</button>';
+      return '<div class="photo-slot' + (isCover ? ' is-cover' : '') + '" id="photo-slot-' + i + '"'
+        + dragHandlers
+        + ' onclick="triggerUpload(' + i + ')" style="' + overCapStyle + '">'
+        + '<img src="' + url + '" alt="Uploaded" />'
+        + badge
+        + '<button class="remove-photo" onclick="removePhoto(event,' + i + ')">×</button>'
+        + '</div>';
     }
     return `<div class="photo-slot" id="photo-slot-${i}" onclick="triggerUpload(${i})">${uploadSVG}Upload photo</div>`;
   }).join('');
 
   updatePhotoCount();
+}
+
+// ---- PHOTO DRAG-AND-DROP REORDERING ----
+var _photoDragFrom = null;
+
+function photoDragStart(e, slot) {
+  e.stopPropagation();
+  _photoDragFrom = slot;
+  e.dataTransfer.effectAllowed = 'move';
+  // Slight delay so the dragging style applies after the drag image is captured
+  setTimeout(function() {
+    var el = document.getElementById('photo-slot-' + slot);
+    if (el) el.classList.add('dragging');
+  }, 0);
+}
+
+function photoDragOver(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  e.dataTransfer.dropEffect = 'move';
+  // Add visual target indicator
+  var el = e.currentTarget;
+  el.classList.add('drag-over');
+}
+
+function photoDrop(e, toSlot) {
+  e.preventDefault();
+  e.stopPropagation();
+  var el = e.currentTarget;
+  el.classList.remove('drag-over');
+  if (_photoDragFrom === null || _photoDragFrom === toSlot) return;
+
+  // Swap the photos
+  var tmp = photoDataUrls[_photoDragFrom];
+  photoDataUrls[_photoDragFrom] = photoDataUrls[toSlot];
+  photoDataUrls[toSlot] = tmp;
+
+  // Keep coverPhotoIndex pointing at the same photo after the swap
+  if (coverPhotoIndex === _photoDragFrom) coverPhotoIndex = toSlot;
+  else if (coverPhotoIndex === toSlot) coverPhotoIndex = _photoDragFrom;
+
+  _photoDragFrom = null;
+  markDirty();
+  renderPhotoGrid();
+}
+
+function photoDragEnd(e) {
+  e.stopPropagation();
+  // Clean up any lingering drag-over classes
+  document.querySelectorAll('.photo-slot.dragging, .photo-slot.drag-over').forEach(function(el) {
+    el.classList.remove('dragging', 'drag-over');
+  });
+  _photoDragFrom = null;
 }
 
 function setCoverPhoto(e, slot) {
