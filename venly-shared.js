@@ -438,8 +438,10 @@ function _venlyMonthKey(d) {
 function trackPageView() {
   if (SUPABASE_READY) {
     var path = window.location.pathname.split('/').pop() || 'index.html';
-    sb.rpc('track_page_view', { path_input: path }).then(function(res) {
-      if (res && res.error) console.warn('[trackPageView] failed:', res.error.message);
+    // Direct insert — simpler and easier to debug than RPC
+    sb.from('page_views').insert({ path: path, venue_id: null }).then(function(res) {
+      if (res && res.error) console.warn('[trackPageView] failed:', res.error.code, res.error.message);
+      else console.log('[trackPageView] recorded:', path);
     });
     return;
   }
