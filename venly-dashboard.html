@@ -1001,12 +1001,12 @@ tbody tr:last-child td { border-bottom: none; }
 <!-- DRAFT PLAN CHANGE (free switch — no subscription yet) -->
 <div class="modal-overlay hidden" id="draft-plan-overlay" style="z-index:1200">
   <div class="modal" style="max-width:480px">
-    <div class="modal-header">
+    <div class="modal-header" style="align-items:flex-start">
       <div class="modal-header-left">
         <h2>Choose your plan</h2>
         <p style="font-size:13px;color:var(--text-muted);margin-top:4px">This listing isn't published yet, so you can switch freely — you'll pay for the plan you choose when you go live.</p>
       </div>
-      <button class="modal-close" onclick="document.getElementById('draft-plan-overlay').classList.add('hidden')">
+      <button class="modal-close" style="margin-top:2px" onclick="document.getElementById('draft-plan-overlay').classList.add('hidden')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
