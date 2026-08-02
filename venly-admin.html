@@ -81,6 +81,9 @@ nav {
 .stat-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; box-shadow: var(--shadow); }
 .stat-label { font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
 .stat-value { font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -1px; margin-bottom: 4px; }
+/* Loading state — neutral dash that pulses while data fetches */
+.stat-value.stat-loading { color: var(--border); animation: stat-pulse 1.2s ease-in-out infinite; }
+@keyframes stat-pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
 .stat-change { font-size: 12px; font-weight: 500; }
 .stat-change.up { color: #1a8a4a; }
 .stat-change.down { color: var(--red); }
@@ -906,25 +909,25 @@ tbody tr:last-child td { border-bottom: none; }
       <div class="stat-card">
         <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
         <div class="stat-label">Total Venues</div>
-        <div class="stat-value" id="stat-total-venues">0</div>
+        <div class="stat-value stat-loading" id="stat-total-venues">—</div>
         <div class="stat-change up" id="stat-venues-change" style="color:var(--text-muted)">Live &amp; currently paying</div>
       </div>
       <div class="stat-card">
         <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
         <div class="stat-label">Total Users</div>
-        <div class="stat-value" id="stat-total-users">138</div>
-        <div class="stat-change up" id="stat-users-change">↑ 12 this month</div>
+        <div class="stat-value stat-loading" id="stat-total-users">—</div>
+        <div class="stat-change up" id="stat-users-change"></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div class="stat-label">Venue Views</div>
-        <div class="stat-value" id="stat-total-venueviews">0</div>
+        <div class="stat-value stat-loading" id="stat-total-venueviews">—</div>
         <div class="stat-change up" id="stat-venueviews-change"></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div class="stat-label">Page Views</div>
-        <div class="stat-value" id="stat-total-pageviews">0</div>
+        <div class="stat-value stat-loading" id="stat-total-pageviews">—</div>
         <div class="stat-change up" id="stat-pageviews-change"></div>
       </div>
     </div>
@@ -1929,7 +1932,7 @@ async function loadSupabaseUsers() {
   var title = document.getElementById('users-table-title');
   if (title) title.textContent = 'All users (' + liveUsers.length + ')';
   var statEl = document.getElementById('stat-total-users');
-  if (statEl) statEl.textContent = liveUsers.length;
+  if (statEl) { statEl.classList.remove('stat-loading'); statEl.textContent = liveUsers.length; }
   if (!tbody) return;
   tbody.innerHTML = liveUsers.map(function(u, i) {
     var badgeClass = u.role === 'Admin' ? 'badge-premium' : u.role === 'Host' ? 'badge-standard' : 'badge-active';
@@ -2052,7 +2055,7 @@ function buildUsersTable() {
 
   // Update stat card
   var statEl = document.getElementById('stat-total-users');
-  if (statEl) statEl.textContent = users.length;
+  if (statEl) { statEl.classList.remove('stat-loading'); statEl.textContent = users.length; }
 
   var changeEl = document.getElementById('stat-users-change');
   if (changeEl) {
@@ -2763,6 +2766,7 @@ function buildOverviewVenuesStat() {
   var el = document.getElementById('stat-total-venues');
   if (!el) return;
   var count = getAllVenues().filter(function(v) { return v.isLive && v.subscriptionStatus === 'active'; }).length;
+  el.classList.remove('stat-loading');
   el.textContent = count.toLocaleString();
 }
 
@@ -3017,9 +3021,9 @@ function buildAnalyticsStats() {
     return e.createdAt && e.createdAt.slice(0, 7) === mk;
   }).length;
 
-  document.getElementById('stat-total-pageviews').textContent = pageviewsTotal.toLocaleString();
+  var pvEl=document.getElementById('stat-total-pageviews'); pvEl.classList.remove('stat-loading'); pvEl.textContent=pageviewsTotal.toLocaleString();
   document.getElementById('stat-pageviews-change').textContent = '↑ ' + pageviewsThisMonth + ' this month';
-  document.getElementById('stat-total-venueviews').textContent = totalVenueViews.toLocaleString();
+  var vvEl=document.getElementById('stat-total-venueviews'); vvEl.classList.remove('stat-loading'); vvEl.textContent=totalVenueViews.toLocaleString();
   document.getElementById('stat-venueviews-change').textContent = '↑ ' + venueviewsThisMonth + ' this month';
   document.getElementById('stat-total-favourites').textContent = totalFavourites.toLocaleString();
   document.getElementById('stat-total-enquiries').textContent = enquiries.length.toLocaleString();
