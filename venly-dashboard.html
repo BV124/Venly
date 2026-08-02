@@ -4035,8 +4035,10 @@ async function loadFavourites() {
 
     var venueIds = favRes.data.map(function(f) { return f.venue_id; });
 
-    // Step 2: fetch the actual venue data for those IDs
-    var venueRes = await sb.from('venues').select('*').in('id', venueIds);
+    // Step 2: fetch the actual venue data — only live venues.
+    // Deleted venues won't be in the table at all; drafts and unlisted ones
+    // are excluded by the is_live filter so stale favourites silently hide.
+    var venueRes = await sb.from('venues').select('*').in('id', venueIds).eq('is_live', true);
     var venues = (venueRes.data || []).filter(function(v) { return v; });
 
     if (venues.length === 0) {
