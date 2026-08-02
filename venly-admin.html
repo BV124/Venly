@@ -936,7 +936,7 @@ tbody tr:last-child td { border-bottom: none; }
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
         <div>
           <div class="chart-title">Monthly performance</div>
-          <div class="chart-subtitle" style="margin-bottom:0">Last 6 months</div>
+          <div class="chart-subtitle" style="margin-bottom:0">All time · scroll for history</div>
         </div>
         <div style="display:flex;gap:6px">
           <button class="action-btn analytics-chart-toggle active" data-metric="pageviews" onclick="renderAnalyticsChart('pageviews')">Page views</button>
@@ -2949,16 +2949,11 @@ var _adminPageViewsCache = null;
 async function adminBootstrapPageViews() {
   if (!SUPABASE_READY) return;
   try {
-    var sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
-    sixMonthsAgo.setDate(1);
-    sixMonthsAgo.setHours(0, 0, 0, 0);
-
-    // These two don't depend on each other — running them together instead
-    // of one-after-the-other roughly halves this function's wait time.
+    // Fetch ALL history — no date filter — so we can show the full timeline.
+    // The chart scrolls horizontally so older months are always accessible.
     var results = await Promise.all([
       sb.from('page_views').select('id', { count: 'exact', head: true }).is('venue_id', null),
-      sb.from('page_views').select('venue_id, created_at').gte('created_at', sixMonthsAgo.toISOString()),
+      sb.from('page_views').select('venue_id, created_at'),
     ]);
     var totalRes = results[0];
     var rangeRes = results[1];
@@ -3053,17 +3048,27 @@ function buildAnalyticsVenuesTable() {
 
 // Builds { label:'Feb', label2:'12', val:12 } for each of the last 6
 // calendar months (oldest first) from a { "YYYY-MM": count } store.
-function getLast6MonthsChartData(monthlyStore) {
+function getAllMonthsChartData(monthlyStore) {
   var monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var now = new Date();
-  var out = [];
+
+  // Collect all months that have data
+  var keys = Object.keys(monthlyStore).sort();
+
+  // Always include the last 6 months even if no data yet
   for (var i = 5; i >= 0; i--) {
     var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    var key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-    var val = monthlyStore[key] || 0;
-    out.push({ label: monthNames[d.getMonth()], label2: String(val), val: val });
+    var k = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    if (keys.indexOf(k) === -1) keys.push(k);
   }
-  return out;
+  keys.sort();
+
+  return keys.map(function(key) {
+    var parts = key.split('-');
+    var label = monthNames[parseInt(parts[1], 10) - 1] + ' \'' + parts[0].slice(2);
+    var val = monthlyStore[key] || 0;
+    return { label: label, label2: String(val), val: val };
+  });
 }
 
 function renderAnalyticsChart(metric) {
@@ -3080,7 +3085,8 @@ function renderAnalyticsChart(metric) {
       ? (JSON.parse(localStorage.getItem('venly_analytics_pageviews') || '{"monthly":{}}').monthly || {})
       : JSON.parse(localStorage.getItem('venly_analytics_venueviews_monthly') || '{}');
   }
-  var data = getLast6MonthsChartData(store);
+
+  var data = getAllMonthsChartData(store);
   var wrap = document.getElementById('analytics-chart-wrap');
   var hasData = data.some(function(d) { return d.val > 0; });
 
@@ -3088,8 +3094,26 @@ function renderAnalyticsChart(metric) {
     wrap.innerHTML = '<div class="filter-card-note" style="margin:0;padding:24px 0;text-align:center">No page loads recorded yet this period — numbers will appear here as people browse the live site.</div>';
     return;
   }
-  wrap.innerHTML = '<div class="bar-chart" id="analytics-monthly-chart"></div>';
+
+  // Scrollable wrapper — shows all months, snapped to the right (latest)
+  // so the most recent data is immediately visible. Scroll left for history.
+  var barWidth = 56; // px per bar including gap
+  var visibleMonths = 6;
+  var totalWidth = data.length * barWidth;
+  var showScroll = data.length > visibleMonths;
+
+  wrap.innerHTML = '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px" id="analytics-chart-scroll">' +
+    '<div class="bar-chart" id="analytics-monthly-chart" style="min-width:' + (showScroll ? totalWidth + 'px' : '100%') + '"></div>' +
+    '</div>' +
+    (showScroll ? '<div style="font-size:11px;color:var(--text-muted);margin-top:8px;text-align:center">← Scroll to see older months</div>' : '');
+
   renderBarChart('analytics-monthly-chart', data, '#f5c4bf');
+
+  // Auto-scroll to the right so latest months show first
+  if (showScroll) {
+    var scrollEl = document.getElementById('analytics-chart-scroll');
+    if (scrollEl) scrollEl.scrollLeft = scrollEl.scrollWidth;
+  }
 }
 
 // ---- BLOG EDITOR ----
