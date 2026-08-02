@@ -1735,12 +1735,13 @@ async function loadSubscriptionPanel(listing) {
     _subPanelInfo = info;
 
     if (!info || !info.hasSubscription) {
-      // Shouldn't normally happen (we only show this panel when there's a
-      // subscription id) but fall back to checkout rather than a dead panel.
+      // Subscription no longer exists in Stripe (immediate cancel or expired).
+      // The step-4 logic already gates on subscriptionStatus, so if we end up
+      // here it's an edge case (e.g. sub deleted outside the app). Hide manage,
+      // show checkout so they can re-subscribe.
       document.getElementById('sub-manage-panel').style.display = 'none';
       document.getElementById('sub-checkout-panel').style.display = '';
-      mountCardElement();
-      refreshPaymentTotals();
+      setTimeout(function() { mountCardElement(); refreshPaymentTotals(); }, 0);
       return;
     }
 
@@ -2511,13 +2512,15 @@ function updateStepUI() {
     nextBtn.style.display = 'none';
 
     // Existing subscriber -> manage their subscription. New listing -> checkout.
-    // We decide on whether this venue already has a Stripe subscription, not
-    // on is_live: an admin-published venue is live with no subscription, and
-    // should still see the normal checkout if it ever needs one.
+    // We decide on whether this venue already has an ACTIVE Stripe subscription.
+    // A venue with a stripeSubscriptionId but status='cancelled' (immediate cancel)
+    // has no live sub in Stripe — show checkout so they can re-list.
     var editing = currentEditingListingId
       ? listings.find(function(l) { return l.id === currentEditingListingId; })
       : null;
-    var alreadySubscribed = !!(editing && editing.stripeSubscriptionId);
+    var alreadySubscribed = !!(editing && editing.stripeSubscriptionId &&
+      editing.subscriptionStatus !== 'cancelled' &&
+      editing.subscriptionStatus !== 'none');
 
     document.getElementById('sub-manage-panel').style.display = alreadySubscribed ? '' : 'none';
     document.getElementById('sub-checkout-panel').style.display = alreadySubscribed ? 'none' : '';
