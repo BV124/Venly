@@ -2117,14 +2117,13 @@ async function openVenueStats(venueId, venueName) {
   document.getElementById('vstats-chart-wrap').style.display = 'none';
   overlay.classList.remove('hidden');
 
-  // Totals from existing caches (fast, already loaded)
+  // Totals — views and enquiries from cache, favourites updated after Supabase fetch
   var venue = getAllVenues().find(function(v) { return String(v.id) === String(venueId); });
   var totalViews = venue ? (venue.hits || 0) : 0;
-  var totalFavs = getVenueFavouriteCount(venueId);
   var totalEnqs = getVenueEnquiryCount(venueId);
 
   document.getElementById('vstats-views').textContent = totalViews.toLocaleString();
-  document.getElementById('vstats-favs').textContent = totalFavs.toLocaleString();
+  document.getElementById('vstats-favs').textContent = '…'; // updated after fetch
   document.getElementById('vstats-enqs').textContent = totalEnqs.toLocaleString();
 
   document.getElementById('venue-stats-subtitle').textContent =
@@ -2163,8 +2162,12 @@ async function openVenueStats(venueId, venueName) {
         '↑ ' + (_venueStatsMonthlyEnquiries[mk] || 0) + ' this month';
 
       if (!results[2].error) {
+        var totalFavs = results[2].data.length;
         var thisMoFavs = results[2].data.filter(function(r) { return r.created_at.slice(0, 7) === mk; }).length;
+        document.getElementById('vstats-favs').textContent = totalFavs.toLocaleString();
         document.getElementById('vstats-favs-month').textContent = '↑ ' + thisMoFavs + ' this month';
+      } else {
+        document.getElementById('vstats-favs').textContent = '—';
       }
 
     } catch (e) {
