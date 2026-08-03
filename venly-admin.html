@@ -2437,7 +2437,7 @@ function showSection(name, btn) {
     buildMessagesList();
   }
   if (name === 'crm') {
-    renderCrmList();
+    adminBootstrapCrm().then(function() { renderCrmList(); });
   }
   if (name === 'analytics') {
     buildAnalyticsStats();
@@ -5394,20 +5394,64 @@ function crmSystemEntry(text) {
   return { id: 'sys-' + Math.random().toString(36).slice(2), type: 'system', text: text, createdAt: new Date().toISOString() };
 }
 
+// ---- CRM STORAGE — Supabase (shared across all admins) ----
+var _crmCache = null;
+
+function _mapCrmFromDb(row) {
+  return {
+    id: row.id, venueName: row.venue_name || '', website: row.website || '',
+    category: row.category || 'Event space', address: row.address || '',
+    contactName: row.contact_name || '', email: row.email || '', phone: row.phone || '',
+    status: row.status || 'New', nextStep: row.next_step || '', nextAction: row.next_step || '',
+    dueDate: row.due_date || '', tags: row.tags || [], timeline: row.timeline || [],
+  };
+}
+function _mapCrmToDb(record) {
+  return {
+    id: record.id, venue_name: record.venueName || '', website: record.website || '',
+    category: record.category || 'Event space', address: record.address || '',
+    contact_name: record.contactName || '', email: record.email || '', phone: record.phone || '',
+    status: record.status || 'New', next_step: record.nextStep || record.nextAction || '',
+    due_date: record.dueDate || '', tags: record.tags || [], timeline: record.timeline || [],
+    updated_at: new Date().toISOString(),
+  };
+}
+async function adminBootstrapCrm() {
+  if (!SUPABASE_READY) return;
+  try {
+    var res = await sb.from('crm_records').select('*').order('created_at', { ascending: false });
+    if (res.error) throw res.error;
+    _crmCache = res.data.map(_mapCrmFromDb);
+  } catch (e) { console.error('adminBootstrapCrm failed:', e); _crmCache = []; }
+}
 function getAllCrmRecords() {
+  if (SUPABASE_READY) return _crmCache || [];
   var fromStorage = JSON.parse(localStorage.getItem('venly_crm') || 'null');
   return fromStorage || SEED_CRM_RECORDS;
 }
-
-function saveAllCrmRecords(records) {
-  try {
-    localStorage.setItem('venly_crm', JSON.stringify(records));
-    return true;
-  } catch (e) {
-    showToast('Could not save \u2014 storage is full');
-    return false;
+async function saveAllCrmRecords(records) {
+  if (!SUPABASE_READY) {
+    try { localStorage.setItem('venly_crm', JSON.stringify(records)); } catch(e) {}
   }
+  _crmCache = records;
 }
+async function saveCrmRecord(record) {
+  var all = getAllCrmRecords();
+  var idx = all.findIndex(function(r) { return r.id === record.id; });
+  if (idx >= 0) all[idx] = record; else all.unshift(record);
+  _crmCache = all;
+  if (!SUPABASE_READY) { try { localStorage.setItem('venly_crm', JSON.stringify(all)); } catch(e) {} return; }
+  var res = await sb.from('crm_records').upsert(_mapCrmToDb(record));
+  if (res.error) { console.error('saveCrmRecord failed:', res.error.message); showToast('Could not save — ' + res.error.message); }
+}
+async function deleteCrmRecord(id) {
+  _crmCache = (_crmCache || []).filter(function(r) { return r.id !== id; });
+  if (!SUPABASE_READY) { try { localStorage.setItem('venly_crm', JSON.stringify(_crmCache)); } catch(e) {} return true; }
+  var res = await sb.from('crm_records').delete().eq('id', id);
+  if (res.error) { console.error('deleteCrmRecord failed:', res.error.message); showToast('Could not delete — ' + res.error.message); return false; }
+  return true;
+}
+
 
 var crmSelectedId = null;
 var crmActivityType = null;
@@ -5574,19 +5618,15 @@ function resetCrmFilters() {
   renderCrmList();
 }
 
-function createCrmRecord() {
-  var records = getAllCrmRecords();
+async function createCrmRecord() {
   var newRecord = {
     id: 'crm-' + Date.now(),
-    venueName: 'New venue',
-    website: '', category: 'Event space', address: '',
-    contactName: '', email: '', phone: '',
-    status: 'New', tags: [], lostReason: '',
-    nextAction: '', dueDate: '',
+    venueName: 'New venue', website: '', category: 'Event space', address: '',
+    contactName: '', email: '', phone: '', status: 'New',
+    nextStep: '', nextAction: '', dueDate: '', tags: [],
     timeline: [ crmSystemEntry('Added to CRM') ],
   };
-  records.unshift(newRecord);
-  saveAllCrmRecords(records);
+  await saveCrmRecord(newRecord);
   renderCrmList();
   selectCrmRecord(newRecord.id);
 }
@@ -5605,8 +5645,8 @@ async function deleteCrmRecordWithConfirm() {
   if (!ok) return;
 
   var idToDelete = crmSelectedId;
-  var updated = records.filter(function(r) { return r.id !== idToDelete; });
-  saveAllCrmRecords(updated);
+  var ok2 = await deleteCrmRecord(idToDelete);
+  if (!ok2) return;
   crmSelectedId = null;
 
   var modal = document.getElementById('crm-detail-modal');
@@ -5701,7 +5741,7 @@ function saveCrmField(field, value) {
     }
   }
 
-  saveAllCrmRecords(records);
+  saveCrmRecord(r);
 }
 
 
@@ -5752,7 +5792,7 @@ function saveCrmActivity() {
 
   r.timeline = r.timeline || [];
   r.timeline.push({ id: 'a-' + Date.now(), type: crmActivityType, text: text, ts: new Date().toISOString(), createdAt: new Date().toISOString() });
-  saveAllCrmRecords(records);
+  saveCrmRecord(r);
 
   closeCrmActivityInput();
 
@@ -5801,6 +5841,8 @@ buildStatsPageStats();
 buildPlanDistribution();
 buildAnalyticsStats();       // enquiries/favourites/venue-views show real numbers now; pageviews-specific figures fill in once Tier 2 lands just below
 buildAnalyticsVenuesTable(); // doesn't actually depend on page_views at all
+// Load CRM from Supabase so all admins see the same shared data
+adminBootstrapCrm().then(function() { renderCrmList(); });
 initCrmAccess();
 applyAdminAccessRestrictions();
 
