@@ -5583,7 +5583,7 @@ function renderCrmList() {
       dueHtml = '<span style="font-size:11px;color:var(--text-muted)">Due ' + formatCrmDueLabel(r.dueDate, dueBucket) + '</span>';
     }
     var lastActivity = r.timeline && r.timeline.length
-      ? timeSince(r.timeline[r.timeline.length - 1].ts)
+      ? fmtActivityDate(r.timeline[r.timeline.length - 1].ts || r.timeline[r.timeline.length - 1].createdAt)
       : 'No activity yet';
     var initials = ((r.venueName || '?')[0] || '?').toUpperCase();
     var avatarColor = msgAvatarColor(r.venueName || '');
