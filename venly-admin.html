@@ -836,6 +836,44 @@ tbody tr:last-child td { border-bottom: none; }
   <script src="venly-config.js?v=2"></script>
   <script src="venly-shared.js"></script>
   <script>
+    // ---- ADMIN AUTH GATE ----
+    // Hide the page body immediately so non-admins never see even a flash
+    // of the dashboard. We verify against Supabase (not just localStorage)
+    // so the URL alone can never grant access.
+    document.documentElement.style.visibility = 'hidden';
+
+    (async function() {
+      try {
+        if (!SUPABASE_READY) { window.location.replace('index.html'); return; }
+
+        // Check the current session
+        var sessionRes = await sb.auth.getSession();
+        var session = sessionRes.data && sessionRes.data.session;
+        if (!session || !session.user) {
+          window.location.replace('index.html');
+          return;
+        }
+
+        // Check their profile role in Supabase
+        var profileRes = await sb.from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        var role = (profileRes.data && profileRes.data.role) ? profileRes.data.role.toLowerCase() : '';
+        if (role !== 'admin') {
+          window.location.replace('venly-dashboard.html');
+          return;
+        }
+
+        // Verified admin — show the page
+        document.documentElement.style.visibility = '';
+      } catch (e) {
+        console.error('Admin auth gate failed:', e);
+        window.location.replace('index.html');
+      }
+    })();
+
     // Venues + Filters — safe to kick off immediately since both live in
     // venly-config.js, already loaded above. Users bootstrap happens lower
     // down in this page instead (see the bottom of the main script block),
