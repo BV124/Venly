@@ -932,6 +932,13 @@ tbody tr:last-child td { border-bottom: none; }
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
     CRM
   </button>
+
+  <div class="sidebar-section" style="margin-top:auto;padding-top:16px">Tools</div>
+  <a href="https://venly-mail.vercel.app/" target="_blank" rel="noopener" class="nav-item" style="text-decoration:none">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    Venly Email
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;margin-left:auto;opacity:0.45"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+  </a>
 </div>
 
 <!-- MAIN CONTENT -->
@@ -5391,7 +5398,8 @@ function nextBusinessDay(daysFromNow) {
   return d.toISOString().slice(0, 10);
 }
 function crmSystemEntry(text) {
-  return { id: 'sys-' + Math.random().toString(36).slice(2), type: 'system', text: text, createdAt: new Date().toISOString() };
+  var now = new Date().toISOString();
+  return { id: 'sys-' + Math.random().toString(36).slice(2), type: 'system', text: text, ts: now, createdAt: now };
 }
 
 // ---- CRM STORAGE — Supabase (shared across all admins) ----
@@ -5689,7 +5697,7 @@ function selectCrmRecord(id) {
           return '<div style="padding:10px 0;border-bottom:1px solid var(--border)">' +
             '<div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">' + icon + ' ' +
               (e.type || 'note').charAt(0).toUpperCase() + (e.type || 'note').slice(1) +
-              ' · ' + fmtActivityDate(e.ts) + '</div>' +
+              ' · ' + fmtActivityDate(e.ts || e.createdAt) + '</div>' +
             '<div style="font-size:13px;line-height:1.5">' + escapeHtml(e.text || '') + '</div>' +
           '</div>';
         }).join('')
@@ -5716,7 +5724,7 @@ function renderCrmDetailEmpty() {}
 function renderCrmDetail() {}
 function renderCrmTimeline() {}
 
-function saveCrmField(field, value) {
+async function saveCrmField(field, value) {
   var records = getAllCrmRecords();
   var r = records.find(function(x) { return x.id === crmSelectedId; });
   if (!r) return;
@@ -5741,7 +5749,7 @@ function saveCrmField(field, value) {
     }
   }
 
-  saveCrmRecord(r);
+  await saveCrmRecord(r);
 }
 
 
@@ -5780,7 +5788,7 @@ function closeCrmActivityInput() {
   crmActivityType = null;
 }
 
-function saveCrmActivity() {
+async function saveCrmActivity() {
   var textarea = document.getElementById('crm-activity-text');
   var text = textarea ? textarea.value.trim() : '';
   if (!text) { showToast('Add some details first'); return; }
@@ -5792,7 +5800,7 @@ function saveCrmActivity() {
 
   r.timeline = r.timeline || [];
   r.timeline.push({ id: 'a-' + Date.now(), type: crmActivityType, text: text, ts: new Date().toISOString(), createdAt: new Date().toISOString() });
-  saveCrmRecord(r);
+  await saveCrmRecord(r);
 
   closeCrmActivityInput();
 
