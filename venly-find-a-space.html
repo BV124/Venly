@@ -209,7 +209,7 @@ nav {
 
 #map-split.map-active {
   display: grid;
-  grid-template-columns: 380px 1fr;
+  grid-template-columns: 520px 1fr;
   grid-template-rows: 700px;
   gap: 24px;
   align-items: start;
@@ -221,7 +221,7 @@ nav {
   padding-right: 4px;
 }
 #map-split.map-active .cards-grid {
-  grid-template-columns: repeat(1, 1fr);
+  grid-template-columns: repeat(2, 1fr);
 }
 /* Map cards match list view: fixed 200px image, same card body */
 #map-split.map-active .card-img {
@@ -1388,8 +1388,7 @@ updateFiltersTriggerBadge();
 
 // Map view is the default everywhere except mobile, where there's no
 // split-view to show — list stays the only option there.
-if (window.innerWidth <= 768) setView('list');
-else setView('map');
+setView('list');
 });
 </script>
 </body>
