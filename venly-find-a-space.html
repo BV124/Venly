@@ -687,7 +687,8 @@ nav {
         <span id="label-region">Region</span>
         <svg class="chip-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
-      <div class="chip-dropdown">
+      <div class="chip-dropdown" style="min-width:220px">
+        <input class="chip-search" id="region-search" placeholder="Search regions…" oninput="filterChipOptions('region-options', this.value)" />
         <div class="chip-options-scroll" id="region-options">
           <button class="chip-option selected" onclick="selectChip('chip-region','filter-region','','Region',this)">All regions</button>
         </div>
@@ -701,8 +702,11 @@ nav {
         <span id="label-district">District</span>
         <svg class="chip-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
-      <div class="chip-dropdown">
-        <button class="chip-option selected" onclick="selectChip('chip-district','filter-district','','District',this)">All districts</button>
+      <div class="chip-dropdown" style="min-width:220px">
+        <input class="chip-search" id="district-search" placeholder="Search districts…" oninput="filterChipOptions('district-options', this.value)" />
+        <div class="chip-options-scroll" id="district-options">
+          <button class="chip-option selected" onclick="selectChip('chip-district','filter-district','','District',this)">All districts</button>
+        </div>
       </div>
     </div>
 
@@ -1120,13 +1124,13 @@ function renderMapPins(list) {
 }
 
 
-function filterEventTypeOptions(query) {
+// Generic search filter for any scrollable chip option list
+function filterChipOptions(containerId, query) {
   var q = query.toLowerCase();
-  var container = document.getElementById('event-type-options');
+  var container = document.getElementById(containerId);
   if (!container) return;
   container.querySelectorAll('.chip-option, .chip-optgroup-label').forEach(function(el) {
     if (el.classList.contains('chip-optgroup-label')) {
-      // Show group labels only if at least one option in the group matches
       var next = el.nextElementSibling;
       var anyVisible = false;
       while (next && !next.classList.contains('chip-optgroup-label')) {
@@ -1139,14 +1143,54 @@ function filterEventTypeOptions(query) {
     }
   });
 }
+function filterEventTypeOptions(query) { filterChipOptions('event-type-options', query); }
+
+// Bidirectional region <-> district sync
+function syncRegionDistrict(changedKey, value) {
+  if (!value) return;
+  var filters = (typeof getVenlyFilters === 'function') ? getVenlyFilters() : { districtsByRegion: {} };
+  var byRegion = filters.districtsByRegion || {};
+  if (changedKey === 'district') {
+    var parentRegion = null;
+    Object.keys(byRegion).forEach(function(r) {
+      if ((byRegion[r] || []).includes(value)) parentRegion = r;
+    });
+    if (parentRegion) {
+      document.getElementById('filter-region').value = parentRegion;
+      document.getElementById('label-region').textContent = parentRegion;
+      var btn = document.querySelector('#chip-region .chip-btn');
+      if (btn) btn.classList.add('active');
+      document.querySelectorAll('#region-options .chip-option').forEach(function(o) {
+        o.classList.toggle('selected', o.textContent.trim() === parentRegion);
+      });
+    }
+  } else if (changedKey === 'region') {
+    var currentDistrict = document.getElementById('filter-district').value;
+    var validDistricts = byRegion[value] || [];
+    if (currentDistrict && !validDistricts.includes(currentDistrict)) {
+      document.getElementById('filter-district').value = '';
+      document.getElementById('label-district').textContent = 'District';
+      var btn2 = document.querySelector('#chip-district .chip-btn');
+      if (btn2) btn2.classList.remove('active');
+      document.querySelectorAll('#district-options .chip-option').forEach(function(o) {
+        o.classList.toggle('selected', o.textContent.trim() === 'All districts');
+      });
+    }
+  }
+}
 
 function toggleChip(id) {
   var chip = document.getElementById(id);
   var isOpen = chip.classList.contains('open');
-  // close all + clear event search
   document.querySelectorAll('.filter-chip').forEach(function(c) { c.classList.remove('open'); });
-  var searchEl = document.getElementById('event-type-search');
-  if (searchEl) { searchEl.value = ''; filterEventTypeOptions(''); }
+  // Clear all search inputs and reset visibility
+  ['region-search','district-search','event-type-search'].forEach(function(searchId) {
+    var el = document.getElementById(searchId);
+    if (el) { el.value = ''; }
+  });
+  filterChipOptions('region-options', '');
+  filterChipOptions('district-options', '');
+  filterChipOptions('event-type-options', '');
   if (!isOpen) chip.classList.add('open');
 }
 
@@ -1178,18 +1222,16 @@ function updateFiltersTriggerBadge() {
 }
 
 function selectChip(chipId, inputId, value, label, optEl) {
-  // Update hidden input
   document.getElementById(inputId).value = value;
-  // Update label
   document.getElementById('label-' + inputId.replace('filter-','')).textContent = label;
-  // Active style on button
   var btn = document.querySelector('#' + chipId + ' .chip-btn');
   btn.classList.toggle('active', value !== '');
-  // Mark selected option
   document.querySelectorAll('#' + chipId + ' .chip-option').forEach(function(o) { o.classList.remove('selected'); });
   optEl.classList.add('selected');
-  // Close chip
   document.getElementById(chipId).classList.remove('open');
+  // Bidirectional region <-> district sync
+  var key = inputId.replace('filter-','');
+  if (key === 'region' || key === 'district') syncRegionDistrict(key, value);
   filterCards();
 }
 
@@ -1265,6 +1307,11 @@ function rebuildChipOptions(key, possibleValues, allLabel, clearLabel) {
     });
   }
 
+  // Region and district: write into the scroll container
+  if (key === 'region' || key === 'district') {
+    var optContainer = document.getElementById(key + '-options');
+    if (optContainer) { optContainer.innerHTML = html; return; }
+  }
   // Event type: write into the scroll container (preserves the search input above it)
   if (key === 'event') {
     var optContainer = document.getElementById('event-type-options');
