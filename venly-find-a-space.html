@@ -144,6 +144,20 @@ nav {
   overflow: hidden; padding: 6px;
 }
 .filter-chip.open .chip-dropdown { display: block; }
+/* Scrollable option list inside the dropdown */
+.chip-options-scroll {
+  max-height: 260px; overflow-y: auto;
+  overscroll-behavior: contain;
+}
+/* Search input inside event-type dropdown */
+.chip-search {
+  width: 100%; box-sizing: border-box;
+  padding: 7px 10px; margin-bottom: 4px;
+  border: 1px solid var(--border); border-radius: 6px;
+  font-size: 13px; font-family: 'Inter', sans-serif;
+  color: var(--text); background: var(--bg); outline: none;
+}
+.chip-search:focus { border-color: var(--red); }
 .chip-option {
   display: block; width: 100%; text-align: left;
   padding: 9px 12px; border: none; background: none;
@@ -657,10 +671,12 @@ nav {
         <svg class="chip-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
       <div class="chip-dropdown">
-        <button class="chip-option selected" onclick="selectChip('chip-type','filter-type','','Space type',this)">All types</button>
-        <button class="chip-option" onclick="selectChip('chip-type','filter-type','Event space','Event space',this)">Event space</button>
-        <button class="chip-option" onclick="selectChip('chip-type','filter-type','Meeting space','Meeting space',this)">Meeting space</button>
-        <button class="chip-option" onclick="selectChip('chip-type','filter-type','Shoot Location','Shoot location',this)">Shoot location</button>
+        <div class="chip-options-scroll">
+          <button class="chip-option selected" onclick="selectChip('chip-type','filter-type','','Space type',this)">All types</button>
+          <button class="chip-option" onclick="selectChip('chip-type','filter-type','Event space','Event space',this)">Event space</button>
+          <button class="chip-option" onclick="selectChip('chip-type','filter-type','Meeting space','Meeting space',this)">Meeting space</button>
+          <button class="chip-option" onclick="selectChip('chip-type','filter-type','Shoot Location','Shoot location',this)">Shoot location</button>
+        </div>
       </div>
     </div>
 
@@ -672,7 +688,9 @@ nav {
         <svg class="chip-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
       <div class="chip-dropdown">
-        <button class="chip-option selected" onclick="selectChip('chip-region','filter-region','','Region',this)">All regions</button>
+        <div class="chip-options-scroll" id="region-options">
+          <button class="chip-option selected" onclick="selectChip('chip-region','filter-region','','Region',this)">All regions</button>
+        </div>
       </div>
     </div>
 
@@ -695,8 +713,11 @@ nav {
         <span id="label-event">Event type</span>
         <svg class="chip-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
-      <div class="chip-dropdown" style="min-width:220px">
-        <button class="chip-option selected" onclick="selectChip('chip-event','filter-event','','Event type',this)">All event types</button>
+      <div class="chip-dropdown" style="min-width:240px">
+        <input class="chip-search" id="event-type-search" placeholder="Search event types…" oninput="filterEventTypeOptions(this.value)" />
+        <div class="chip-options-scroll" id="event-type-options">
+          <button class="chip-option selected" onclick="selectChip('chip-event','filter-event','','Event type',this)">All event types</button>
+        </div>
       </div>
     </div>
 </div>
@@ -1099,11 +1120,33 @@ function renderMapPins(list) {
 }
 
 
+function filterEventTypeOptions(query) {
+  var q = query.toLowerCase();
+  var container = document.getElementById('event-type-options');
+  if (!container) return;
+  container.querySelectorAll('.chip-option, .chip-optgroup-label').forEach(function(el) {
+    if (el.classList.contains('chip-optgroup-label')) {
+      // Show group labels only if at least one option in the group matches
+      var next = el.nextElementSibling;
+      var anyVisible = false;
+      while (next && !next.classList.contains('chip-optgroup-label')) {
+        if (!q || next.textContent.toLowerCase().includes(q)) anyVisible = true;
+        next = next.nextElementSibling;
+      }
+      el.style.display = anyVisible ? '' : 'none';
+    } else {
+      el.style.display = (!q || el.textContent.toLowerCase().includes(q)) ? '' : 'none';
+    }
+  });
+}
+
 function toggleChip(id) {
   var chip = document.getElementById(id);
   var isOpen = chip.classList.contains('open');
-  // close all
+  // close all + clear event search
   document.querySelectorAll('.filter-chip').forEach(function(c) { c.classList.remove('open'); });
+  var searchEl = document.getElementById('event-type-search');
+  if (searchEl) { searchEl.value = ''; filterEventTypeOptions(''); }
   if (!isOpen) chip.classList.add('open');
 }
 
@@ -1222,6 +1265,11 @@ function rebuildChipOptions(key, possibleValues, allLabel, clearLabel) {
     });
   }
 
+  // Event type: write into the scroll container (preserves the search input above it)
+  if (key === 'event') {
+    var optContainer = document.getElementById('event-type-options');
+    if (optContainer) { optContainer.innerHTML = html; return; }
+  }
   dropdown.innerHTML = html;
 
   // If currently selected value is no longer possible, clear it
