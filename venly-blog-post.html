@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Venly – Blog Post</title>
 <meta name="description" content="Read this article on Venly's blog — tips, guides, and news about event spaces, meeting rooms, and shoot locations in New Zealand." />
+<meta property="og:title" content="Venly Blog" />
+<meta property="og:description" content="Tips, guides, and news about event spaces and venues in New Zealand." />
+<meta property="og:type" content="article" />
 <meta property="og:type" content="article" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -416,7 +419,15 @@ function loadPost() {
     });
   }
 
-  document.title = 'Venly — ' + post.title;
+  document.title = (post.seo_title || post.title) + ' | Venly';
+  // Update meta description
+  var metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc) metaDesc.setAttribute('content', post.meta_desc || post.excerpt || 'Read this article on the Venly blog — tips, guides, and news about event spaces, meeting rooms, and shoot locations in New Zealand.');
+  // Open Graph tags
+  var ogTitle = document.querySelector('meta[property="og:title"]');
+  if (ogTitle) ogTitle.setAttribute('content', post.seo_title || post.title);
+  var ogDesc = document.querySelector('meta[property="og:description"]');
+  if (ogDesc) ogDesc.setAttribute('content', post.meta_desc || post.excerpt || '');
   document.getElementById('breadcrumb-title').textContent = post.title;
   document.getElementById('post-hero-img').src = upgradeImageUrl(post.img);
   document.getElementById('post-hero-img').alt = post.title;

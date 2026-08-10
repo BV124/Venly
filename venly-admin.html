@@ -1394,7 +1394,30 @@ tbody tr:last-child td { border-bottom: none; }
           </div>
 
           <div class="editor-card">
-            <h4>Preview</h4>
+            <h4>SEO</h4>
+            <div class="editor-field" style="margin-bottom:10px">
+              <label style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted)">SEO title <span style="font-weight:400;text-transform:none;color:#bbb">(optional)</span></label>
+              <input type="text" id="ed-seo-title" placeholder="Shorter keyword-focused title for Google" style="font-size:13px" oninput="updateSeoCharCount()" />
+              <div id="ed-seo-title-count" style="font-size:11px;color:var(--text-muted);margin-top:3px">0 / 60 characters</div>
+            </div>
+            <div class="editor-field" style="margin-bottom:10px">
+              <label style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted)">Meta description <span style="font-weight:400;text-transform:none;color:#bbb">(optional)</span></label>
+              <textarea id="ed-meta-desc" placeholder="1–2 sentences summarising the post. Appears under the title in Google search results." rows="3" style="font-size:13px;resize:vertical" oninput="updateSeoCharCount()"></textarea>
+              <div id="ed-meta-desc-count" style="font-size:11px;color:var(--text-muted);margin-top:3px">0 / 160 characters</div>
+            </div>
+            <div class="editor-field" style="margin-bottom:10px">
+              <label style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted)">Focus keyword <span style="font-weight:400;text-transform:none;color:#bbb">(optional)</span></label>
+              <input type="text" id="ed-focus-keyword" placeholder="e.g. Auckland event spaces" style="font-size:13px" />
+              <div style="font-size:11px;color:var(--text-muted);margin-top:3px">The main search term you want this post to rank for.</div>
+            </div>
+            <div class="editor-field">
+              <label style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted)">URL slug <span style="font-weight:400;text-transform:none;color:#bbb">(optional)</span></label>
+              <input type="text" id="ed-slug" placeholder="e.g. best-auckland-event-spaces" style="font-size:13px" />
+              <div style="font-size:11px;color:var(--text-muted);margin-top:3px">Auto-generated from title if left blank.</div>
+            </div>
+          </div>
+
+          <div class="editor-card">
             <div style="font-size:12px;color:var(--text-muted);line-height:1.6" id="ed-preview-text">Start typing to see a live preview of how this post will appear.</div>
           </div>
 
@@ -3451,7 +3474,10 @@ function openBlogEditor(postId) {
     document.getElementById('ed-img').value = post.img || '';
     document.getElementById('ed-published-toggle').classList.toggle('on', !!post.published);
     document.getElementById('ed-featured-toggle').classList.toggle('on', !!post.featured);
-
+    document.getElementById('ed-seo-title').value = post.seoTitle || post.seo_title || '';
+    document.getElementById('ed-meta-desc').value = post.metaDesc || post.meta_desc || '';
+    document.getElementById('ed-focus-keyword').value = post.focusKeyword || post.focus_keyword || '';
+    document.getElementById('ed-slug').value = post.slug || '';
     currentBlocks = (post.blocks && post.blocks.length) ? JSON.parse(JSON.stringify(post.blocks)) : [];
   } else {
     currentEditingPostId = null;
@@ -3462,8 +3488,13 @@ function openBlogEditor(postId) {
     document.getElementById('ed-img').value = '';
     document.getElementById('ed-published-toggle').classList.remove('on');
     document.getElementById('ed-featured-toggle').classList.remove('on');
+    document.getElementById('ed-seo-title').value = '';
+    document.getElementById('ed-meta-desc').value = '';
+    document.getElementById('ed-focus-keyword').value = '';
+    document.getElementById('ed-slug').value = '';
     currentBlocks = [];
   }
+  updateSeoCharCount();
 
   updateHeroPreview();
   resetUrlToggleState();
@@ -3573,6 +3604,21 @@ function resetUrlToggleState() {
 function updateHeroPreview() {
   var url = document.getElementById('ed-img').value.trim();
   setHeroPreview(url || null);
+}
+
+function updateSeoCharCount() {
+  var metaEl = document.getElementById('ed-meta-desc');
+  var seoTitleEl = document.getElementById('ed-seo-title');
+  if (metaEl) {
+    var mLen = metaEl.value.length;
+    var mCount = document.getElementById('ed-meta-desc-count');
+    if (mCount) { mCount.textContent = mLen + ' / 160 characters'; mCount.style.color = mLen > 160 ? 'var(--red)' : 'var(--text-muted)'; }
+  }
+  if (seoTitleEl) {
+    var sLen = seoTitleEl.value.length;
+    var sCount = document.getElementById('ed-seo-title-count');
+    if (sCount) { sCount.textContent = sLen + ' / 60 characters'; sCount.style.color = sLen > 60 ? 'var(--red)' : 'var(--text-muted)'; }
+  }
 }
 
 function updatePreview() {
@@ -3692,6 +3738,10 @@ async function saveBlogPost() {
     published: published,
     featured: featured,
     blocks: currentBlocks,
+    seoTitle: document.getElementById('ed-seo-title').value.trim(),
+    metaDesc: document.getElementById('ed-meta-desc').value.trim(),
+    focusKeyword: document.getElementById('ed-focus-keyword').value.trim(),
+    customSlug: document.getElementById('ed-slug').value.trim(),
   };
 
   if (SUPABASE_READY) {
@@ -3706,7 +3756,10 @@ async function saveBlogPost() {
       featured: postData.featured,
       blocks: postData.blocks,
       views: existing ? existing.views : 0,
-      slug: existing ? existing.slug : slugifyBlogTitle(title, currentEditingPostId),
+      slug: postData.customSlug || (existing ? existing.slug : slugifyBlogTitle(title, currentEditingPostId)),
+      seo_title: postData.seoTitle || null,
+      meta_desc: postData.metaDesc || null,
+      focus_keyword: postData.focusKeyword || null,
     };
 
     var saveRes;
