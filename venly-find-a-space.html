@@ -699,28 +699,13 @@ nav {
         <button class="chip-option selected" onclick="selectChip('chip-event','filter-event','','Event type',this)">All event types</button>
       </div>
     </div>
-
-    <div class="filter-chip" id="chip-price">
-      <button class="chip-btn" onclick="toggleChip('chip-price')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
-        <span id="label-price">Price</span>
-        <svg class="chip-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="chip-dropdown" style="min-width:200px">
-        <button class="chip-option selected" onclick="selectChip('chip-price','filter-price','','Price',this)">Any price</button>
-        <button class="chip-option" onclick="selectChip('chip-price','filter-price','0-100','Under $100',this)">Under $100</button>
-        <button class="chip-option" onclick="selectChip('chip-price','filter-price','100-300','$100 – $300',this)">$100 – $300</button>
-        <button class="chip-option" onclick="selectChip('chip-price','filter-price','300-','$300+',this)">$300+</button>
-        <button class="chip-option" onclick="selectChip('chip-price','filter-price','free','Free hire',this)">Free hire</button>
-      </div>
-    </div>
+</div>
 
     <!-- Hidden real filter values for filterCards() to read -->
     <input type="hidden" id="filter-type" value="" />
     <input type="hidden" id="filter-region" value="" />
     <input type="hidden" id="filter-district" value="" />
     <input type="hidden" id="filter-event" value="" />
-    <input type="hidden" id="filter-price" value="" />
 
     <div class="filter-divider"></div>
     <button class="clear-filters" onclick="clearFilters()">
@@ -1184,25 +1169,12 @@ function currentFilters() {
     region: document.getElementById('filter-region').value,
     district: document.getElementById('filter-district').value,
     event: document.getElementById('filter-event').value,
-    price: (document.getElementById('filter-price') || {}).value || ''
   };
 }
 
 // Does a space match the selected price bucket? Venues with no numeric price
 // (Enquire, or unpriced) are ALWAYS shown — we don't know their number, so
 // filtering them out over a value we can't see would hide real listings. The
-// only exception is the "Free hire" bucket, which matches price value 0.
-function matchesPriceBucket(s, bucket) {
-  if (!bucket) return true;
-  var val = s.priceValue;
-  if (bucket === 'free') return val === 0;
-  if (val == null) return true; // enquire / unpriced always shown
-  if (bucket === '0-100') return val < 100;
-  if (bucket === '100-300') return val >= 100 && val <= 300;
-  if (bucket === '300-') return val > 300;
-  return true;
-}
-
 // Spaces that match all CURRENT filters except the one named in `except`
 function spacesIgnoring(except) {
   const f = currentFilters();
@@ -1294,8 +1266,7 @@ function filterCards() {
     const matchRegion = !f.region || s.region === f.region;
     const matchDistrict = !f.district || s.district === f.district;
     const matchEvent = !f.event || (s.events && s.events.includes(f.event));
-    const matchPrice = matchesPriceBucket(s, f.price);
-    return matchSearch && matchType && matchRegion && matchDistrict && matchEvent && matchPrice;
+    return matchSearch && matchType && matchRegion && matchDistrict && matchEvent;
   });
 
   updateChipAvailability();
@@ -1309,8 +1280,6 @@ function clearFilters() {
   document.getElementById('filter-region').value = '';
   document.getElementById('filter-district').value = '';
   document.getElementById('filter-event').value = '';
-  var priceFilter = document.getElementById('filter-price');
-  if (priceFilter) priceFilter.value = '';
 
   // Reset visible chip labels and active styling
   var defaultLabels = { type: 'Space type', region: 'Region', district: 'District', event: 'Event type', price: 'Price' };
