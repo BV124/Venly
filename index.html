@@ -134,7 +134,13 @@ nav {
   letter-spacing: -0.5px;
 }
 
-.hero h1 span { color: var(--red); }
+#typewriter-word::after {
+  content: '|';
+  color: var(--red);
+  animation: blink 0.75s step-end infinite;
+  margin-left: 1px;
+}
+@keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
 
 .search-bar {
   display: flex;
@@ -1207,7 +1213,7 @@ section { padding: 80px 48px; }
 <div class="hiw-cta-section">
   <div class="hiw-cta-inner">
     <div class="hiw-cta-eyebrow">Ready to go?</div>
-    <h2>Find the perfect space today<span class="hiw-cta-dot">.</span></h2>
+    <h2>Find the perfect <span id="typewriter-word" style="color:var(--red)">Wedding</span> space<span class="hiw-cta-dot">.</span></h2>
     <p>Browse spaces across New Zealand for free. No account needed to search — just great venues waiting to be discovered.</p>
   </div>
 
@@ -1647,6 +1653,54 @@ window.venlyReady.then(populateHeroRegionOptions);
   window.addEventListener('scroll', function() {
     if (window.scrollY > 80) { solid(); } else { transparent(); }
   }, { passive: true });
+})();
+</script>
+<!-- Typewriter animation for hero CTA heading -->
+<script>
+(function() {
+  var words = ['Wedding', 'Meeting', 'Birthday', 'Corporate', 'Shoot', 'Event', 'Workshop'];
+  var el = document.getElementById('typewriter-word');
+  if (!el) return;
+
+  var wordIdx = 0;
+  var charIdx = 0;
+  var deleting = false;
+  var pauseAfterType = 1800;  // ms to hold the full word
+  var pauseAfterDelete = 400; // ms to pause before typing next word
+  var typeSpeed = 90;         // ms per character typed
+  var deleteSpeed = 50;       // ms per character deleted
+
+  function tick() {
+    var current = words[wordIdx];
+
+    if (!deleting) {
+      // Typing
+      charIdx++;
+      el.textContent = current.slice(0, charIdx);
+      if (charIdx === current.length) {
+        // Finished typing — pause then start deleting
+        deleting = true;
+        setTimeout(tick, pauseAfterType);
+        return;
+      }
+    } else {
+      // Deleting
+      charIdx--;
+      el.textContent = current.slice(0, charIdx);
+      if (charIdx === 0) {
+        // Finished deleting — move to next word
+        deleting = false;
+        wordIdx = (wordIdx + 1) % words.length;
+        setTimeout(tick, pauseAfterDelete);
+        return;
+      }
+    }
+
+    setTimeout(tick, deleting ? deleteSpeed : typeSpeed);
+  }
+
+  // Start after a short delay so the page settles first
+  setTimeout(tick, 800);
 })();
 </script>
 </body>
