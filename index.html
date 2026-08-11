@@ -5,7 +5,7 @@
 <base target="_self" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Venly – Find & Book Unique Venues in New Zealand</title>
-<meta name="description" content="Discover and book event spaces, meeting rooms, and shoot locations across New Zealand. Browse hundreds of unique venues on Venly — filter by type, location, and capacity." />
+<meta name="description" content="Discover and book event spaces, meeting rooms, and shoot locations across New Zealand. Browse hundreds of unique venues on Venly - filter by type, location, and capacity." />
 <link rel="canonical" href="https://venly.co.nz/" />
 
 <!-- Open Graph -->
@@ -376,7 +376,7 @@ section { padding: 80px 48px; }
   
 }
 
-/* HERO CARD — unified search + tags */
+/* HERO CARD - unified search + tags */
 .hero-card {
   background: rgba(255,255,255,0.97);
   backdrop-filter: blur(14px);
@@ -392,7 +392,7 @@ section { padding: 80px 48px; }
 }
 
 /* ============================================================
-   MOBILE RESPONSIVE — covers all screen sizes
+   MOBILE RESPONSIVE - covers all screen sizes
    ============================================================ */
 
 /* Shared mobile nav */
@@ -412,7 +412,7 @@ section { padding: 80px 48px; }
     font-size: 12px !important;
   }
 
-  /* HERO — shift focal point left so the Sky Tower stays in frame
+  /* HERO - shift focal point left so the Sky Tower stays in frame
      on tall/narrow viewports instead of being cropped off by
      background-size: cover centering on the CBD towers. */
   .hero-bg img { object-position: 32% 42%; }
@@ -470,7 +470,7 @@ section { padding: 80px 48px; }
 }
 
 </style>
-  <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
+  <!-- VENLY SHARED - loads config, Supabase, nav & footer -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="venly-config.js?v=2"></script>
   <script src="venly-shared.js?v=2"></script>
@@ -480,14 +480,14 @@ section { padding: 80px 48px; }
     // posts are only needed by the homepage's "From the Blog" widget.
     // These used to be bundled into one Promise.all, which meant venue
     // cards were waiting on blog posts to finish fetching too, even
-    // though they have nothing to do with each other — if blog content
+    // though they have nothing to do with each other - if blog content
     // (which can be a fair bit larger, with full rich-text blocks) was
     // slow, venue cards sat there for no reason. Splitting these means
     // each piece of the page renders the moment its own data is ready.
     window.venlyReady = (typeof venlyBootstrap === 'function') ? venlyBootstrap() : Promise.resolve();
     window.venlyBlogReady = (typeof venlyBootstrapBlog === 'function') ? venlyBootstrapBlog() : Promise.resolve();
 
-    // If Supabase is connected but a fetch genuinely failed, say so — don't
+    // If Supabase is connected but a fetch genuinely failed, say so - don't
     // let the page silently look "normal" while showing incomplete data.
     window.venlyReady.then(function() {
       if (typeof venlyFetchFailed !== 'function') return;
@@ -566,7 +566,7 @@ section { padding: 80px 48px; }
 .ja-title-dot { display: inline-block; color: var(--red); transform: scale(0); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
 .ja-title.is-visible .ja-title-dot { transform: scale(1); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s; }
 
-/* Quick-filter chips — small pill buttons that link straight into a
+/* Quick-filter chips - small pill buttons that link straight into a
    pre-filtered Find a Space view (real working params: type/region/event). */
 .ja-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 .ja-chips-track { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
@@ -585,7 +585,7 @@ section { padding: 80px 48px; }
 .ja-chip:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
 .ja-chips.is-visible .ja-chip { opacity: 1; transform: translateY(0) scale(1); }
 
-/* Even grid, every tile the same size — photo first, info below, no
+/* Even grid, every tile the same size - photo first, info below, no
    overlay text on the image itself. */
 .ja-grid {
   display: grid;
@@ -651,7 +651,7 @@ section { padding: 80px 48px; }
   /* Tighten the gap below the hero on mobile */
   .just-added { padding-top: 40px; }
 
-  /* Single column on mobile, like the blog cards — bigger image,
+  /* Single column on mobile, like the blog cards - bigger image,
      easier to actually see the venue instead of a cramped 2-up grid. */
   .ja-grid { grid-template-columns: 1fr; gap: 20px; }
   .ja-tile-img { height: 220px; }
@@ -670,7 +670,7 @@ section { padding: 80px 48px; }
     box-sizing: border-box;
   }
 
-  /* Filter chips — horizontal marquee, all chips in a row, scrolling
+  /* Filter chips - horizontal marquee, all chips in a row, scrolling
      continuously sideways on a seamless loop. */
   .ja-chips {
     display: flex;
@@ -719,7 +719,7 @@ section { padding: 80px 48px; }
 <script>
 // Trending Spaces chips are managed from the admin's Filters page (see
 // venly-admin.html > Filters > "Trending Spaces Filter Options") and read
-// here via the same shared getVenlyFilters() data everything else uses —
+// here via the same shared getVenlyFilters() data everything else uses -
 // so a change made once in the admin shows up here automatically.
 (function() {
   window.venlyReady.then(function() {
@@ -731,7 +731,7 @@ section { padding: 80px 48px; }
   function chipHtml(chip, hidden, idx) {
     var href = buildTrendingChipHref(chip);
     var hiddenAttrs = hidden ? ' aria-hidden="true" tabindex="-1"' : '';
-    // Staggered fade-in delay (0.55s, 0.65s, 0.75s...) — set inline per
+    // Staggered fade-in delay (0.55s, 0.65s, 0.75s...) - set inline per
     // chip rather than in CSS so it automatically covers however many
     // chips are configured in the admin, not just a fixed number.
     var delay = (0.55 + idx * 0.1).toFixed(2) + 's';
@@ -739,7 +739,7 @@ section { padding: 80px 48px; }
     return '<a href="' + href + '" class="ja-chip"' + hiddenAttrs + delayAttr + '>' + chip.label + '</a>';
   }
 
-  // Real chips first, then an aria-hidden duplicate set — the marquee
+  // Real chips first, then an aria-hidden duplicate set - the marquee
   // animation scrolls the track by -50% so it loops seamlessly.
   track.innerHTML =
     chips.map(function(c, idx) { return chipHtml(c, false, idx); }).join('') +
@@ -750,7 +750,7 @@ section { padding: 80px 48px; }
 
 <script>
 // The "Trending Spaces" grid is managed per-venue from the admin (Venues >
-// edit a venue > "Homepage placement" > Trending Spaces toggle) — this
+// edit a venue > "Homepage placement" > Trending Spaces toggle) - this
 // reads the same shared getAllVenues() data everything else uses, so a
 // change made once in the admin shows up here automatically.
 (function() {
@@ -767,7 +767,7 @@ section { padding: 80px 48px; }
   var venues = selected.slice(0, MAX);
 
   if (!venues.length) {
-    // Same idea as For All Occasions' empty slideshows — a plain grey box
+    // Same idea as For All Occasions' empty slideshows - a plain grey box
     // that holds the section's shape, rather than the grid collapsing to
     // nothing (which is what happens if this div is just left empty).
     var skeletonTile = '<div class="ja-tile ja-tile-skeleton">' +
@@ -805,7 +805,7 @@ section { padding: 80px 48px; }
     '</a>';
   }).join('');
 
-  // Small local escaper — index.html doesn't load the admin's escapeHtml helper.
+  // Small local escaper - index.html doesn't load the admin's escapeHtml helper.
   function escapeHtmlHome(str) {
     var div = document.createElement('div');
     div.textContent = str == null ? '' : str;
@@ -818,7 +818,7 @@ section { padding: 80px 48px; }
 <script>
 // Toggles the "Trending venues" heading + dot animation, and the quick-
 // filter chips beneath it, every time the section scrolls into or out of
-// view — so it stays "live" rather than firing once.
+// view - so it stays "live" rather than firing once.
 (function() {
   var title = document.querySelector('.ja-title');
   var chips = document.querySelector('.ja-chips');
@@ -841,7 +841,7 @@ section { padding: 80px 48px; }
       <h2 class="sts-title">For all occasions<span class="sts-dot" id="sts-dot">.</span></h2>
     </div>
 
-    <!-- 01 — EVENT SPACE (image left) -->
+    <!-- 01 - EVENT SPACE (image left) -->
     <div class="sts-row reverse" data-cat="event">
       <div class="sts-media">
         <a class="sts-slideshow-link" href="venly-find-a-space.html?type=Event+space" aria-label="View Event spaces">
@@ -857,7 +857,7 @@ section { padding: 80px 48px; }
       <div class="sts-copy">
         <div class="sts-meta-row"><span class="sts-num">01</span><span class="sts-eyebrow">For getting people together</span></div>
         <h3 class="sts-heading">Event spaces</h3>
-        <p class="sts-desc">Weddings, parties, product launches, galas — warehouses with character, rooftop views, and everything in between. If it calls for a crowd and a good time, there's a space here for it.</p>
+        <p class="sts-desc">Weddings, parties, product launches, galas - warehouses with character, rooftop views, and everything in between. If it calls for a crowd and a good time, there's a space here for it.</p>
         <div class="sts-cta-row">
           <a href="venly-find-a-space.html?type=Event+space" class="btn btn-primary">Explore</a>
           <a href="venly-listing-fees.html?type=Event+space" class="sts-link">List an event space <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
@@ -865,7 +865,7 @@ section { padding: 80px 48px; }
       </div>
     </div>
 
-    <!-- 02 — MEETING SPACE (image right) -->
+    <!-- 02 - MEETING SPACE (image right) -->
     <div class="sts-row" data-cat="meeting">
       <div class="sts-media">
         <a class="sts-slideshow-link" href="venly-find-a-space.html?type=Meeting+space" aria-label="View Meeting spaces">
@@ -881,7 +881,7 @@ section { padding: 80px 48px; }
       <div class="sts-copy">
         <div class="sts-meta-row"><span class="sts-num">02</span><span class="sts-eyebrow">For getting things done</span></div>
         <h3 class="sts-heading">Meeting spaces</h3>
-        <p class="sts-desc">Boardrooms, training rooms, coworking spots and proper interview rooms — book somewhere that actually looks professional, instead of squeezing into a noisy café table again.</p>
+        <p class="sts-desc">Boardrooms, training rooms, coworking spots and proper interview rooms - book somewhere that actually looks professional, instead of squeezing into a noisy café table again.</p>
         <div class="sts-cta-row">
           <a href="venly-find-a-space.html?type=Meeting+space" class="btn btn-primary">Explore</a>
           <a href="venly-listing-fees.html?type=Meeting+space" class="sts-link">List a meeting space <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
@@ -889,7 +889,7 @@ section { padding: 80px 48px; }
       </div>
     </div>
 
-    <!-- 03 — SHOOT LOCATION (image left) -->
+    <!-- 03 - SHOOT LOCATION (image left) -->
     <div class="sts-row reverse" data-cat="shoot">
       <div class="sts-media">
         <a class="sts-slideshow-link" href="venly-find-a-space.html?type=Shoot+Location" aria-label="View Shoot locations">
@@ -905,7 +905,7 @@ section { padding: 80px 48px; }
       <div class="sts-copy">
         <div class="sts-meta-row"><span class="sts-num">03</span><span class="sts-eyebrow">For getting the perfect shot</span></div>
         <h3 class="sts-heading">Shoot locations</h3>
-        <p class="sts-desc">Natural light, private entrances, gear-friendly access — built for film, photography, podcasts and content creation. Find the backdrop before you find the headache.</p>
+        <p class="sts-desc">Natural light, private entrances, gear-friendly access - built for film, photography, podcasts and content creation. Find the backdrop before you find the headache.</p>
         <div class="sts-cta-row">
           <a href="venly-find-a-space.html?type=Shoot+Location" class="btn btn-primary">Explore</a>
           <a href="venly-listing-fees.html?type=Shoot+Location" class="sts-link">List a shoot location <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
@@ -977,7 +977,7 @@ section { padding: 80px 48px; }
 }
 
 /* Dial down the venue-label so it doesn't fight the type badge for
-   attention — it's a supporting detail, not the headline. */
+   attention - it's a supporting detail, not the headline. */
 .sts-venue-label {
   position: absolute; bottom: 16px; left: 16px; z-index: 2;
   display: inline-flex; align-items: center; gap: 7px;
@@ -992,7 +992,7 @@ section { padding: 80px 48px; }
 .sts-slideshow-link:hover .sts-venue-label { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.18); }
 .sts-slideshow-link:hover .sts-venue-label svg { transform: translateX(3px); color: var(--red); }
 
-/* Dots below the slideshow — bigger and easier to see */
+/* Dots below the slideshow - bigger and easier to see */
 .sts-dots { display: flex; justify-content: center; gap: 10px; margin-top: 14px; }
 .sts-dot-indicator {
   width: 8px; height: 8px; border-radius: 50%; background: var(--border);
@@ -1031,7 +1031,7 @@ section { padding: 80px 48px; }
 <script>
 // "For all occasions" pulls its slides from venues flagged in the admin
 // (Venues > edit a venue > "Homepage placement" > For all occasions
-// toggle), one row per space type — same shared getAllVenues() data used
+// toggle), one row per space type - same shared getAllVenues() data used
 // everywhere else, so a change made once in the admin shows up here too.
 (function() {
   window.venlyReady.then(function() {
@@ -1053,12 +1053,12 @@ section { padding: 80px 48px; }
     var venues = selected.slice(0, MAX);
     if (!venues.length) return;
 
-    // Filter to only venues with photos — slides without images would show as
+    // Filter to only venues with photos - slides without images would show as
     // empty grey boxes in the slideshow. A console warning tells you which
     // venue needs a photo added to appear here.
     var venuesToShow = venues.filter(function(v) {
       if (!v.photos || !v.photos[0]) {
-        console.warn('[Venly] "For all occasions": venue "' + v.name + '" is flagged for this section but has no photos — add a photo to make it appear.');
+        console.warn('[Venly] "For all occasions": venue "' + v.name + '" is flagged for this section but has no photos - add a photo to make it appear.');
         return false;
       }
       return true;
@@ -1075,7 +1075,7 @@ section { padding: 80px 48px; }
         ' />';
     }).join('');
 
-    // Initial badge — use first visible venue.
+    // Initial badge - use first visible venue.
     var media = slideshow.closest('.sts-media');
     if (media) {
       var existing = media.querySelector('.sts-badge-wrap');
@@ -1219,7 +1219,7 @@ section { padding: 80px 48px; }
   <div class="hiw-cta-inner">
     <div class="hiw-cta-eyebrow">Ready to go?</div>
     <h2>Find the perfect <span class="typewriter-line"><span id="typewriter-word" style="color:var(--red)">Wedding</span> space<span class="hiw-cta-dot">.</span></span></h2>
-    <p>Browse spaces across New Zealand for free. No account needed to search — just great venues waiting to be discovered.</p>
+    <p>Browse spaces across New Zealand for free. No account needed to search - just great venues waiting to be discovered.</p>
   </div>
 
   <!-- 4-step diagram (matches venly-how-it-works.html "Finding a Space" steps) -->
@@ -1234,12 +1234,12 @@ section { padding: 80px 48px; }
       <div class="hiw-cta-step">
         <div class="hiw-cta-step-num">2</div>
         <div class="hiw-cta-step-title">Browse listings</div>
-        <div class="hiw-cta-step-desc">View photos, read about the space, check features and pricing — everything you need to make a decision in one place.</div>
+        <div class="hiw-cta-step-desc">View photos, read about the space, check features and pricing - everything you need to make a decision in one place.</div>
       </div>
       <div class="hiw-cta-step">
         <div class="hiw-cta-step-num">3</div>
         <div class="hiw-cta-step-title">Enquire directly</div>
-        <div class="hiw-cta-step-desc">Send a message straight to the host with your details and event info. No third party involved — it's just you and them.</div>
+        <div class="hiw-cta-step-desc">Send a message straight to the host with your details and event info. No third party involved - it's just you and them.</div>
       </div>
       <div class="hiw-cta-step">
         <div class="hiw-cta-step-num">4</div>
@@ -1272,7 +1272,7 @@ section { padding: 80px 48px; }
 .hiw-cta-inner p { font-size: 15px; color: var(--text-muted); margin-bottom: 0; line-height: 1.7; }
 .hiw-cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 
-/* 4-step diagram — wider than the text column above/below it */
+/* 4-step diagram - wider than the text column above/below it */
 .hiw-cta-steps-wrap { max-width: 1100px; margin: 48px auto 56px; padding: 0 24px; }
 .hiw-cta-steps-grid {
   display: grid;
@@ -1455,18 +1455,18 @@ section { padding: 80px 48px; }
 
 
 <script>
-// ── Homepage "From the Blog" — pulls from the same data the admin blog editor writes to ──
+// ── Homepage "From the Blog" - pulls from the same data the admin blog editor writes to ──
 (function() {
   var FALLBACK_HOME_POSTS = [
-    { id: 0, title: 'How to Choose the Perfect Space for Your Next Event', category: 'HOSTING TIPS', date: '12 Jun 2025', readTime: '4 min read', img: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80', excerpt: 'Size, location, vibe — a no-nonsense guide to finding a space that actually works for your event.' },
-    { id: 1, title: '5 Things to Check Before Booking a Venue', category: 'HOSTING TIPS', date: '8 Jun 2025', readTime: '3 min read', img: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80', excerpt: 'From parking to noise restrictions — the questions every event planner should ask before signing anything.' },
+    { id: 0, title: 'How to Choose the Perfect Space for Your Next Event', category: 'HOSTING TIPS', date: '12 Jun 2025', readTime: '4 min read', img: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80', excerpt: 'Size, location, vibe - a no-nonsense guide to finding a space that actually works for your event.' },
+    { id: 1, title: '5 Things to Check Before Booking a Venue', category: 'HOSTING TIPS', date: '8 Jun 2025', readTime: '3 min read', img: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80', excerpt: 'From parking to noise restrictions - the questions every event planner should ask before signing anything.' },
     { id: 3, title: 'Stop Booking Coffee Shops for Meetings', category: 'MEETING SPACE', date: '1 Jun 2025', readTime: '3 min read', img: 'https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=600&q=80', excerpt: 'Noisy, cramped and unprofessional. It\'s time to upgrade to a proper meeting space. Here\'s how.' },
   ];
 
   function getHomeBlogPosts() {
     var real = (typeof getVenlyBlogPosts === 'function') ? getVenlyBlogPosts() : null;
     if (real) {
-      // Only show posts explicitly selected for the homepage in the admin —
+      // Only show posts explicitly selected for the homepage in the admin -
       // no automatic backfill with other recent posts. RLS already limits
       // this to published posts only.
       return real.filter(function(p) { return p.featured; }).slice(0, 3);
@@ -1575,7 +1575,7 @@ function doSearch() {
 }
 
 // Populates the hero search region dropdown from the same shared filters
-// the admin's Filters page manages — so a region added there shows up here
+// the admin's Filters page manages - so a region added there shows up here
 // without needing a separate hardcoded list.
 function populateHeroRegionOptions() {
   var select = document.getElementById('hero-region');
@@ -1590,7 +1590,7 @@ window.venlyReady.then(populateHeroRegionOptions);
 </script>
 
 <script>
-// Transparent nav scroll effect — homepage only
+// Transparent nav scroll effect - homepage only
 (function() {
   var nav = document.querySelector('nav');
   if (!nav) return;
@@ -1612,7 +1612,7 @@ window.venlyReady.then(populateHeroRegionOptions);
     // Nav links white
     nav.querySelectorAll('ul a').forEach(function(a) { a.style.color = 'rgba(255,255,255,0.92)'; });
     // Outline buttons (Login when logged out; My Dashboard + Log out when
-    // logged in) — white outline, white text, semi-transparent bg on hover.
+    // logged in) - white outline, white text, semi-transparent bg on hover.
     // Uses querySelectorAll since there can now be more than one of these.
     var outlineBtns = nav.querySelectorAll('.btn-outline');
     outlineBtns.forEach(function(outline) {
@@ -1622,7 +1622,7 @@ window.venlyReady.then(populateHeroRegionOptions);
       outline.onmouseover = function() { this.style.background = 'rgba(255,255,255,0.22)'; };
       outline.onmouseout = function() { this.style.background = 'rgba(255,255,255,0.12)'; };
     });
-    // Hamburger icon white (only when the menu is closed — once open,
+    // Hamburger icon white (only when the menu is closed - once open,
     // the nav forces itself solid and the bars switch back to dark via CSS)
     nav.querySelectorAll('.mnav-toggle span').forEach(function(span) {
       span.style.background = '#fff';
@@ -1685,7 +1685,7 @@ window.venlyReady.then(populateHeroRegionOptions);
       charIdx++;
       el.textContent = current.slice(0, charIdx);
       if (charIdx === current.length) {
-        // Finished typing — pause then start deleting
+        // Finished typing - pause then start deleting
         deleting = true;
         setTimeout(tick, pauseAfterType);
         return;
@@ -1695,7 +1695,7 @@ window.venlyReady.then(populateHeroRegionOptions);
       charIdx--;
       el.textContent = current.slice(0, charIdx);
       if (charIdx === 0) {
-        // Finished deleting — move to next word
+        // Finished deleting - move to next word
         deleting = false;
         wordIdx = (wordIdx + 1) % words.length;
         setTimeout(tick, pauseAfterDelete);
