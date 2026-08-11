@@ -1218,7 +1218,7 @@ section { padding: 80px 48px; }
 <div class="hiw-cta-section">
   <div class="hiw-cta-inner">
     <div class="hiw-cta-eyebrow">Ready to go?</div>
-    <h2>Find the perfect <span id="typewriter-word" style="color:var(--red)">Wedding</span> space<span class="hiw-cta-dot">.</span></h2>
+    <h2>Find the perfect <span class="typewriter-line"><span id="typewriter-word" style="color:var(--red)">Wedding</span> space<span class="hiw-cta-dot">.</span></span></h2>
     <p>Browse spaces across New Zealand for free. No account needed to search — just great venues waiting to be discovered.</p>
   </div>
 
@@ -1267,6 +1267,7 @@ section { padding: 80px 48px; }
 .hiw-cta-inner { max-width: 580px; margin: 0 auto; }
 .hiw-cta-eyebrow { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--red); margin-bottom: 14px; }
 .hiw-cta-inner h2 { font-size: 36px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 12px; color: var(--text); }
+.typewriter-line { display: inline; }
 .hiw-cta-dot { color: var(--red); }
 .hiw-cta-inner p { font-size: 15px; color: var(--text-muted); margin-bottom: 0; line-height: 1.7; }
 .hiw-cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
@@ -1346,6 +1347,7 @@ section { padding: 80px 48px; }
 }
 @media (max-width: 560px) {
   .hiw-cta-inner h2 { font-size: 28px; }
+  .typewriter-line { display: block; }
   .hiw-cta-steps-grid { grid-template-columns: 1fr; }
   .hiw-cta-steps-wrap { margin: 40px auto 48px; }
 }
