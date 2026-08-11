@@ -134,11 +134,16 @@ nav {
   letter-spacing: -0.5px;
 }
 
+#typewriter-word {
+  position: relative;
+}
 #typewriter-word::after {
   content: '|';
   color: var(--red);
   animation: blink 0.75s step-end infinite;
-  margin-left: 1px;
+  font-weight: 300;
+  position: absolute;
+  right: -8px;
 }
 @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
 
@@ -1261,7 +1266,7 @@ section { padding: 80px 48px; }
 }
 .hiw-cta-inner { max-width: 580px; margin: 0 auto; }
 .hiw-cta-eyebrow { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--red); margin-bottom: 14px; }
-.hiw-cta-inner h2 { font-size: 36px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 12px; color: var(--text); }
+.hiw-cta-inner h2 { font-size: 36px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 12px; color: var(--text); }
 .hiw-cta-dot { color: var(--red); }
 .hiw-cta-inner p { font-size: 15px; color: var(--text-muted); margin-bottom: 0; line-height: 1.7; }
 .hiw-cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
@@ -1658,7 +1663,7 @@ window.venlyReady.then(populateHeroRegionOptions);
 <!-- Typewriter animation for hero CTA heading -->
 <script>
 (function() {
-  var words = ['Wedding', 'Meeting', 'Birthday', 'Corporate', 'Shoot', 'Event', 'Workshop'];
+  var words = ['Wedding', 'Meeting', 'Birthday', 'Corporate', 'Shoot', 'Event'];
   var el = document.getElementById('typewriter-word');
   if (!el) return;
 
