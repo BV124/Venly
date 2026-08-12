@@ -187,12 +187,6 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
 <div class="filters-section">
   <div class="category-pills" id="cat-pills">
     <button class="cat-pill active" onclick="filterCat('all', this)">All</button>
-    <button class="cat-pill" onclick="filterCat('event', this)">Event Spaces</button>
-    <button class="cat-pill" onclick="filterCat('meeting', this)">Meeting Spaces</button>
-    <button class="cat-pill" onclick="filterCat('shoot', this)">Shoot Locations</button>
-    <button class="cat-pill" onclick="filterCat('tips', this)">Hosting Tips</button>
-    <button class="cat-pill" onclick="filterCat('news', this)">Venly News</button>
-    <button class="cat-pill" onclick="filterCat('guides', this)">Guides</button>
   </div>
 </div>
 
@@ -206,6 +200,37 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
 <script>renderFooter(); trackPageView();</script>
 
 <script>
+// Display labels for each pill code
+var BLOG_PILL_LABELS = {
+  'event':   'Event Spaces',
+  'meeting': 'Meeting Spaces',
+  'shoot':   'Shoot Locations',
+  'tips':    'Hosting Tips',
+  'news':    'Venly News',
+  'guides':  'Guides',
+};
+
+// Build category pills from whichever categories actually exist in published posts.
+// This means adding/removing categories in the admin immediately reflects here.
+function buildCategoryPills() {
+  var posts = getPostsForDisplay();
+  var seen = {};
+  var order = ['event','meeting','shoot','tips','news','guides']; // preferred order
+  posts.forEach(function(p) { if (p.cat) seen[p.cat] = true; });
+  var cats = order.filter(function(c) { return seen[c]; });
+  // Also include any unknown cats not in the preferred order
+  Object.keys(seen).forEach(function(c) { if (cats.indexOf(c) === -1) cats.push(c); });
+
+  var pillsEl = document.getElementById('cat-pills');
+  if (!pillsEl) return;
+  // Keep the "All" button, rebuild the rest
+  pillsEl.innerHTML = '<button class="cat-pill active" onclick="filterCat(\'all\', this)">All</button>' +
+    cats.map(function(c) {
+      var label = BLOG_PILL_LABELS[c] || (c.charAt(0).toUpperCase() + c.slice(1));
+      return '<button class="cat-pill" onclick="filterCat(\'' + c + '\', this)">' + label + '</button>';
+    }).join('');
+}
+
 // Real category values (as stored by the admin's blog editor) mapped to
 // the short filter-pill codes this page's UI already uses.
 var BLOG_CATEGORY_TO_PILL = {
@@ -299,6 +324,7 @@ function truncate(text, wordLimit) {
 }
 
 window.venlyReady.then(function() {
+  buildCategoryPills();
   renderFeaturedSlideshow();
   renderPosts('all');
 });
