@@ -173,12 +173,13 @@ function injectMobileNavStyles() {
       .mnav-toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
       .mnav-panel {
-        position: absolute; top: 56px; left: 0; right: 0;
+        position: fixed; top: 56px; left: 0; right: 0;
         background: var(--white, #fff);
         border-bottom: none;
         box-shadow: none;
         max-height: 0; overflow: hidden;
         transition: max-height 0.25s ease;
+        z-index: 999;
       }
       .mnav-panel.is-open {
         max-height: 420px;
