@@ -616,6 +616,18 @@ tbody tr:last-child td { border-bottom: none; }
 /* Content blocks */
 .block-list { display: flex; flex-direction: column; gap: 10px; }
 .content-block { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; position: relative; background: var(--bg); }
+/* Rich text editor */
+.rich-toolbar { display: flex; gap: 2px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; }
+.rich-toolbar button { background: none; border: 1px solid transparent; border-radius: 4px; cursor: pointer; padding: 3px 7px; font-size: 13px; font-family: inherit; color: var(--text); line-height: 1.4; }
+.rich-toolbar button:hover { background: var(--border); border-color: var(--border); }
+.rich-toolbar-sep { width: 1px; height: 18px; background: var(--border); margin: 0 4px; }
+.rich-editor { min-height: 80px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; font-family: 'Inter', sans-serif; line-height: 1.7; color: var(--text); background: var(--white); outline: none; cursor: text; }
+.rich-editor:focus { border-color: var(--red); }
+.rich-editor:empty::before { content: attr(data-placeholder); color: #bbb; pointer-events: none; }
+.rich-editor b, .rich-editor strong { font-weight: 700; }
+.rich-editor i, .rich-editor em { font-style: italic; }
+.rich-editor u { text-decoration: underline; }
+.rich-editor a { color: var(--red); }
 .block-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .block-type-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--red); }
 .block-actions { display: flex; gap: 4px; }
@@ -3632,7 +3644,7 @@ function updatePreview() {
 // ── Content blocks ──────────────────────────────────────────
 function addBlock(type) {
   var block = { _id: 'b' + (blockIdCounter++), type: type };
-  if (type === 'paragraph') block.text = '';
+  if (type === 'paragraph') { block.text = ''; block.html = ''; }
   if (type === 'heading') block.text = '';
   if (type === 'quote') block.text = '';
   if (type === 'list') block.items = [''];
@@ -3657,7 +3669,79 @@ function moveBlock(id, dir) {
 
 function updateBlockText(id, value) {
   var block = currentBlocks.find(function(b) { return b._id === id; });
-  if (block) block.text = value;
+  if (block) { block.text = value; block.html = value; }
+}
+
+function updateBlockHtml(id) {
+  var block = currentBlocks.find(function(b) { return b._id === id; });
+  if (!block) return;
+  var el = document.querySelector('[data-block-id="' + id + '"]');
+  if (!el) return;
+  block.html = el.innerHTML;
+  block.text = el.innerText; // plain text fallback
+}
+
+function richCmd(cmd) {
+  document.execCommand(cmd, false, null);
+  // Update the block data after formatting
+  var active = document.activeElement;
+  if (active && active.classList.contains('rich-editor')) {
+    var id = active.dataset.blockId;
+    if (id) updateBlockHtml(id);
+  }
+}
+
+function richInsertLink() {
+  var url = prompt('Enter URL:');
+  if (!url) return;
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  document.execCommand('createLink', false, url);
+  var active = document.activeElement;
+  if (active && active.classList.contains('rich-editor')) {
+    var id = active.dataset.blockId;
+    if (id) updateBlockHtml(id);
+  }
+}
+
+function handleRichPaste(e, blockId) {
+  e.preventDefault();
+  var block = currentBlocks.find(function(b) { return b._id === blockId; });
+  if (!block) return;
+
+  // Try to get HTML from clipboard (preserves bold/italic/headings from Word, Google Docs etc)
+  var html = '';
+  if (e.clipboardData) {
+    html = e.clipboardData.getData('text/html');
+    if (!html) {
+      // Plain text fallback — convert newlines to <br>
+      var plain = e.clipboardData.getData('text/plain');
+      html = plain.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+    } else {
+      // Clean up pasted HTML — strip Word/Docs junk but keep bold/italic/underline/links
+      var tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      // Remove style, class, id, span tags (but keep their content), keep structural tags
+      tmp.querySelectorAll('style, script, meta, link').forEach(function(el) { el.remove(); });
+      tmp.querySelectorAll('*').forEach(function(el) {
+        el.removeAttribute('style');
+        el.removeAttribute('class');
+        el.removeAttribute('id');
+        el.removeAttribute('lang');
+        el.removeAttribute('dir');
+      });
+      // Collapse spans
+      tmp.querySelectorAll('span').forEach(function(el) {
+        var frag = document.createDocumentFragment();
+        while (el.firstChild) frag.appendChild(el.firstChild);
+        el.parentNode.replaceChild(frag, el);
+      });
+      html = tmp.innerHTML;
+    }
+  }
+
+  // Insert at cursor
+  document.execCommand('insertHTML', false, html);
+  setTimeout(function() { updateBlockHtml(blockId); }, 0);
 }
 
 function updateListItem(blockId, itemIdx, value) {
@@ -3694,7 +3778,21 @@ function renderBlocks() {
 
     var body = '';
     if (b.type === 'paragraph') {
-      body = '<textarea rows="3" placeholder="Write a paragraph..." oninput="updateBlockText(\'' + b._id + '\', this.value)">' + (b.text || '') + '</textarea>';
+      var html = b.html || (b.text ? b.text.replace(/\n/g, '<br>') : '');
+      body = '<div class="rich-toolbar">' +
+        '<button type="button" title="Bold" onclick="richCmd(\'bold\')"><b>B</b></button>' +
+        '<button type="button" title="Italic" onclick="richCmd(\'italic\')"><i>I</i></button>' +
+        '<button type="button" title="Underline" onclick="richCmd(\'underline\')"><u>U</u></button>' +
+        '<button type="button" title="Strike" onclick="richCmd(\'strikeThrough\')" style="text-decoration:line-through">S</button>' +
+        '<span class="rich-toolbar-sep"></span>' +
+        '<button type="button" title="Link" onclick="richInsertLink()">&#128279;</button>' +
+        '<button type="button" title="Clear formatting" onclick="richCmd(\'removeFormat\')" style="font-size:11px">Aa</button>' +
+      '</div>' +
+      '<div class="rich-editor" contenteditable="true" data-block-id="' + b._id + '" ' +
+        'oninput="updateBlockHtml(\'' + b._id + '\')" ' +
+        'onpaste="handleRichPaste(event, \'' + b._id + '\')">' +
+        (html || '') +
+      '</div>';
     } else if (b.type === 'heading') {
       body = '<input type="text" placeholder="Section heading..." value="' + (b.text || '').replace(/"/g, '&quot;') + '" oninput="updateBlockText(\'' + b._id + '\', this.value)" />';
     } else if (b.type === 'quote') {
@@ -3720,12 +3818,17 @@ async function saveBlogPost() {
   var published = document.getElementById('ed-published-toggle').classList.contains('on');
   var featured = document.getElementById('ed-featured-toggle').classList.contains('on');
 
-  // Auto-generate excerpt from the first paragraph block
+  // Auto-generate excerpt from the first paragraph block (strip HTML tags for plain text)
   var autoExcerpt = '';
   for (var i = 0; i < currentBlocks.length; i++) {
-    if (currentBlocks[i].type === 'paragraph' && currentBlocks[i].text && currentBlocks[i].text.trim()) {
-      autoExcerpt = currentBlocks[i].text.trim();
-      break;
+    if (currentBlocks[i].type === 'paragraph') {
+      var src = currentBlocks[i].text || '';
+      if (currentBlocks[i].html) {
+        var tmp = document.createElement('div');
+        tmp.innerHTML = currentBlocks[i].html;
+        src = tmp.innerText || tmp.textContent || '';
+      }
+      if (src.trim()) { autoExcerpt = src.trim(); break; }
     }
   }
 
@@ -3830,7 +3933,9 @@ function blocksToHtml(blocks) {
   if (!blocks || blocks.length === 0) return '';
   return blocks.map(function(b) {
     if (b.type === 'paragraph') {
-      return b.text ? '<p>' + escapeHtml(b.text) + '</p>' : '';
+      // Use stored HTML (with bold/italic/underline) if available, else plain text
+      var content = b.html || (b.text ? escapeHtml(b.text).replace(/\n/g, '<br>') : '');
+      return content ? '<p>' + content + '</p>' : '';
     }
     if (b.type === 'heading') {
       return b.text ? '<h2>' + escapeHtml(b.text) + '</h2>' : '';
