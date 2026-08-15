@@ -297,7 +297,7 @@ function renderPosts(filter) {
   }
 
   grid.innerHTML = filtered.map(p => `
-    <div class="blog-card" onclick="window.location.href=blogPostUrl(p)">
+    <div class="blog-card" onclick="window.location.href='${blogPostUrl(p)}'">
       <div class="blog-card-img">
         <img src="${p.img}" alt="${p.title}" loading="lazy" />
         <span class="card-cat-badge">${p.badge}</span>
@@ -355,7 +355,7 @@ function renderFeaturedSlideshow() {
   }
 
   container.innerHTML = posts.map(function(p, i) {
-    return '<div class="featured-card' + (i === 0 ? ' active' : '') + '" onclick="window.location.href=\'' + "' + blogPostUrl(p) + '" + '\'">' +
+    return '<div class="featured-card' + (i === 0 ? ' active' : '') + '" onclick="window.location.href=\'' + blogPostUrl(p) + '\'">' +
       '<div class="featured-img">' +
         '<img src="' + (p.img || '') + '" alt="' + p.title + '" />' +
         '<span class="featured-cat-badge">' + (p.badge || '') + '</span>' +
