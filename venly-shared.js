@@ -182,7 +182,7 @@ function injectMobileNavStyles() {
         box-shadow: none;
         max-height: 0; overflow: hidden;
         transition: max-height 0.25s ease;
-        z-index: 999;
+        z-index: 99999;
       }
       .mnav-panel.is-open {
         max-height: 420px;
