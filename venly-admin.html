@@ -1384,6 +1384,10 @@ tbody tr:last-child td { border-bottom: none; }
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21c0 0 0 0 1 0z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 3-1.75 3v3c0 0 0 2 1 2z"/></svg>
                 Quote
               </button>
+              <button class="add-block-btn" onclick="openPasteArticle()" style="border-color:var(--red);color:var(--red)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+                Paste article
+              </button>
             </div>
           </div>
         </div>
@@ -3677,8 +3681,10 @@ function updateBlockHtml(id) {
   if (!block) return;
   var el = document.querySelector('[data-block-id="' + id + '"]');
   if (!el) return;
-  block.html = el.innerHTML;
-  block.text = el.innerText; // plain text fallback
+  // Clean up trailing <br> tags browsers insert at end of contenteditable
+  var html = el.innerHTML.replace(/(<br\s*\/?>)+$/gi, '').trim();
+  block.html = html;
+  block.text = el.innerText || el.textContent || '';
 }
 
 function richCmd(cmd) {
@@ -3747,6 +3753,88 @@ function handleRichPaste(e, blockId) {
 function updateListItem(blockId, itemIdx, value) {
   var block = currentBlocks.find(function(b) { return b._id === blockId; });
   if (block) block.items[itemIdx] = value;
+}
+
+// ---- PASTE ARTICLE ----
+function openPasteArticle() {
+  var el = document.getElementById('paste-article-input');
+  if (el) el.innerHTML = '';
+  document.getElementById('paste-article-overlay').classList.remove('hidden');
+  setTimeout(function() { if (el) el.focus(); }, 100);
+}
+
+function closePasteArticle() {
+  document.getElementById('paste-article-overlay').classList.add('hidden');
+}
+
+function importPastedArticle() {
+  var el = document.getElementById('paste-article-input');
+  if (!el || !el.innerHTML.trim()) { showToast('Paste some content first'); return; }
+
+  var tmp = document.createElement('div');
+  tmp.innerHTML = el.innerHTML;
+
+  // Strip junk but keep bold/italic/underline/links
+  tmp.querySelectorAll('style,script,meta').forEach(function(e) { e.remove(); });
+  tmp.querySelectorAll('*').forEach(function(e) {
+    ['style','class','id','lang','dir','data-highlight-colour'].forEach(function(a) { e.removeAttribute(a); });
+  });
+  // Flatten spans
+  tmp.querySelectorAll('span').forEach(function(e) {
+    var f = document.createDocumentFragment();
+    while (e.firstChild) f.appendChild(e.firstChild);
+    e.parentNode.replaceChild(f, e);
+  });
+
+  var newBlocks = [];
+
+  // Walk top-level nodes and convert to blocks
+  Array.from(tmp.childNodes).forEach(function(node) {
+    if (node.nodeType === 3) {
+      // Text node
+      var txt = node.textContent.trim();
+      if (txt) newBlocks.push({ _id: 'b' + (blockIdCounter++), type: 'paragraph', html: txt, text: txt });
+      return;
+    }
+    var tag = node.nodeName.toLowerCase();
+
+    if (tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4') {
+      var txt = node.innerText || node.textContent || '';
+      if (txt.trim()) newBlocks.push({ _id: 'b' + (blockIdCounter++), type: 'heading', text: txt.trim(), html: txt.trim() });
+
+    } else if (tag === 'ul' || tag === 'ol') {
+      var items = Array.from(node.querySelectorAll('li')).map(function(li) { return (li.innerText || li.textContent || '').trim(); }).filter(Boolean);
+      if (items.length) newBlocks.push({ _id: 'b' + (blockIdCounter++), type: 'list', items: items });
+
+    } else if (tag === 'blockquote') {
+      var txt = node.innerText || node.textContent || '';
+      if (txt.trim()) newBlocks.push({ _id: 'b' + (blockIdCounter++), type: 'quote', text: txt.trim(), html: txt.trim() });
+
+    } else if (tag === 'p' || tag === 'div') {
+      // Could contain sub-blocks — check if it has a heading inside
+      var inner = node.innerHTML.trim();
+      var text = (node.innerText || node.textContent || '').trim();
+      if (!text) return;
+      // Treat divs/ps with only a heading tag as headings
+      if (/^<h[1-4][^>]*>/i.test(inner)) {
+        newBlocks.push({ _id: 'b' + (blockIdCounter++), type: 'heading', text: text, html: text });
+      } else {
+        newBlocks.push({ _id: 'b' + (blockIdCounter++), type: 'paragraph', html: inner, text: text });
+      }
+
+    } else {
+      // Anything else — treat as paragraph if it has text
+      var txt = (node.innerText || node.textContent || '').trim();
+      if (txt) newBlocks.push({ _id: 'b' + (blockIdCounter++), type: 'paragraph', html: node.innerHTML || txt, text: txt });
+    }
+  });
+
+  if (newBlocks.length === 0) { showToast('No content found to import'); return; }
+
+  currentBlocks = currentBlocks.concat(newBlocks);
+  closePasteArticle();
+  renderBlocks();
+  showToast('Imported ' + newBlocks.length + ' blocks');
 }
 
 function addListItem(blockId) {
@@ -6419,7 +6507,34 @@ document.querySelector('nav .btn-red') && document.querySelector('nav .btn-red')
 
       </div>
     </div>
-<!-- ADMIN CONFIRM MODAL -->
+<!-- PASTE ARTICLE MODAL -->
+<div class="modal-overlay hidden" id="paste-article-overlay" style="z-index:2000">
+  <div style="background:var(--white);border-radius:16px;width:90%;max-width:680px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,0.15)">
+    <div style="padding:24px 28px 0;flex-shrink:0">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <h3 style="font-size:17px;font-weight:800">Paste article</h3>
+        <button onclick="closePasteArticle()" style="background:none;border:none;cursor:pointer;color:var(--text-muted)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Paste your article from ChatGPT, Google Docs, or Word below. Bold, headings, and lists will be preserved. This will be added to any existing blocks.</p>
+    </div>
+    <div style="padding:0 28px;flex:1;overflow-y:auto">
+      <div id="paste-article-input" contenteditable="true"
+        style="min-height:300px;padding:14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:Inter,sans-serif;line-height:1.7;outline:none;cursor:text"
+        onfocus="this.style.borderColor='var(--red)'"
+        onblur="this.style.borderColor='var(--border)'"
+        data-placeholder="Paste your article here…">
+      </div>
+    </div>
+    <div style="padding:16px 28px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;flex-shrink:0">
+      <button class="action-btn" onclick="closePasteArticle()">Cancel</button>
+      <button class="action-btn" style="background:var(--red);color:#fff;border-color:var(--red)" onclick="importPastedArticle()">Import article</button>
+    </div>
+  </div>
+</div>
+
+</body>
 <div class="modal-overlay hidden" id="admin-confirm-overlay" style="z-index:2000">
   <div style="background:var(--white);border-radius:16px;padding:32px;max-width:420px;width:90%;box-shadow:0 16px 48px rgba(0,0,0,0.15)">
     <div style="width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;background:#fef2f2">
