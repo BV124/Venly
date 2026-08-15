@@ -206,6 +206,7 @@ function injectMobileNavStyles() {
       }
       .mnav-auth .mnav-link { padding: 4px; border-bottom: none; }
       .mnav-btn { width: 100%; justify-content: center; padding: 11px 0 !important; font-size: 14px !important; }
+      .mnav-auth .btn-outline.mnav-btn { background: var(--red, #e03a2f) !important; color: #fff !important; border-color: var(--red, #e03a2f) !important; }
     }
   `;
   var style = document.createElement('style');
