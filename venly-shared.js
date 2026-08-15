@@ -80,16 +80,19 @@ function renderNav(options) {
       '<ul class="nav-links" style="display:flex;gap:32px;list-style:none;margin:0;padding:0">' + navLinks + '</ul>' +
     '</div>' +
     navRight +
-    mnavPanel +
     '</nav>';
 
   var el = document.getElementById('venly-nav');
   if (el) {
     el.outerHTML = navHTML;
   } else {
-    // Insert at top of body if no placeholder
     document.body.insertAdjacentHTML('afterbegin', navHTML);
   }
+
+  // Insert the panel at body level so it's never trapped inside a stacking
+  // context created by backdrop-filter, transform, or overflow on the nav
+  // or hero elements — which would clip it on pages like the homepage.
+  document.body.insertAdjacentHTML('afterbegin', mnavPanel);
 
   injectMobileNavStyles();
   setupMobileNavToggle();
