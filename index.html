@@ -1597,18 +1597,18 @@ window.venlyReady.then(populateHeroRegionOptions);
   // Inject transition style
   nav.style.transition = 'background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease';
 
+  // Only apply transparent hero nav effect on desktop — on mobile the nav
+  // must stay solid white so the hamburger lines are visible over the hero image
+  function isMobile() { return window.innerWidth <= 768; }
+
   function transparent() {
+    if (isMobile()) { solid(); return; } // always solid on mobile
     nav.style.background = 'transparent';
     nav.style.borderBottomColor = 'transparent';
     nav.style.boxShadow = 'none';
-    // Logo stays brand red always
     var logo = nav.querySelector('a.logo, .logo');
     if (logo) logo.style.color = '#e03a2f';
-    // Nav links white
     nav.querySelectorAll('ul a').forEach(function(a) { a.style.color = 'rgba(255,255,255,0.92)'; });
-    // Outline buttons (Login when logged out; My Dashboard + Log out when
-    // logged in) - white outline, white text, semi-transparent bg on hover.
-    // Uses querySelectorAll since there can now be more than one of these.
     var outlineBtns = nav.querySelectorAll('.btn-outline');
     outlineBtns.forEach(function(outline) {
       outline.style.color = '#fff';
@@ -1617,8 +1617,6 @@ window.venlyReady.then(populateHeroRegionOptions);
       outline.onmouseover = function() { this.style.background = 'rgba(255,255,255,0.22)'; };
       outline.onmouseout = function() { this.style.background = 'rgba(255,255,255,0.12)'; };
     });
-    // Hamburger icon white (only when the menu is closed - once open,
-    // the nav forces itself solid and the bars switch back to dark via CSS)
     nav.querySelectorAll('.mnav-toggle span').forEach(function(span) {
       span.style.background = '#fff';
     });
@@ -1628,12 +1626,9 @@ window.venlyReady.then(populateHeroRegionOptions);
     nav.style.background = '#fff';
     nav.style.borderBottomColor = '#e8e8e8';
     nav.style.boxShadow = '0 1px 8px rgba(0,0,0,0.08)';
-    // Logo stays brand red
     var logo = nav.querySelector('a.logo, .logo');
     if (logo) logo.style.color = '#e03a2f';
-    // Links back to default
     nav.querySelectorAll('ul a').forEach(function(a) { a.style.color = ''; });
-    // Outline buttons back to default
     var outlineBtnsReset = nav.querySelectorAll('.btn-outline');
     outlineBtnsReset.forEach(function(outline) {
       outline.style.color = '';
@@ -1642,7 +1637,6 @@ window.venlyReady.then(populateHeroRegionOptions);
       outline.onmouseover = null;
       outline.onmouseout = null;
     });
-    // Hamburger back to dark
     nav.querySelectorAll('.mnav-toggle span').forEach(function(span) {
       span.style.background = '';
     });
@@ -1651,8 +1645,11 @@ window.venlyReady.then(populateHeroRegionOptions);
   // Set initial state
   transparent();
 
-  // Listen to scroll
+  // Re-evaluate on scroll and resize
   window.addEventListener('scroll', function() {
+    if (window.scrollY > 80) { solid(); } else { transparent(); }
+  }, { passive: true });
+  window.addEventListener('resize', function() {
     if (window.scrollY > 80) { solid(); } else { transparent(); }
   }, { passive: true });
 })();
