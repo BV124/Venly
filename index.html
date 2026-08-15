@@ -106,6 +106,12 @@ nav {
   text-align: center;
   overflow: hidden;
 }
+/* On mobile, overflow:hidden on the hero clips the fixed nav dropdown.
+   Allow overflow so the panel sits above the hero correctly. */
+@media (max-width: 768px) {
+  .hero { overflow: visible; }
+  .hero-bg { overflow: hidden; }
+}
 
 .hero-bg {
   position: absolute;
