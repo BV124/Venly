@@ -194,7 +194,9 @@ function blocksToHtml(blocks) {
   if (!blocks || blocks.length === 0) return '';
   return blocks.map(function(b) {
     if (b.type === 'paragraph') {
-      return b.text ? '<p>' + escapeHtmlBlog(b.text) + '</p>' : '';
+      // Use stored HTML (preserves bold/italic/underline) — fall back to escaped plain text
+      var content = b.html || (b.text ? escapeHtmlBlog(b.text).replace(/\n/g, '<br>') : '');
+      return content ? '<p>' + content + '</p>' : '';
     }
     if (b.type === 'heading') {
       return b.text ? '<h2>' + escapeHtmlBlog(b.text) + '</h2>' : '';
