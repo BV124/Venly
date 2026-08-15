@@ -415,36 +415,17 @@ section { padding: 80px 48px; }
   }
   /* Disable backdrop-filter on mobile — it creates a stacking context
      that traps the nav dropdown panel even at z-index:9999 */
-  .hero-card {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    overflow: visible;
-    z-index: 1;
-  }
+  /* Strip ALL stacking contexts from hero elements on mobile so the
+     fixed nav panel (appended last in body) paints over them */
+  .hero { height:100vh; height:100svh; min-height:560px; max-height:none; padding:90px 20px 40px; z-index:0 !important; isolation:auto !important; }
+  .hero-bg { z-index:auto !important; isolation:auto !important; }
+  .hero-bg img { object-position: 32% 42%; }
+  .hero-content { margin-top:0; z-index:auto !important; isolation:auto !important; }
+  .hero-card { backdrop-filter:none !important; -webkit-backdrop-filter:none !important; overflow:visible; z-index:auto !important; isolation:auto !important; }
   .nav-links { display: none !important; }
   .logo { font-size: 20px; }
   .nav-right { gap: 8px; }
-  .nav-right .btn, .nav-right button {
-    padding: 7px 12px !important;
-    font-size: 12px !important;
-  }
-
-  /* HERO - shift focal point left so the Sky Tower stays in frame
-     on tall/narrow viewports instead of being cropped off by
-     background-size: cover centering on the CBD towers. */
-  .hero-bg img { object-position: 32% 42%; }
-
-  .hero {
-    height: 100vh;
-    height: 100svh;
-    min-height: 560px;
-    max-height: none;
-    padding: 90px 20px 40px;
-    z-index: 0;
-  }
-
-  .hero-content { margin-top: 0; z-index: auto; }
-  .hero-bg { z-index: auto; }
+  .nav-right .btn, .nav-right button { padding: 7px 12px !important; font-size: 12px !important; }
 
   .hero h1 {
     font-size: 38px;

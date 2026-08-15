@@ -65,7 +65,7 @@ function renderNav(options) {
     '</button>';
 
   var mnavPanel =
-    '<div class="mnav-panel" id="mnav-panel" style="z-index:99999;position:fixed;top:56px;left:0;right:0">' +
+    '<div class="mnav-panel" id="mnav-panel" style="position:fixed;top:56px;left:0;right:0;z-index:99999">' +
       '<div class="mnav-links">' + mobileLinks + '</div>' +
       mobileAuth +
     '</div>';
@@ -89,10 +89,10 @@ function renderNav(options) {
     document.body.insertAdjacentHTML('afterbegin', navHTML);
   }
 
-  // Insert the panel at body level so it's never trapped inside a stacking
-  // context created by backdrop-filter, transform, or overflow on the nav
-  // or hero elements — which would clip it on pages like the homepage.
-  document.body.insertAdjacentHTML('afterbegin', mnavPanel);
+  // Append the panel at the END of body so it paints LAST — this means
+  // it renders on top of everything regardless of z-index stacking contexts
+  // created by the hero section (backdrop-filter, position:relative, etc.)
+  document.body.insertAdjacentHTML('beforeend', mnavPanel);
 
   injectMobileNavStyles();
   setupMobileNavToggle();
