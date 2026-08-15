@@ -3280,6 +3280,9 @@ function _mapBlogPostFromDb(row) {
     excerpt: row.excerpt || '',
     readTime: row.read_time || '4 min read',
     blocks: row.blocks || [],
+    seo_title: row.seo_title || '',
+    meta_desc: row.meta_desc || '',
+    focus_keyword: row.focus_keyword || '',
   };
 }
 
