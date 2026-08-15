@@ -267,6 +267,7 @@ function getPostsForDisplay() {
     .map(function(p) {
       return {
         id: p.id,
+        slug: p.slug || '',
         cat: BLOG_CATEGORY_TO_PILL[p.category] || 'tips',
         title: p.title,
         excerpt: p.excerpt,
