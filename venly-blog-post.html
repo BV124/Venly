@@ -213,6 +213,10 @@ function blocksToHtml(blocks) {
   }).join('');
 }
 
+function blogPostUrl(p) {
+  return 'venly-blog-post.html?' + (p.slug ? 'slug=' + encodeURIComponent(p.slug) : 'id=' + p.id);
+}
+
 function escapeHtmlBlog(str) {
   var div = document.createElement('div');
   div.textContent = str == null ? '' : str;
@@ -363,20 +367,27 @@ function upgradeImageUrl(url) {
 // Fast path: fetch just the one post we need directly from Supabase,
 // instead of waiting for the full blog list to load. Falls back to the
 // full list if the direct fetch fails or we're in demo mode.
-async function fastFetchPost(id) {
-  if (typeof sb === 'undefined' || !SUPABASE_READY || !id) return null;
+async function fastFetchPost(id, slug) {
+  if (typeof sb === 'undefined' || !SUPABASE_READY) return null;
   try {
-    var res = await sb.from('blog_posts').select('*').eq('id', id).single();
+    var query = sb.from('blog_posts').select('*');
+    if (slug) query = query.eq('slug', slug);
+    else if (id) query = query.eq('id', id);
+    else return null;
+    var res = await query.single();
     if (res.error || !res.data) return null;
     var row = res.data;
     return {
       id: row.id,
+      slug: row.slug || '',
       title: row.title,
       cat: row.category,
       date: formatBlogDate(row.created_at),
       read: row.read_time || '4 min read',
       img: row.cover_image || '',
       excerpt: row.excerpt || '',
+      seo_title: row.seo_title || '',
+      meta_desc: row.meta_desc || '',
       body: (row.blocks && row.blocks.length > 0) ? blocksToHtml(row.blocks) : (row.content || ''),
     };
   } catch (e) {
@@ -387,16 +398,21 @@ async function fastFetchPost(id) {
 
 function loadPost() {
   var params = new URLSearchParams(window.location.search);
+  var slug = params.get('slug');
   var id = params.get('id');
 
-  // Try fast single-post fetch first, then fall back to full list
-  var fastPromise = fastFetchPost(id);
+  // Try fast single-post fetch first (by slug if available, else by id)
+  var fastPromise = fastFetchPost(id, slug);
   var fullPromise = window.venlyReady.then(function() { return null; });
 
   Promise.all([fastPromise, fullPromise]).then(function(results) {
     var fastPost = results[0];
     var posts = getPostsForDisplay();
-    var post = fastPost || posts.find(function(p) { return String(p.id) === String(id); }) || posts[0];
+    // Match by slug first, then id, then fall back to first post
+    var post = fastPost
+      || (slug ? posts.find(function(p) { return p.slug === slug; }) : null)
+      || (id ? posts.find(function(p) { return String(p.id) === String(id); }) : null)
+      || posts[0];
 
   if (!post) {
     var fetchFailed = typeof venlyFetchFailed === 'function' && venlyFetchFailed('blog');
@@ -445,7 +461,7 @@ function loadPost() {
   document.getElementById('sidebar-posts').innerHTML = sidebarPosts.length === 0
     ? '<p style="font-size:13px;color:var(--text-muted)">No other posts yet.</p>'
     : sidebarPosts.map(function(p) {
-      return '<a href="venly-blog-post.html?id=' + p.id + '" class="related-post">' +
+      return '<a href="' + blogPostUrl(p) + '" class="related-post">' +
         '<div class="related-img"><img src="' + (p.img || '') + '" alt="" /></div>' +
         '<div><div class="related-title">' + p.title + '</div><div class="related-cat">' + (p.cat || '') + '</div></div>' +
       '</a>';
@@ -454,7 +470,7 @@ function loadPost() {
   // "Keep reading" grid at bottom — real posts, excluding current, max 3
   var others = posts.filter(function(p) { return String(p.id) !== String(post.id); }).slice(0, 3);
   document.getElementById('more-grid').innerHTML = others.map(function(p) {
-    return '<div class="blog-card" onclick="window.location.href=\'venly-blog-post.html?id=' + p.id + '\'">' +
+    return '<div class="blog-card" onclick="window.location.href=\'' + blogPostUrl(p) + '\'">' +
       '<div class="blog-card-img"><img src="' + p.img + '" alt="' + p.title + '" loading="lazy" />' +
       '<span class="card-cat-badge">' + p.cat + '</span></div>' +
       '<div class="blog-card-body">' +

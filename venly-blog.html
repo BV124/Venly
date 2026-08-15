@@ -277,6 +277,10 @@ function getPostsForDisplay() {
     });
 }
 
+function blogPostUrl(p) {
+  return 'venly-blog-post.html?' + (p.slug ? 'slug=' + encodeURIComponent(p.slug) : 'id=' + p.id);
+}
+
 function renderPosts(filter) {
   const grid = document.getElementById('blog-grid');
   const allPosts = getPostsForDisplay();
@@ -293,7 +297,7 @@ function renderPosts(filter) {
   }
 
   grid.innerHTML = filtered.map(p => `
-    <div class="blog-card" onclick="window.location.href='venly-blog-post.html?id=${p.id}'">
+    <div class="blog-card" onclick="window.location.href=blogPostUrl(p)">
       <div class="blog-card-img">
         <img src="${p.img}" alt="${p.title}" loading="lazy" />
         <span class="card-cat-badge">${p.badge}</span>
@@ -351,7 +355,7 @@ function renderFeaturedSlideshow() {
   }
 
   container.innerHTML = posts.map(function(p, i) {
-    return '<div class="featured-card' + (i === 0 ? ' active' : '') + '" onclick="window.location.href=\'venly-blog-post.html?id=' + p.id + '\'">' +
+    return '<div class="featured-card' + (i === 0 ? ' active' : '') + '" onclick="window.location.href=\'' + "' + blogPostUrl(p) + '" + '\'">' +
       '<div class="featured-img">' +
         '<img src="' + (p.img || '') + '" alt="' + p.title + '" />' +
         '<span class="featured-cat-badge">' + (p.badge || '') + '</span>' +
