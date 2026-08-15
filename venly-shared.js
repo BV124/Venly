@@ -144,6 +144,7 @@ function injectMobileNavStyles() {
     @media (max-width: 768px) {
       .mnav-panel { display: block; }
       .nav-right .dnav-account { display: none !important; }
+      .nav-links { display: none !important; }
 
       /* While the dropdown is open, force the nav solid white so the
          logo + close icon match the panel below — otherwise on pages
@@ -342,10 +343,13 @@ function renderFooter() {
       <a href="index.html" style="font-size:26px;font-weight:800;color:#e03a2f;letter-spacing:-0.5px;text-decoration:none;display:block;margin-bottom:14px">Venly.</a>
       <p>The easiest way to find and list spaces across New Zealand. No ads, no stress.</p>
       <div class="vf-socials">
-        <a href="https://www.instagram.com/venly_nz/" aria-label="Instagram" class="vf-social" target="_blank" rel="noopener">
+        <a href="https://instagram.com/venly.co.nz" aria-label="Instagram" class="vf-social">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.4a4 4 0 11-8 0 4 4 0 018 0z"/><circle cx="16.5" cy="7.5" r="1.2" fill="currentColor" stroke="none"/></svg>
         </a>
-        <a href="https://www.linkedin.com/company/venly-nz" aria-label="LinkedIn" class="vf-social" target="_blank" rel="noopener">
+        <a href="https://facebook.com/venly.co.nz" aria-label="Facebook" class="vf-social">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+        </a>
+        <a href="https://linkedin.com/company/venly" aria-label="LinkedIn" class="vf-social">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
         </a>
       </div>
@@ -438,11 +442,7 @@ function _venlyMonthKey(d) {
 function trackPageView() {
   if (SUPABASE_READY) {
     var path = window.location.pathname.split('/').pop() || 'index.html';
-    // Direct insert — simpler and easier to debug than RPC
-    sb.from('page_views').insert({ path: path, venue_id: null }).then(function(res) {
-      if (res && res.error) console.warn('[trackPageView] failed:', res.error.code, res.error.message);
-      else console.log('[trackPageView] recorded:', path);
-    });
+    sb.rpc('track_page_view', { path_input: path });
     return;
   }
   var store = JSON.parse(localStorage.getItem('venly_analytics_pageviews') || '{"total":0,"monthly":{}}');
