@@ -117,12 +117,14 @@ footer { background: #111; color: #fff; }
   .more-grid { grid-template-columns: 1fr 1fr; }
   nav { padding: 0 20px; }
 }
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+}
 @media (max-width: 600px) {
   .post-hero { padding: 20px 24px 0; }
   .post-hero img { height: 240px; border-radius: 12px; }
   .post-title { font-size: 22px; }
   .more-grid { grid-template-columns: 1fr; }
-  .nav-links { display: none; }
 }
 </style>
 </head>
