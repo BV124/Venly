@@ -89,10 +89,8 @@ function renderNav(options) {
     document.body.insertAdjacentHTML('afterbegin', navHTML);
   }
 
-  // Append the panel at the END of body so it paints LAST — this means
-  // it renders on top of everything regardless of z-index stacking contexts
-  // created by the hero section (backdrop-filter, position:relative, etc.)
-  document.body.insertAdjacentHTML('beforeend', mnavPanel);
+  // Panel at body level — outside nav so no stacking context traps it
+  document.body.insertAdjacentHTML('afterbegin', mnavPanel);
 
   injectMobileNavStyles();
   setupMobileNavToggle();
