@@ -65,7 +65,7 @@ function renderNav(options) {
     '</button>';
 
   var mnavPanel =
-    '<div class="mnav-panel" id="mnav-panel">' +
+    '<div class="mnav-panel" id="mnav-panel" style="z-index:99999;position:fixed;top:56px;left:0;right:0">' +
       '<div class="mnav-links">' + mobileLinks + '</div>' +
       mobileAuth +
     '</div>';
