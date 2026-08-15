@@ -55,7 +55,7 @@ function renderNav(options) {
         '<button class="btn btn-outline mnav-btn" onclick="signOut()">Log out</button>' +
       '</div>'
     : '<div class="mnav-auth">' +
-        '<button class="btn btn-outline mnav-btn" onclick="window.location.href=\'venly-auth.html\'">Login</button>' +
+        '<button class="btn btn-primary mnav-btn" onclick="window.location.href=\'venly-auth.html\'">Login</button>' +
         '<button class="btn btn-primary mnav-btn" onclick="window.location.href=\'venly-auth.html?tab=signup\'">Sign Up</button>' +
       '</div>';
 
