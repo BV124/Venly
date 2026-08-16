@@ -55,8 +55,8 @@ a { text-decoration: none; color: inherit; }
 
 /* NAV */
 nav {
-  position: sticky;
-  top: 0;
+  position: fixed;
+  top: 0; left: 0; right: 0;
   z-index: 100;
   background: var(--white);
   border-bottom: 1px solid var(--border);
@@ -409,8 +409,10 @@ section { padding: 80px 48px; }
   nav {
     padding: 0 20px;
     height: 56px;
-    position: sticky;
-    top: 0;
+    position: sticky !important;
+    top: 0 !important;
+    left: auto !important;
+    right: auto !important;
     z-index: 100;
   }
   /* Disable backdrop-filter on mobile — it creates a stacking context
@@ -1597,9 +1599,24 @@ window.venlyReady.then(populateHeroRegionOptions);
   // Inject transition style
   nav.style.transition = 'background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease';
 
-  // Only apply transparent hero nav effect on desktop — on mobile the nav
-  // must stay solid white so the hamburger lines are visible over the hero image
+  // Only apply fixed positioning and transparent effect on desktop.
+  // On mobile the nav stays sticky so the dropdown panel isn't trapped
+  // behind the hero's stacking context.
   function isMobile() { return window.innerWidth <= 768; }
+
+  function applyPositioning() {
+    if (isMobile()) {
+      nav.style.position = 'sticky';
+      nav.style.top = '0';
+      nav.style.left = '';
+      nav.style.right = '';
+    } else {
+      nav.style.position = 'fixed';
+      nav.style.top = '0';
+      nav.style.left = '0';
+      nav.style.right = '0';
+    }
+  }
 
   function transparent() {
     if (isMobile()) { solid(); return; } // always solid on mobile
@@ -1643,6 +1660,7 @@ window.venlyReady.then(populateHeroRegionOptions);
   }
 
   // Set initial state
+  applyPositioning();
   transparent();
 
   // Re-evaluate on scroll and resize
@@ -1650,6 +1668,7 @@ window.venlyReady.then(populateHeroRegionOptions);
     if (window.scrollY > 80) { solid(); } else { transparent(); }
   }, { passive: true });
   window.addEventListener('resize', function() {
+    applyPositioning();
     if (window.scrollY > 80) { solid(); } else { transparent(); }
   }, { passive: true });
 })();
