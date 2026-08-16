@@ -5940,20 +5940,7 @@ function selectCrmRecord(id) {
   if (nextEl) nextEl.value = r.nextStep || r.nextAction || '';
 
   var timelineEl = document.getElementById('crm-timeline-scroll');
-  if (timelineEl) {
-    var items = r.timeline || [];
-    timelineEl.innerHTML = items.length
-      ? items.slice().reverse().map(function(e) {
-          var icon = e.type === 'email' ? '📧' : e.type === 'call' ? '📞' : e.type === 'meeting' ? '📅' : '📝';
-          return '<div style="padding:10px 0;border-bottom:1px solid var(--border)">' +
-            '<div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">' + icon + ' ' +
-              (e.type || 'note').charAt(0).toUpperCase() + (e.type || 'note').slice(1) +
-              ' · ' + fmtActivityDate(e.ts || e.createdAt) + '</div>' +
-            '<div style="font-size:13px;line-height:1.5">' + escapeHtml(e.text || '') + '</div>' +
-          '</div>';
-        }).join('')
-      : '<div style="padding:20px 0;text-align:center;color:var(--text-muted);font-size:13px">No activity logged yet.</div>';
-  }
+  if (timelineEl) timelineEl.innerHTML = renderCrmTimelineItems(r.timeline || []);
 
   closeCrmActivityInput();
   var modal = document.getElementById('crm-detail-modal');
@@ -5971,9 +5958,78 @@ function getCrmRecord(id) {
   return getAllCrmRecords().find(function(r) { return r.id === id; });
 }
 
-function renderCrmDetailEmpty() {}
-function renderCrmDetail() {}
-function renderCrmTimeline() {}
+function renderCrmTimelineItems(items) {
+  if (!items || !items.length) return '<div style="padding:20px 0;text-align:center;color:var(--text-muted);font-size:13px">No activity logged yet.</div>';
+  return items.slice().reverse().map(function(e) {
+    var icon = e.type === 'email' ? '📧' : e.type === 'call' ? '📞' : e.type === 'meeting' ? '📅' : e.type === 'system' ? '🔔' : '📝';
+    var isSystem = e.type === 'system';
+    return '<div style="padding:10px 0;border-bottom:1px solid var(--border)">' +
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">' +
+        '<div style="flex:1">' +
+          '<div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">' + icon + ' ' +
+            (e.type || 'note').charAt(0).toUpperCase() + (e.type || 'note').slice(1) +
+            ' · ' + fmtActivityDate(e.ts || e.createdAt) + '</div>' +
+          '<div id="activity-text-' + e.id + '" style="font-size:13px;line-height:1.5">' + escapeHtml(e.text || '') + '</div>' +
+          '<div id="activity-edit-' + e.id + '" style="display:none;margin-top:6px">' +
+            '<textarea style="width:100%;padding:8px;border:1.5px solid var(--red);border-radius:6px;font-family:Inter,sans-serif;font-size:13px;resize:vertical;min-height:60px;box-sizing:border-box">' + escapeHtml(e.text || '') + '</textarea>' +
+            '<div style="display:flex;gap:6px;margin-top:4px">' +
+              '<button class="action-btn" onclick="cancelEditActivity(\'' + e.id + '\')">Cancel</button>' +
+              '<button class="action-btn" style="background:var(--red);color:#fff;border-color:var(--red)" onclick="saveEditActivity(\'' + e.id + '\')">Save</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        (!isSystem ? '<div style="display:flex;gap:4px;flex-shrink:0">' +
+          '<button class="action-btn" style="padding:3px 8px;font-size:11px" title="Edit" onclick="startEditActivity(\'' + e.id + '\')">Edit</button>' +
+          '<button class="action-btn" style="padding:3px 8px;font-size:11px;color:var(--red);border-color:var(--red)" title="Delete" onclick="deleteActivity(\'' + e.id + '\')">Delete</button>' +
+        '</div>' : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function refreshCrmTimeline() {
+  var r = getCrmRecord(crmSelectedId);
+  var timelineEl = document.getElementById('crm-timeline-scroll');
+  if (timelineEl && r) timelineEl.innerHTML = renderCrmTimelineItems(r.timeline || []);
+}
+
+function startEditActivity(activityId) {
+  document.getElementById('activity-text-' + activityId).style.display = 'none';
+  document.getElementById('activity-edit-' + activityId).style.display = 'block';
+  var ta = document.querySelector('#activity-edit-' + activityId + ' textarea');
+  if (ta) ta.focus();
+}
+
+function cancelEditActivity(activityId) {
+  document.getElementById('activity-text-' + activityId).style.display = '';
+  document.getElementById('activity-edit-' + activityId).style.display = 'none';
+}
+
+async function saveEditActivity(activityId) {
+  var r = getCrmRecord(crmSelectedId);
+  if (!r) return;
+  var ta = document.querySelector('#activity-edit-' + activityId + ' textarea');
+  if (!ta) return;
+  var newText = ta.value.trim();
+  if (!newText) { showToast('Activity text cannot be empty'); return; }
+  var entry = r.timeline.find(function(e) { return e.id === activityId; });
+  if (!entry) return;
+  entry.text = newText;
+  await saveCrmRecord(r);
+  refreshCrmTimeline();
+  showToast('Activity updated');
+}
+
+async function deleteActivity(activityId) {
+  var ok = await adminConfirm('Delete activity?', 'This will permanently remove this activity entry.', 'Yes, delete');
+  if (!ok) return;
+  var r = getCrmRecord(crmSelectedId);
+  if (!r) return;
+  r.timeline = r.timeline.filter(function(e) { return e.id !== activityId; });
+  await saveCrmRecord(r);
+  refreshCrmTimeline();
+  showToast('Activity deleted');
+}
 
 async function saveCrmField(field, value) {
   var records = getAllCrmRecords();
@@ -6054,22 +6110,7 @@ async function saveCrmActivity() {
   await saveCrmRecord(r);
 
   closeCrmActivityInput();
-
-  // Refresh timeline in modal
-  var timelineEl = document.getElementById('crm-timeline-scroll');
-  if (timelineEl) {
-    var items = r.timeline;
-    timelineEl.innerHTML = items.slice().reverse().map(function(e) {
-      var icon = e.type === 'email' ? '📧' : e.type === 'call' ? '📞' : e.type === 'meeting' ? '📅' : '📝';
-      return '<div style="padding:10px 0;border-bottom:1px solid var(--border)">' +
-        '<div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">' + icon + ' ' +
-          (e.type || 'note').charAt(0).toUpperCase() + (e.type || 'note').slice(1) +
-          ' · ' + fmtActivityDate(e.ts || e.createdAt) + '</div>' +
-        '<div style="font-size:13px;line-height:1.5">' + escapeHtml(e.text || '') + '</div>' +
-      '</div>';
-    }).join('');
-  }
-
+  refreshCrmTimeline();
   showToast('Activity logged');
 }
 
