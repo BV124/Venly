@@ -5938,6 +5938,8 @@ function selectCrmRecord(id) {
   if (addressEl) addressEl.value = r.address || '';
   var nextEl = document.getElementById('crm-modal-nextstep');
   if (nextEl) nextEl.value = r.nextStep || r.nextAction || '';
+  var dueDateEl = document.getElementById('crm-modal-duedate');
+  if (dueDateEl) dueDateEl.value = r.dueDate || '';
 
   var timelineEl = document.getElementById('crm-timeline-scroll');
   if (timelineEl) timelineEl.innerHTML = renderCrmTimelineItems(r.timeline || []);
@@ -6037,6 +6039,7 @@ async function saveCrmField(field, value) {
   if (!r) return;
   // nextStep is the new UI name; store as both for backward compat
   if (field === 'nextStep') { r.nextStep = value; r.nextAction = value; }
+  else if (field === 'dueDate') { r.dueDate = value; }
   else {
     var oldValue = r[field];
     if (oldValue === value) return;
@@ -6053,6 +6056,10 @@ async function saveCrmField(field, value) {
       r.timeline.push(crmSystemEntry('Status changed to ' + value));
     } else if (field === 'nextStep' || field === 'nextAction') {
       r.timeline.push(crmSystemEntry('Next step: ' + value));
+    } else if (field === 'dueDate') {
+      var d = new Date(value + 'T00:00:00');
+      var label = d.getDate() + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()] + ' ' + d.getFullYear();
+      r.timeline.push(crmSystemEntry('Follow-up date set: ' + label));
     }
   }
 
@@ -6521,6 +6528,10 @@ document.querySelector('nav .btn-red') && document.querySelector('nav .btn-red')
             <div style="grid-column:1/-1">
               <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Next step</div>
               <input id="crm-modal-nextstep" class="crm-input" placeholder="e.g. Follow up call on Friday" onblur="saveCrmField('nextStep',this.value)" />
+            </div>
+            <div style="grid-column:1/-1">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Follow-up date <span style="font-weight:400;text-transform:none;color:#bbb">(optional)</span></div>
+              <input type="date" id="crm-modal-duedate" class="crm-input" onchange="saveCrmField('dueDate',this.value)" />
             </div>
           </div>
 
