@@ -203,46 +203,77 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
 
 <script>
 // Display labels for each pill code
-var BLOG_PILL_LABELS = {
-  'event':   'Event Spaces',
-  'meeting': 'Meeting Spaces',
-  'shoot':   'Shoot Locations',
-  'tips':    'Hosting Tips',
-  'news':    'Venly News',
-  'guides':  'Guides',
-};
-
-// Build category pills from whichever categories actually exist in published posts.
-// This means adding/removing categories in the admin immediately reflects here.
+// Build category pills from:
+// 1. The admin's blog categories filter list (source of truth for what exists)
+// 2. Falling back to categories found in actual published posts
+// This means adding/removing categories in the admin is instantly reflected here.
 function buildCategoryPills() {
-  var posts = getPostsForDisplay();
-  var seen = {};
-  var order = ['event','meeting','shoot','tips','news','guides']; // preferred order
-  posts.forEach(function(p) { if (p.cat) seen[p.cat] = true; });
-  var cats = order.filter(function(c) { return seen[c]; });
-  // Also include any unknown cats not in the preferred order
-  Object.keys(seen).forEach(function(c) { if (cats.indexOf(c) === -1) cats.push(c); });
-
   var pillsEl = document.getElementById('cat-pills');
   if (!pillsEl) return;
-  // Keep the "All" button, rebuild the rest
+
+  var posts = getPostsForDisplay();
+
+  // Get categories from admin filters if available
+  var adminCats = [];
+  if (typeof getVenlyFilters === 'function') {
+    var filters = getVenlyFilters();
+    adminCats = (filters && filters.blogCategories) ? filters.blogCategories : [];
+  }
+
+  // Also collect any categories actually used in posts (catches ones not in filter list)
+  var postCats = {};
+  posts.forEach(function(p) { if (p.badge) postCats[p.badge] = true; });
+
+  // Merge: admin list first, then any post categories not already covered
+  var allCats = adminCats.slice();
+  Object.keys(postCats).forEach(function(c) {
+    if (!allCats.find(function(a) { return a.toUpperCase() === c.toUpperCase(); })) {
+      allCats.push(c);
+    }
+  });
+
+  // Only show pill if there are published posts in that category
+  var usedCats = allCats.filter(function(cat) {
+    var pill = categoryToPill(cat);
+    return posts.some(function(p) { return p.cat === pill; });
+  });
+
   pillsEl.innerHTML = '<button class="cat-pill active" onclick="filterCat(\'all\', this)">All</button>' +
-    cats.map(function(c) {
-      var label = BLOG_PILL_LABELS[c] || (c.charAt(0).toUpperCase() + c.slice(1));
-      return '<button class="cat-pill" onclick="filterCat(\'' + c + '\', this)">' + label + '</button>';
+    usedCats.map(function(cat) {
+      var pill = categoryToPill(cat);
+      // Title-case the label
+      var label = cat.charAt(0).toUpperCase() + cat.slice(1).toLowerCase();
+      return '<button class="cat-pill" onclick="filterCat(\'' + pill + '\', this)">' + label + '</button>';
     }).join('');
 }
 
 // Real category values (as stored by the admin's blog editor) mapped to
 // the short filter-pill codes this page's UI already uses.
-var BLOG_CATEGORY_TO_PILL = {
-  'EVENT SPACE': 'event',
-  'MEETING SPACE': 'meeting',
-  'SHOOT LOCATION': 'shoot',
-  'HOSTING TIPS': 'tips',
-  'VENLY NEWS': 'news',
-  'GUIDE': 'guides',
-};
+// Convert a raw category string (as stored in blog_posts.category) to a
+// stable pill code used for filtering. Known categories are mapped; anything
+// else gets a slug derived from the category name itself so new categories
+// added in the admin automatically work without editing this file.
+function categoryToPill(cat) {
+  if (!cat) return 'other';
+  var known = {
+    'EVENT SPACE': 'event', 'EVENT PLANNING': 'event-planning',
+    'MEETING SPACE': 'meeting', 'SHOOT LOCATION': 'shoot',
+    'HOSTING TIPS': 'tips', 'VENLY NEWS': 'news', 'GUIDE': 'guides',
+  };
+  var upper = cat.toUpperCase();
+  return known[upper] || cat.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+}
+
+// Display label for a pill code — inverse lookup
+function pillToLabel(pillCode, rawCategory) {
+  // Just use the original category as the label — no separate mapping needed
+  return rawCategory || pillCode;
+}
+
+// Legacy alias kept for any remaining references
+var BLOG_CATEGORY_TO_PILL = new Proxy({}, {
+  get: function(_, cat) { return categoryToPill(cat); }
+});
 
 // Demo posts — used until Supabase is connected, or as a fallback if the
 // real fetch fails. Kept as the original mock data, just renamed.
@@ -270,7 +301,7 @@ function getPostsForDisplay() {
       return {
         id: p.id,
         slug: p.slug || '',
-        cat: BLOG_CATEGORY_TO_PILL[p.category] || 'tips',
+        cat: categoryToPill(p.category),
         title: p.title,
         excerpt: p.excerpt,
         img: p.img,
