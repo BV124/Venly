@@ -100,6 +100,11 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
 
 /* Description */
 .venue-desc { font-size: 15px; color: var(--text-muted); line-height: 1.8; }
+.venue-desc p { margin-bottom: 12px; }
+.venue-desc p:last-child { margin-bottom: 0; }
+.venue-desc ul { padding-left: 20px; margin-bottom: 12px; }
+.venue-desc b, .venue-desc strong { font-weight: 700; color: var(--text); }
+.venue-desc u { text-decoration: underline; }
 .read-more-btn { background: none; border: none; color: var(--red); font-size: 14px; font-weight: 600; cursor: pointer; padding: 0; margin-top: 8px; font-family: 'Inter', sans-serif; }
 
 /* Amenities */
@@ -524,7 +529,7 @@ function loadVenue() {
     // No matching venue — show a clear not-found state rather than fake content
     document.getElementById('venue-title').textContent = fetchFailed ? "Couldn't load this venue" : 'Venue not found';
     document.getElementById('breadcrumb-current').textContent = fetchFailed ? 'Loading error' : 'Not found';
-    document.getElementById('venue-desc').textContent = fetchFailed
+    document.getElementById('venue-desc').innerHTML = fetchFailed
       ? 'Something went wrong loading this listing. Please refresh the page, or try again shortly.'
       : 'This listing may have been removed or the link is incorrect. Try browsing all spaces instead.';
     document.getElementById('meta-pills').innerHTML = '';
@@ -552,7 +557,7 @@ function loadVenue() {
   document.title = 'Venly – ' + v.name;
   document.getElementById('venue-title').textContent = v.name || 'Untitled venue';
   document.getElementById('breadcrumb-current').textContent = v.name || 'Untitled venue';
-  document.getElementById('venue-desc').textContent = v.description || 'No description provided yet.';
+  document.getElementById('venue-desc').innerHTML = v.description || 'No description provided yet.';
 
   // Reflect any previously-saved favourite state for this venue
   if (typeof isVenueFavourited === 'function' && isVenueFavourited(v.id)) {

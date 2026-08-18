@@ -1112,7 +1112,15 @@ tbody tr:last-child td { border-bottom: none; }
             </div>
             <div class="editor-field">
               <label>Description <span style="font-weight:400;text-transform:none;color:#bbb">(shown on the venue's public page)</span></label>
-              <textarea id="ven-description" placeholder="Describe the space — what makes it special, what it's great for..."></textarea>
+              <div class="rich-toolbar">
+                <button type="button" title="Bold" onclick="richCmd('bold')"><b>B</b></button>
+                <button type="button" title="Italic" onclick="richCmd('italic')"><i>I</i></button>
+                <button type="button" title="Underline" onclick="richCmd('underline')"><u>U</u></button>
+                <span class="rich-toolbar-sep"></span>
+                <button type="button" title="Bullet list" onclick="richCmd('insertUnorderedList')">• List</button>
+                <button type="button" title="Clear formatting" onclick="richCmd('removeFormat')" style="font-size:11px">Aa</button>
+              </div>
+              <div class="rich-editor" id="ven-description" contenteditable="true" data-placeholder="Describe the space — what makes it special, what it's great for..."></div>
             </div>
             <div class="editor-row">
               <div class="editor-field">
@@ -5150,7 +5158,8 @@ function openVenueEditor(venueId) {
     document.getElementById('ven-region').value = venue.region || '';
     populateVenueDistrictOptions();
     document.getElementById('ven-district').value = venue.district || '';
-    document.getElementById('ven-description').value = venue.description || '';
+    var descEl = document.getElementById('ven-description');
+    if (descEl) descEl.innerHTML = venue.description || '';
     document.getElementById('ven-capacity').value = venue.capacity || '';
     document.getElementById('ven-website').value = venue.website || '';
     document.getElementById('ven-price-type').value = venue.priceType || '';
@@ -5188,7 +5197,8 @@ function openVenueEditor(venueId) {
     document.getElementById('ven-type').value = 'Event space';
     document.getElementById('ven-plan').value = 'Basic';
     populateVenueDistrictOptions();
-    document.getElementById('ven-description').value = '';
+    var descEl = document.getElementById('ven-description');
+    if (descEl) descEl.innerHTML = '';
     document.getElementById('ven-capacity').value = '';
     document.getElementById('ven-website').value = '';
     document.getElementById('ven-price-type').value = '';
@@ -5339,7 +5349,7 @@ async function saveVenue() {
     plan: document.getElementById('ven-plan').value,
     region: document.getElementById('ven-region').value,
     district: document.getElementById('ven-district').value,
-    description: document.getElementById('ven-description').value.trim(),
+    description: (document.getElementById('ven-description').innerHTML || '').replace(/(<br\s*\/?>)+$/gi,'').trim(),
     capacity: document.getElementById('ven-capacity').value.trim(),
     website: document.getElementById('ven-website').value.trim(),
     priceType: document.getElementById('ven-price-type').value || null,

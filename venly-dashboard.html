@@ -55,6 +55,17 @@ nav { background: var(--white); border-bottom: 1px solid var(--border); display:
 .fields-wrap { flex: 1; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
 .form-group { display: flex; flex-direction: column; gap: 5px; }
+.rich-toolbar { display: flex; gap: 2px; flex-wrap: wrap; align-items: center; }
+.rich-toolbar button { background: none; border: 1px solid transparent; border-radius: 4px; cursor: pointer; padding: 3px 8px; font-size: 13px; font-family: inherit; color: var(--text); line-height: 1.4; }
+.rich-toolbar button:hover { background: #f0f0f0; border-color: var(--border); }
+.rich-toolbar-sep { width: 1px; height: 18px; background: var(--border); margin: 0 4px; }
+.rich-editor { min-height: 80px; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 14px; font-family: 'Inter', sans-serif; line-height: 1.7; color: var(--text); background: var(--white); outline: none; cursor: text; }
+.rich-editor:focus { border-color: var(--red); }
+.rich-editor:empty::before { content: attr(data-placeholder); color: #aaa; pointer-events: none; }
+.rich-editor b, .rich-editor strong { font-weight: 700; }
+.rich-editor i, .rich-editor em { font-style: italic; }
+.rich-editor u { text-decoration: underline; }
+.rich-editor ul { padding-left: 20px; margin: 4px 0; }
 label { font-size: 12px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
 input[type="text"], input[type="email"], input[type="tel"], input[type="password"], input[type="number"], textarea, select {
   padding: 10px 13px; border: 1px solid var(--border); border-radius: var(--radius-sm);
@@ -571,7 +582,18 @@ tbody tr:last-child td { border-bottom: none; }
               <div id="dash-address-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:50;max-height:260px;overflow-y:auto;margin-top:4px"></div>
             </div>
           </div>
-          <div class="form-group" style="margin-bottom:16px"><label>Description</label><textarea id="v-desc" rows="4" placeholder="Describe your space — what makes it special, what it's great for..."></textarea></div>
+          <div class="form-group" style="margin-bottom:16px">
+            <label>Description</label>
+            <div class="rich-toolbar" style="margin-bottom:6px">
+              <button type="button" title="Bold" onclick="richCmd('bold')"><b>B</b></button>
+              <button type="button" title="Italic" onclick="richCmd('italic')"><i>I</i></button>
+              <button type="button" title="Underline" onclick="richCmd('underline')"><u>U</u></button>
+              <span class="rich-toolbar-sep"></span>
+              <button type="button" title="Bullet list" onclick="richCmd('insertUnorderedList')">• List</button>
+              <button type="button" title="Clear formatting" onclick="richCmd('removeFormat')" style="font-size:11px">Aa</button>
+            </div>
+            <div class="rich-editor" id="v-desc" contenteditable="true" data-placeholder="Describe your space — what makes it special, what it's great for..." style="min-height:120px"></div>
+          </div>
           <div class="form-row">
             <div class="form-group">
               <label>Type of space</label>
@@ -2297,7 +2319,8 @@ function openEditListing(i) {
       }
     }
   }
-  document.getElementById('v-desc').value = (venue && venue.description) || '';
+  var descEl = document.getElementById('v-desc');
+  if (descEl) descEl.innerHTML = (venue && venue.description) || '';
   document.getElementById('v-capacity').value = (venue && venue.capacity) || '';
   document.getElementById('v-website').value = (venue && venue.website) || '';
   document.getElementById('v-price').value = (venue && venue.priceFrom) || '';
@@ -2484,6 +2507,10 @@ function requestCloseModal() {
 }
 
 // Mark the modal dirty whenever the user changes any field or photo/feature
+function richCmd(cmd) {
+  document.execCommand(cmd, false, null);
+}
+
 function markDirty() { _isDirty = true; }
 
 function attachDirtyListeners() {
@@ -2618,7 +2645,7 @@ async function saveListing(isLive, silent) {
       address: document.getElementById('v-address').value.trim(),
       lat: document.getElementById('v-lat').value || null,
       lng: document.getElementById('v-lng').value || null,
-      description: document.getElementById('v-desc').value.trim(),
+      description: (document.getElementById('v-desc').innerHTML || '').replace(/(<br\s*\/?>)+$/gi,'').trim(),
       capacity: document.getElementById('v-capacity').value.trim(),
       website: document.getElementById('v-website').value.trim(),
       priceFrom: document.getElementById('v-price').value.trim(),
@@ -2682,7 +2709,7 @@ async function saveListing(isLive, silent) {
     plan: activePlan,
     region: document.getElementById('v-region').value,
     district: document.getElementById('v-district').value,
-    description: document.getElementById('v-desc').value.trim(),
+    description: (document.getElementById('v-desc').innerHTML || '').replace(/(<br\s*\/?>)+$/gi,'').trim(),
     capacity: document.getElementById('v-capacity').value.trim(),
     website: document.getElementById('v-website').value.trim(),
     priceFrom: document.getElementById('v-price').value.trim(),
