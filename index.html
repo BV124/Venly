@@ -779,7 +779,7 @@ section { padding: 80px 48px; }
   }
 
   grid.innerHTML = venues.filter(function(v) { return v.photos && v.photos[0]; }).map(function(v, i) {
-    var img = v.photos[0];
+    var img = venlyPhotoUrl(v.photos[0], 'card');
     var typeLabel = TYPE_LABELS[v.type] || v.type || '';
     var premiumBadge = v.plan === 'Premium' ? '<span class="badge-premium">Premium</span>' : '';
     var location = [v.district, v.region].filter(Boolean).join(', ');
@@ -1067,7 +1067,7 @@ section { padding: 80px 48px; }
 
     slideshow.innerHTML = venuesToShow.map(function(v, idx) {
       var activeClass = idx === 0 ? ' active' : '';
-      return '<img class="sts-slide' + activeClass + '" src="' + v.photos[0] +
+      return '<img class="sts-slide' + activeClass + '" src="' + venlyPhotoUrl(v.photos[0], 'hero') +
         '" alt="' + escapeHtmlOccasion(v.name) + '" loading="lazy"' +
         ' data-venue-id="' + escapeHtmlOccasion(v.id) + '"' +
         ' data-venue-name="' + escapeHtmlOccasion(v.name) + '"' +

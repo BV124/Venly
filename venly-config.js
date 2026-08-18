@@ -3,6 +3,37 @@
 // This is the ONLY file you need to edit when going live.
 // ============================================================
 
+// ---- IMAGE OPTIMISATION ----
+// Converts a Supabase storage URL to an optimised version using Supabase's
+// built-in image transformation API. Reduces file sizes by 80-95% by:
+// - Resizing to the display size (no point loading a 4000px image for a 400px card)
+// - Converting to WebP (smaller than JPEG/PNG with same quality)
+// - Compressing to the right quality level
+//
+// Use size presets:
+//   'card'   - venue cards on find-a-space / homepage (400px wide)
+//   'thumb'  - tiny thumbnails (120px wide)
+//   'hero'   - venue page hero / gallery (1200px wide)
+//   'full'   - original (no transformation - for download/editing)
+//
+// Non-Supabase URLs (Unsplash etc.) are returned unchanged.
+function venlyPhotoUrl(url, size) {
+  if (!url) return '';
+  // Only transform Supabase storage URLs
+  if (!url.includes('.supabase.co/storage/v1/object/public/')) return url;
+
+  var widths = { card: 600, thumb: 120, hero: 1200 };
+  var qualities = { card: 75, thumb: 70, hero: 80 };
+  var w = widths[size] || 600;
+  var q = qualities[size] || 75;
+
+  // Replace /object/public/ with /render/image/public/ and add transform params
+  return url
+    .replace('/storage/v1/object/public/', '/storage/v1/render/image/public/')
+    .split('?')[0] // strip any existing query params
+    + '?width=' + w + '&quality=' + q + '&format=webp';
+}
+
 const VENLY_CONFIG = {
 
   // ----------------------------------------------------------
@@ -246,7 +277,7 @@ var VENLY_SEED_VENUES = [
 // venue editor ("Homepage placement" card) — shared so the admin and the
 // homepage never disagree on how many slots exist.
 var VENLY_MAX_TRENDING_HOME_VENUES = 8;  // total slots in the "Trending Spaces" grid
-var VENLY_MAX_OCCASION_PER_TYPE = 5;     // slots per space type in "For all occasions"
+var VENLY_MAX_OCCASION_PER_TYPE = 4;     // slots per space type in "For all occasions"
 
 // ============================================================
 // LIVE DATA CACHE — bridges "Supabase queries are async" with
@@ -296,8 +327,6 @@ function _mapVenueFromDb(row) {
     website: row.website,
     priceFrom: row.price_from,
     priceTo: row.price_to,
-    priceType: row.price_type || null,
-    pricingDetails: row.pricing_details || null,
     plan: row.plan,
     hits: row.hits,
     hostUserId: row.host_user_id,
@@ -491,98 +520,6 @@ function saveAllVenues(venues) {
 }
 
 var VENLY_PLAN_CATEGORY_BY_TYPE = { 'Event space': 'event', 'Meeting space': 'meeting', 'Shoot Location': 'shoot' };
-
-// ---------------------------------------------------------------------------
-// PRICING — one formatter used everywhere (editor preview, cards, venue page)
-// so the host sees exactly what visitors will. A venue has a `priceType` plus
-// the reused priceFrom/priceTo numbers; older venues have neither and fall
-// back to the legacy from/to range.
-// ---------------------------------------------------------------------------
-function _venlyMoney(n) {
-  var num = parseFloat(n);
-  if (isNaN(num)) return '';
-  // Whole numbers show without decimals ($150), otherwise two dp ($20.50).
-  return '$' + (num % 1 === 0 ? num.toFixed(0) : num.toFixed(2));
-}
-
-// Short label for cards and the venue page header.
-function venlyFormatPrice(v) {
-  if (!v) return '';
-  var from = v.priceFrom, to = v.priceTo;
-  switch (v.priceType) {
-    case 'hourly':
-      if (!from) return 'Hourly rate';
-      return 'from ' + _venlyMoney(from) + '/hr';
-    case 'fixed':
-      return from ? _venlyMoney(from) : 'Fixed price';
-    case 'per_person':
-      return from ? 'from ' + _venlyMoney(from) + 'pp' : 'Per person';
-    case 'free':
-      return from ? 'Free hire · ' + _venlyMoney(from) + ' min. spend' : 'Free hire';
-    case 'enquire':
-      return 'Enquire for pricing';
-    default:
-      // Legacy from/to range (no priceType set).
-      if (from && to && from !== to) return _venlyMoney(from) + '–' + _venlyMoney(to);
-      if (from) return 'from ' + _venlyMoney(from);
-      return '';
-  }
-}
-
-// The single number used for sorting and the price filter. "from"-style prices
-// use their lowest figure; free = 0; enquire / unpriced = null (excluded from
-// numeric range filtering, always shown, sorted last).
-function venlyPriceValue(v) {
-  if (!v) return null;
-  var from = parseFloat(v.priceFrom);
-  switch (v.priceType) {
-    case 'free': return 0;
-    case 'enquire': return null;
-    case 'hourly':
-    case 'fixed':
-    case 'per_person':
-      return isNaN(from) ? null : from;
-    default:
-      return isNaN(from) ? null : from; // legacy
-  }
-}
-
-
-// ---------------------------------------------------------------------------
-// PLAN CAPS — how much of a venue's content each plan actually DISPLAYS.
-//
-// These are display limits, not storage limits. A venue keeps everything it
-// has ever uploaded; downgrading just shows less of it. That way an accidental
-// or temporary downgrade never destroys a host's content, and upgrading again
-// brings it all straight back.
-//
-// Keep in sync with planCaps in venly-dashboard.html (the editor enforces the
-// same numbers when adding new content).
-// ---------------------------------------------------------------------------
-var VENLY_PLAN_CAPS = {
-  'Basic':    { photos: 4,  features: 6,  eventTypes: 4  },
-  'Standard': { photos: 8,  features: 10, eventTypes: 6  },
-  'Premium':  { photos: 12, features: 12, eventTypes: 10 },
-};
-
-function venlyPlanCaps(plan) {
-  return VENLY_PLAN_CAPS[plan] || VENLY_PLAN_CAPS['Basic'];
-}
-
-// Returns a copy of the venue with photos/features/eventTypes trimmed to what
-// its current plan displays. Use this on every PUBLIC surface (venue page,
-// cards, search results). Never write the trimmed version back to the
-// database - the untrimmed arrays are the source of truth.
-function venlyApplyPlanCaps(venue) {
-  if (!venue) return venue;
-  var caps = venlyPlanCaps(venue.plan);
-  var out = {};
-  for (var k in venue) { if (Object.prototype.hasOwnProperty.call(venue, k)) out[k] = venue[k]; }
-  if (Array.isArray(venue.photos))     out.photos     = venue.photos.slice(0, caps.photos);
-  if (Array.isArray(venue.features))   out.features   = venue.features.slice(0, caps.features);
-  if (Array.isArray(venue.eventTypes)) out.eventTypes = venue.eventTypes.slice(0, caps.eventTypes);
-  return out;
-}
 
 // What Venly is actually charging this venue's host per month, right now —
 // the LISTING/subscription fee (VENLY_CONFIG.plans), not the venue's own
