@@ -3,37 +3,6 @@
 // This is the ONLY file you need to edit when going live.
 // ============================================================
 
-// ---- IMAGE OPTIMISATION ----
-// Converts a Supabase storage URL to an optimised version using Supabase's
-// built-in image transformation API. Reduces file sizes by 80-95% by:
-// - Resizing to the display size (no point loading a 4000px image for a 400px card)
-// - Converting to WebP (smaller than JPEG/PNG with same quality)
-// - Compressing to the right quality level
-//
-// Use size presets:
-//   'card'   - venue cards on find-a-space / homepage (400px wide)
-//   'thumb'  - tiny thumbnails (120px wide)
-//   'hero'   - venue page hero / gallery (1200px wide)
-//   'full'   - original (no transformation - for download/editing)
-//
-// Non-Supabase URLs (Unsplash etc.) are returned unchanged.
-function venlyPhotoUrl(url, size) {
-  if (!url) return '';
-  // Only transform Supabase storage URLs
-  if (!url.includes('.supabase.co/storage/v1/object/public/')) return url;
-
-  var widths = { card: 600, thumb: 120, hero: 1200 };
-  var qualities = { card: 75, thumb: 70, hero: 80 };
-  var w = widths[size] || 600;
-  var q = qualities[size] || 75;
-
-  // Replace /object/public/ with /render/image/public/ and add transform params
-  return url
-    .replace('/storage/v1/object/public/', '/storage/v1/render/image/public/')
-    .split('?')[0] // strip any existing query params
-    + '?width=' + w + '&quality=' + q + '&format=webp';
-}
-
 const VENLY_CONFIG = {
 
   // ----------------------------------------------------------
