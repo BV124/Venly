@@ -993,13 +993,14 @@ section { padding: 80px 48px; }
 .sts-slideshow-link:hover .sts-venue-label svg { transform: translateX(3px); color: var(--red); }
 
 /* Dots below the slideshow - bigger and easier to see */
-.sts-dots { display: flex; justify-content: center; gap: 10px; margin-top: 14px; }
+.sts-dots { display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
 .sts-dot-indicator {
-  width: 8px; height: 8px; border-radius: 50%; background: var(--border);
-  transition: background 0.3s ease, transform 0.3s ease;
-  cursor: pointer; padding: 3px; box-sizing: content-box;
+  width: 10px; height: 10px; border-radius: 50%;
+  border: 2px solid var(--border); background: transparent;
+  transition: all 0.2s; cursor: pointer; padding: 0;
 }
-.sts-dot-indicator.active { background: var(--red); transform: scale(1.35); }
+.sts-dot-indicator:hover { border-color: var(--red); }
+.sts-dot-indicator.active { background: var(--red); border-color: var(--red); }
 
 .sts-copy { display: flex; flex-direction: column; align-items: flex-start; }
 .sts-meta-row { display: flex; align-items: center; gap: 10px; padding-top: 18px; border-top: 1px solid var(--border); margin-bottom: 20px; width: 100%; }
