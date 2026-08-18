@@ -99,12 +99,18 @@ nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-b
 .venue-section-title { font-size: 17px; font-weight: 700; margin-bottom: 14px; }
 
 /* Description */
-.venue-desc { font-size: 15px; color: var(--text-muted); line-height: 1.8; }
-.venue-desc p { margin-bottom: 12px; }
+.venue-desc { font-size: 15px; color: var(--text); line-height: 1.8; }
+.venue-desc p { margin-bottom: 14px; color: inherit; }
 .venue-desc p:last-child { margin-bottom: 0; }
-.venue-desc ul { padding-left: 20px; margin-bottom: 12px; }
-.venue-desc b, .venue-desc strong { font-weight: 700; color: var(--text); }
-.venue-desc u { text-decoration: underline; }
+.venue-desc ul, .venue-desc ol { padding-left: 22px; margin-bottom: 14px; color: inherit; }
+.venue-desc li { margin-bottom: 4px; color: inherit; }
+.venue-desc b, .venue-desc strong { font-weight: 700; color: inherit; }
+.venue-desc i, .venue-desc em { font-style: italic; color: inherit; }
+.venue-desc u { text-decoration: underline; color: inherit; }
+.venue-desc div { color: inherit; margin-bottom: 8px; }
+.venue-desc div:last-child { margin-bottom: 0; }
+.venue-desc span { color: inherit; }
+.venue-desc * { font-family: 'Inter', sans-serif; font-size: 15px; line-height: 1.8; }
 .read-more-btn { background: none; border: none; color: var(--red); font-size: 14px; font-weight: 600; cursor: pointer; padding: 0; margin-top: 8px; font-family: 'Inter', sans-serif; }
 
 /* Amenities */
