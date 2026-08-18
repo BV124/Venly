@@ -820,7 +820,7 @@ function getSpacesForDisplay() {
       district: v.district,
       capacity: v.capacity,
       premium: v.plan === 'Premium',
-      img: (v.photos && v.photos[0]) ? venlyPhotoUrl(v.photos[0], 'card') : '',
+      img: (v.photos && v.photos[0]) || '',
       events: v.eventTypes || [],
       priceLabel: (typeof venlyFormatPrice === 'function') ? venlyFormatPrice(v) : '',
       priceValue: (typeof venlyPriceValue === 'function') ? venlyPriceValue(v) : null,

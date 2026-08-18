@@ -699,7 +699,7 @@ function renderGallery() {
   }
   if (gallery) gallery.style.display = '';
 
-  mainImg.src = venlyPhotoUrl(photos[0], 'hero');
+  mainImg.src = photos[0];
   mainImg.alt = (loadedVenue ? loadedVenue.name : 'Venue') + ' photo 1';
 
   var isMobile = window.matchMedia('(max-width: 680px)').matches;
@@ -712,7 +712,7 @@ function renderGallery() {
       } else {
         gallery.style.gridTemplateColumns = '1fr 1fr';
         thumb1.style.display = '';
-        thumb1Img.src = venlyPhotoUrl(photos[1], 'card');
+        thumb1Img.src = photos[1];
         thumb1Img.alt = (loadedVenue ? loadedVenue.name : 'Venue') + ' photo 2';
       }
       thumb2.style.display = 'none';
@@ -726,9 +726,9 @@ function renderGallery() {
       thumb1.style.display = '';
       thumb2.style.display = '';
     }
-    thumb1Img.src = venlyPhotoUrl(photos[1], 'card');
+    thumb1Img.src = photos[1];
     thumb1Img.alt = (loadedVenue ? loadedVenue.name : 'Venue') + ' photo 2';
-    thumb2Img.src = venlyPhotoUrl(photos[2], 'card');
+    thumb2Img.src = photos[2];
     thumb2Img.alt = (loadedVenue ? loadedVenue.name : 'Venue') + ' photo 3';
   }
 
@@ -806,7 +806,7 @@ function renderSimilarSpaces() {
   grid.closest('.similar-section').style.display = '';
 
   grid.innerHTML = picks.map(function(v) {
-    var img = v.photos && v.photos[0] ? venlyPhotoUrl(v.photos[0], 'card') : '';
+    var img = v.photos && v.photos[0] ? v.photos[0] : '';
     var imgHtml = img
       ? '<img src="' + img + '" alt="' + escapeHtmlVenue(v.name) + '" loading="lazy" />'
       : '<div class="card-img-empty">No image</div>';
@@ -918,7 +918,7 @@ function closeMiniMap() {
 
 function openLightbox(idx) {
   currentPhoto = idx;
-  document.getElementById('lightbox-img').src = venlyPhotoUrl(photos[idx], 'hero');
+  document.getElementById('lightbox-img').src = photos[idx];
   document.getElementById('lightbox-counter').textContent = (idx+1) + ' / ' + photos.length;
   document.getElementById('lightbox').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
@@ -929,12 +929,12 @@ function closeLightbox() {
 }
 function nextPhoto() {
   currentPhoto = (currentPhoto + 1) % photos.length;
-  document.getElementById('lightbox-img').src = venlyPhotoUrl(photos[currentPhoto], 'hero');
+  document.getElementById('lightbox-img').src = photos[currentPhoto];
   document.getElementById('lightbox-counter').textContent = (currentPhoto+1) + ' / ' + photos.length;
 }
 function prevPhoto() {
   currentPhoto = (currentPhoto - 1 + photos.length) % photos.length;
-  document.getElementById('lightbox-img').src = venlyPhotoUrl(photos[currentPhoto], 'hero');
+  document.getElementById('lightbox-img').src = photos[currentPhoto];
   document.getElementById('lightbox-counter').textContent = (currentPhoto+1) + ' / ' + photos.length;
 }
 document.addEventListener('keydown', function(e) {
