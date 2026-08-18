@@ -128,12 +128,16 @@ tbody tr:last-child td { border-bottom: none; }
   position: fixed; inset: 0; background: rgba(0,0,0,0.5);
   z-index: 200; display: flex; align-items: flex-start; justify-content: center;
   padding: 32px 16px; overflow-y: auto;
+  will-change: opacity;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 .modal-overlay.hidden { display: none !important; }
 
 .modal {
   background: var(--white); border-radius: 16px;
   width: 100%; max-width: 780px;
+  contain: layout style;
   box-shadow: 0 24px 80px rgba(0,0,0,0.2);
   overflow: hidden; position: relative;
   margin: auto;
