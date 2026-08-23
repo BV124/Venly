@@ -1561,6 +1561,12 @@ tbody tr:last-child td { border-bottom: none; }
           <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
             <div id="crm-status-tabs" style="display:flex;gap:6px;flex-wrap:wrap"></div>
             <div style="display:flex;gap:8px;align-items:center">
+              <select id="crm-sort" class="search-input" style="width:auto;padding-left:10px;cursor:pointer" onchange="renderCrmList()">
+                <option value="activity">Sort: Recent activity</option>
+                <option value="due">Sort: Due date</option>
+                <option value="name">Sort: Name A–Z</option>
+                <option value="status">Sort: Status</option>
+              </select>
               <select id="crm-filter-category" class="search-input" style="width:auto;padding-left:10px;cursor:pointer" onchange="renderCrmList()">
                 <option value="">All types</option>
                 <option value="Event space">Event space</option>
@@ -5977,6 +5983,7 @@ function renderCrmList() {
   var records = getAllCrmRecords();
   var search = (document.getElementById('crm-search') ? document.getElementById('crm-search').value : '').toLowerCase();
   var categoryFilter = document.getElementById('crm-filter-category') ? document.getElementById('crm-filter-category').value : '';
+  var sort = document.getElementById('crm-sort') ? document.getElementById('crm-sort').value : 'activity';
 
   var filtered = records.filter(function(r) {
     var matchStatus = _crmActiveStatus === 'All' || r.status === _crmActiveStatus;
@@ -5987,6 +5994,28 @@ function renderCrmList() {
       (r.email || '').toLowerCase().includes(search);
     var matchCategory = !categoryFilter || r.category === categoryFilter;
     return matchStatus && matchSearch && matchCategory;
+  });
+
+  // Sort
+  filtered.sort(function(a, b) {
+    if (sort === 'due') {
+      // No due date goes to bottom
+      if (!a.dueDate && !b.dueDate) return 0;
+      if (!a.dueDate) return 1;
+      if (!b.dueDate) return -1;
+      return new Date(a.dueDate) - new Date(b.dueDate);
+    }
+    if (sort === 'name') {
+      return (a.venueName || '').localeCompare(b.venueName || '');
+    }
+    if (sort === 'status') {
+      var order = ['New','Contacted','Interested','Listed','Not Now','Lost','Do Not Contact'];
+      return order.indexOf(a.status) - order.indexOf(b.status);
+    }
+    // Default: recent activity
+    var aTime = a.timeline && a.timeline.length ? (a.timeline[a.timeline.length-1].ts || a.timeline[a.timeline.length-1].createdAt) : '0';
+    var bTime = b.timeline && b.timeline.length ? (b.timeline[b.timeline.length-1].ts || b.timeline[b.timeline.length-1].createdAt) : '0';
+    return bTime.localeCompare(aTime);
   });
 
   var rowsEl = document.getElementById('crm-list-rows');
@@ -6002,14 +6031,23 @@ function renderCrmList() {
   rowsEl.innerHTML = filtered.map(function(r) {
     var colors = CRM_STATUS_COLORS[r.status] || CRM_STATUS_COLORS['New'];
     var dueBucket = getCrmDueBucket(r.dueDate);
-    var dueHtml = '';
-    if (dueBucket === 'overdue') {
-      dueHtml = '<span style="font-size:11px;color:#c0392b;font-weight:600">⚠ Overdue</span>';
-    } else if (dueBucket === 'today') {
-      dueHtml = '<span style="font-size:11px;color:#a06000;font-weight:600">Due today</span>';
-    } else if (dueBucket === 'soon') {
-      dueHtml = '<span style="font-size:11px;color:var(--text-muted)">Due ' + formatCrmDueLabel(r.dueDate, dueBucket) + '</span>';
+
+    // More prominent due date pill
+    var duePill = '';
+    if (r.dueDate) {
+      var d = new Date(r.dueDate + 'T00:00:00');
+      var dateLabel = d.getDate() + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
+      if (dueBucket === 'overdue') {
+        duePill = '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#fdecec;color:#c0392b;border:1px solid #f5c4bf">⚠ Overdue · ' + dateLabel + '</span>';
+      } else if (dueBucket === 'today') {
+        duePill = '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#fff8e1;color:#a06000;border:1px solid #ffe082">📅 Due today</span>';
+      } else if (dueBucket === 'soon') {
+        duePill = '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:#f0f7ff;color:#1565c0;border:1px solid #bbdefb">📅 ' + dateLabel + '</span>';
+      } else {
+        duePill = '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);padding:3px 8px;border-radius:6px;background:var(--bg);border:1px solid var(--border)">📅 ' + dateLabel + '</span>';
+      }
     }
+
     var lastActivity = r.timeline && r.timeline.length
       ? fmtActivityDate(r.timeline[r.timeline.length - 1].ts || r.timeline[r.timeline.length - 1].createdAt)
       : 'No activity yet';
@@ -6028,9 +6066,9 @@ function renderCrmList() {
             (r.category ? ' · ' + escapeHtml(r.category) : '') +
             ' <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:' + colors.bg + ';color:' + colors.text + ';border:1px solid ' + colors.border + ';margin-left:4px">' + escapeHtml(r.status || 'New') + '</span>' +
           '</div>' +
-          '<div class="msg-preview">' +
-            (r.nextStep ? '→ ' + escapeHtml(r.nextStep) : '<span style="color:#bbb">No next step set</span>') +
-            (dueHtml ? ' &nbsp;' + dueHtml : '') +
+          '<div class="msg-preview" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+            '<span>' + (r.nextStep ? '→ ' + escapeHtml(r.nextStep) : '<span style="color:#bbb">No next step set</span>') + '</span>' +
+            (duePill ? duePill : '') +
           '</div>' +
         '</div>' +
       '</div>' +
