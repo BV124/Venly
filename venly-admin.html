@@ -6058,18 +6058,25 @@ function renderCrmList() {
       '<div style="display:flex;align-items:flex-start;gap:14px;flex:1;min-width:0">' +
         '<div class="msg-avatar" style="background:' + avatarColor + ';flex-shrink:0">' + initials + '</div>' +
         '<div style="min-width:0;flex:1">' +
-          '<div class="msg-top">' +
+
+          // Row 1: name + last activity
+          '<div class="msg-top" style="margin-bottom:4px">' +
             '<span class="msg-name">' + escapeHtml(r.venueName || 'Untitled') + '</span>' +
             '<span class="msg-time">' + lastActivity + '</span>' +
           '</div>' +
-          '<div class="msg-subject">' + escapeHtml(r.contactName || 'No contact') +
-            (r.category ? ' · ' + escapeHtml(r.category) : '') +
-            ' <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:' + colors.bg + ';color:' + colors.text + ';border:1px solid ' + colors.border + ';margin-left:4px">' + escapeHtml(r.status || 'New') + '</span>' +
+
+          // Row 2: contact · category + status badge (separated clearly)
+          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">' +
+            '<span style="font-size:13px;color:var(--text-muted)">' + escapeHtml(r.contactName || 'No contact') + (r.category ? ' · ' + escapeHtml(r.category) : '') + '</span>' +
+            '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:' + colors.bg + ';color:' + colors.text + ';border:1px solid ' + colors.border + '">' + escapeHtml(r.status || 'New') + '</span>' +
           '</div>' +
-          '<div class="msg-preview" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
-            '<span>' + (r.nextStep ? '→ ' + escapeHtml(r.nextStep) : '<span style="color:#bbb">No next step set</span>') + '</span>' +
+
+          // Row 3: next step + due date pill on its own line
+          '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
+            '<span style="font-size:12px;color:var(--text-muted)">' + (r.nextStep ? '→ ' + escapeHtml(r.nextStep) : '<span style="color:#ccc">No next step</span>') + '</span>' +
             (duePill ? duePill : '') +
           '</div>' +
+
         '</div>' +
       '</div>' +
     '</div>';
