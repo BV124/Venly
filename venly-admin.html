@@ -6038,13 +6038,13 @@ function renderCrmList() {
       var d = new Date(r.dueDate + 'T00:00:00');
       var dateLabel = d.getDate() + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
       if (dueBucket === 'overdue') {
-        duePill = '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#fdecec;color:#c0392b;border:1px solid #f5c4bf">⚠ Overdue · ' + dateLabel + '</span>';
+        duePill = '<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#fdecec;color:#c0392b;border:1px solid #f5c4bf">Contact: Overdue — ' + dateLabel + '</span>';
       } else if (dueBucket === 'today') {
-        duePill = '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#fff8e1;color:#a06000;border:1px solid #ffe082">📅 Due today</span>';
+        duePill = '<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#fff8e1;color:#a06000;border:1px solid #ffe082">Contact: Today</span>';
       } else if (dueBucket === 'soon') {
-        duePill = '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:#f0f7ff;color:#1565c0;border:1px solid #bbdefb">📅 ' + dateLabel + '</span>';
+        duePill = '<span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:#f0f7ff;color:#1565c0;border:1px solid #bbdefb">Contact: ' + dateLabel + '</span>';
       } else {
-        duePill = '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);padding:3px 8px;border-radius:6px;background:var(--bg);border:1px solid var(--border)">📅 ' + dateLabel + '</span>';
+        duePill = '<span style="font-size:11px;color:var(--text-muted);padding:3px 8px;border-radius:6px;background:var(--bg);border:1px solid var(--border)">Contact: ' + dateLabel + '</span>';
       }
     }
 
