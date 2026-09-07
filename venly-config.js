@@ -340,7 +340,15 @@ function _mapFiltersFromDb(row) {
 async function venlyBootstrapVenues() {
   if (!SUPABASE_READY) return;
   try {
-    var venuesRes = await sb.from('venues').select('*').order('created_at', { ascending: false });
+    var cols = [
+      'id','name','type','region','district','address','capacity','website',
+      'price_from','price_to','price_type','pricing_details','plan','hits',
+      'host_user_id','host_email','host_name','host_phone','enquiry_email',
+      'description','is_live','subscription_status','created_by',
+      'photos','features','event_types','featured_home','featured_occasion',
+      'trending_home','discount_percent','discount_code','lat','lng','created_at'
+    ].join(',');
+    var venuesRes = await sb.from('venues').select(cols).order('created_at', { ascending: false });
     if (venuesRes.error) throw venuesRes.error;
     _venlyCache.venues = venuesRes.data.map(_mapVenueFromDb);
     _venlyCache.venuesError = false;
@@ -390,7 +398,9 @@ function _mapBlogPostFromDbPublic(row) {
 async function venlyBootstrapBlog() {
   if (!SUPABASE_READY) return;
   try {
-    var res = await sb.from('blog_posts').select('*').order('created_at', { ascending: false });
+    // Exclude 'blocks' (full post content) — not needed for listing pages
+    var blogCols = 'id,title,slug,category,excerpt,cover_image,read_time,published,featured,created_at,views,seo_title,meta_desc';
+    var res = await sb.from('blog_posts').select(blogCols).order('created_at', { ascending: false });
     if (res.error) throw res.error;
     _venlyCache.blog = res.data.map(_mapBlogPostFromDbPublic);
     _venlyCache.blogError = false;
