@@ -346,7 +346,7 @@ async function venlyBootstrapVenues() {
       'host_user_id','host_email','host_name','host_phone','enquiry_email',
       'description','is_live','subscription_status','created_by',
       'photos','features','event_types','featured_home','featured_occasion',
-      'trending_home','discount_percent','discount_code','lat','lng','created_at'
+      'discount_percent','discount_code','lat','lng','created_at'
     ].join(',');
     var venuesRes = await sb.from('venues').select(cols).order('created_at', { ascending: false });
     if (venuesRes.error) throw venuesRes.error;
