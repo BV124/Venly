@@ -308,7 +308,9 @@ function _mapVenueFromDb(row) {
     isLive: row.is_live,
     subscriptionStatus: row.subscription_status,
     createdBy: row.created_by,
-    photos: row.photos || [],
+    // List pages fetch only the first photo (as cover_photo) to keep the
+    // payload tiny; the detail page fetches the full photos array. Support both.
+    photos: row.photos || (row.cover_photo ? [row.cover_photo] : []),
     features: row.features || [],
     eventTypes: row.event_types || [],
     featuredHome: row.featured_home,
@@ -344,7 +346,7 @@ function _mapFiltersFromDb(row) {
 // VENLY_CACHE_VERSION whenever the data shape changes (e.g. new columns).
 // sessionStorage is automatically cleared when the tab is closed, so users
 // always get fresh data on their next visit.
-var VENLY_CACHE_VERSION = 'v1';
+var VENLY_CACHE_VERSION = 'v2';
 var _SS_VENUES_KEY  = 'venly_ss_venues_'  + VENLY_CACHE_VERSION;
 var _SS_FILTERS_KEY = 'venly_ss_filters_' + VENLY_CACHE_VERSION;
 var _SS_BLOG_KEY    = 'venly_ss_blog_'    + VENLY_CACHE_VERSION;
@@ -546,6 +548,35 @@ function getAllVenues() {
   if (SUPABASE_READY) return _venlyCache.venues || []; // never fall back to demo data once live — an empty result + venuesError flag instead
   var fromStorage = JSON.parse(localStorage.getItem('venly_venues') || 'null');
   return fromStorage || VENLY_SEED_VENUES;
+}
+
+// Fetch a SINGLE venue by id with ALL its columns (full photos array,
+// description, features, host contact). Used by the venue detail page, which
+// needs the complete record — unlike list pages, which fetch a slim version
+// (cover photo only) for speed. Fetching one full row is fast; the weight in
+// the list query came from pulling every photo of every venue at once.
+async function venlyFetchVenueById(id) {
+  if (!SUPABASE_READY || !id) return null;
+  try {
+    var cols = [
+      'id','name','type','region','district','address','capacity','website',
+      'price_from','price_to','price_type','pricing_details','plan','hits',
+      'host_user_id','host_email','host_name','host_phone','enquiry_email',
+      'description','is_live','subscription_status','created_by',
+      'photos','features','event_types','featured_home','featured_occasion',
+      'discount_percent','discount_code','lat','lng','created_at'
+    ].join(',');
+    var promise = window._venlyEarlyVenue
+      ? window._venlyEarlyVenue
+      : sb.from('venues').select(cols).eq('id', id).maybeSingle();
+    window._venlyEarlyVenue = null;
+    var res = await promise;
+    if (res.error) throw res.error;
+    return res.data ? _mapVenueFromDb(res.data) : null;
+  } catch (e) {
+    console.error('venlyFetchVenueById failed:', e);
+    return null;
+  }
 }
 
 function saveAllVenues(venues) {
