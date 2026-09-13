@@ -613,19 +613,26 @@ nav {
 
 </style>
   <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"></script>
+  <script>
+    (function() {
+      var url = 'https://fauptwawvjsnsswumiyk.supabase.co';
+      var key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhdXB0d2F3dmpzbnNzd3VtaXlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTE3NjAsImV4cCI6MjA5Njg2Nzc2MH0.wEuNw75JhWFHDdvYLCzhg2K466U45BsLPappxMgJdCw';
+      try {
+        var _sb = window.supabase.createClient(url, key);
+        var cols = 'id,name,type,region,district,capacity,plan,photos,is_live,featured_home,featured_occasion,event_types,lat,lng,price_from,price_to,price_type,pricing_details,host_email,host_name,host_phone,enquiry_email,description,features,subscription_status,discount_percent,discount_code,created_at';
+        window._venlyEarlyVenues = _sb.from('venues').select(cols).order('created_at', { ascending: false });
+        window._venlyEarlyFilters = _sb.from('site_filters').select('*').eq('id', 1).maybeSingle();
+      } catch(e) {}
+    })();
+  </script>
   <script src="venly-config.js?v=3"></script>
   <script src="venly-shared.js?v=3"></script>
   <script>
     window.venlyReady = (typeof venlyBootstrap === 'function') ? venlyBootstrap() : Promise.resolve();
-
-    // If Supabase is connected but a fetch genuinely failed, say so — don't
-    // let the page silently look "normal" while showing incomplete data.
     window.venlyReady.then(function() {
       if (typeof venlyFetchFailed !== 'function') return;
-      if (venlyFetchFailed('filters')) {
-        venlyShowLoadError();
-      }
+      if (venlyFetchFailed('filters')) { venlyShowLoadError(); }
     });
   </script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />

@@ -340,6 +340,9 @@ function _mapFiltersFromDb(row) {
 async function venlyBootstrapVenues() {
   if (!SUPABASE_READY) return;
   try {
+    // Use the early-fired promise if the page pre-started the fetch before
+    // this script even finished parsing (see index.html inline script).
+    // Falls back to a fresh query on pages that don't pre-fire.
     var cols = [
       'id','name','type','region','district','address','capacity','website',
       'price_from','price_to','price_type','pricing_details','plan','hits',
@@ -348,7 +351,11 @@ async function venlyBootstrapVenues() {
       'photos','features','event_types','featured_home','featured_occasion',
       'discount_percent','discount_code','lat','lng','created_at'
     ].join(',');
-    var venuesRes = await sb.from('venues').select(cols).order('created_at', { ascending: false });
+    var venuesPromise = (window._venlyEarlyVenues)
+      ? window._venlyEarlyVenues
+      : sb.from('venues').select(cols).order('created_at', { ascending: false });
+    window._venlyEarlyVenues = null; // consume it
+    var venuesRes = await venuesPromise;
     if (venuesRes.error) throw venuesRes.error;
     _venlyCache.venues = venuesRes.data.map(_mapVenueFromDb);
     _venlyCache.venuesError = false;
@@ -361,11 +368,11 @@ async function venlyBootstrapVenues() {
 async function venlyBootstrapFilters() {
   if (!SUPABASE_READY) return;
   try {
-    // maybeSingle(), not single() — if the site_filters row hasn't been
-    // seeded yet, this should mean "no filters configured", not "the
-    // fetch failed". single() throws on zero rows; maybeSingle() just
-    // returns null, which getVenlyFilters() already handles gracefully.
-    var filtersRes = await sb.from('site_filters').select('*').eq('id', 1).maybeSingle();
+    var filtersPromise = (window._venlyEarlyFilters)
+      ? window._venlyEarlyFilters
+      : sb.from('site_filters').select('*').eq('id', 1).maybeSingle();
+    window._venlyEarlyFilters = null;
+    var filtersRes = await filtersPromise;
     if (filtersRes.error) throw filtersRes.error;
     _venlyCache.filters = _mapFiltersFromDb(filtersRes.data);
     _venlyCache.filtersError = false;
@@ -398,20 +405,17 @@ function _mapBlogPostFromDbPublic(row) {
 async function venlyBootstrapBlog() {
   if (!SUPABASE_READY) return;
   try {
-    // Exclude 'blocks' (full post content) — not needed for listing pages.
-    // Only fetch published posts — RLS already enforces this for anon users,
-    // but adding it explicitly avoids drafts showing for logged-in hosts/admins
-    // and makes the intent clear.
     var blogCols = 'id,title,slug,category,excerpt,cover_image,read_time,featured,created_at,views';
-    var res = await sb.from('blog_posts').select(blogCols).eq('published', true).order('created_at', { ascending: false });
+    var blogPromise = (window._venlyEarlyBlog)
+      ? window._venlyEarlyBlog
+      : sb.from('blog_posts').select(blogCols).eq('published', true).order('created_at', { ascending: false });
+    window._venlyEarlyBlog = null;
+    var res = await blogPromise;
     if (res.error) throw res.error;
     _venlyCache.blog = res.data.map(_mapBlogPostFromDbPublic);
     _venlyCache.blogError = false;
   } catch (e) {
     console.error('venlyBootstrapBlog failed:', e);
-    // Blog failing is non-fatal — the page falls back to placeholder posts.
-    // Don't set blogError to true, which would trigger the scary red banner
-    // for something that's just a supplementary content section.
     _venlyCache.blog = null;
     _venlyCache.blogError = false;
   }
