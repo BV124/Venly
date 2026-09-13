@@ -346,7 +346,7 @@ function _mapFiltersFromDb(row) {
 // VENLY_CACHE_VERSION whenever the data shape changes (e.g. new columns).
 // sessionStorage is automatically cleared when the tab is closed, so users
 // always get fresh data on their next visit.
-var VENLY_CACHE_VERSION = 'v2';
+var VENLY_CACHE_VERSION = 'v3';
 var _SS_VENUES_KEY  = 'venly_ss_venues_'  + VENLY_CACHE_VERSION;
 var _SS_FILTERS_KEY = 'venly_ss_filters_' + VENLY_CACHE_VERSION;
 var _SS_BLOG_KEY    = 'venly_ss_blog_'    + VENLY_CACHE_VERSION;

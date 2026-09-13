@@ -269,7 +269,7 @@ textarea { resize: none; min-height: 90px; }
 
 </style>
   <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     // Fire the single-venue fetch (full record, all photos) immediately from
     // the URL id, before any other script parses — this is the one the page
@@ -285,7 +285,7 @@ textarea { resize: none; min-height: 90px; }
           var full = 'id,name,type,region,district,address,capacity,website,price_from,price_to,price_type,pricing_details,plan,hits,host_user_id,host_email,host_name,host_phone,enquiry_email,description,is_live,subscription_status,created_by,photos,features,event_types,featured_home,featured_occasion,discount_percent,discount_code,lat,lng,created_at';
           window._venlyEarlyVenue = _sb.from('venues').select(full).eq('id', id).maybeSingle();
         }
-        var listCols = 'id,name,type,region,district,capacity,plan,is_live,featured_home,featured_occasion,event_types,lat,lng,price_from,price_to,price_type,pricing_details,subscription_status,created_at,cover_photo:photos->>0';
+        var listCols = 'id,name,type,region,district,capacity,plan,is_live,featured_home,featured_occasion,event_types,lat,lng,price_from,price_to,price_type,pricing_details,subscription_status,created_at,photos';
         window._venlyEarlyVenues = _sb.from('venues').select(listCols).order('created_at', { ascending: false });
         window._venlyEarlyFilters = _sb.from('site_filters').select('*').eq('id', 1).maybeSingle();
       } catch(e) {}
@@ -540,8 +540,13 @@ async function findVenueFromUrl() {
     if (full) return cap(full);
   }
 
-  // Fallback: look in the shared list cache (name-based links, or if the
-  // direct fetch returned nothing). Note the list cache only has cover photos.
+  // Fallback: wait for the full list to load, then look in the shared cache.
+  // Covers name-based links and the case where the direct fetch returned
+  // nothing. loadVenue() runs before venlyReady resolves, so the cache may
+  // still be empty on the direct path above — awaiting it here fixes that.
+  if (window.venlyReady && typeof window.venlyReady.then === 'function') {
+    try { await window.venlyReady; } catch(e) {}
+  }
   if (typeof getAllVenues === 'function') {
     var all = getAllVenues();
     if (id) {
