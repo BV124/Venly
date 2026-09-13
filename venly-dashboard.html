@@ -2676,6 +2676,7 @@ async function saveListing(isLive, silent) {
       eventTypes: selectedEventTypes.slice(),
     });
     if (!saved) { showToast('Could not save — please try again'); return null; }
+    if (typeof venlyInvalidateCache === 'function') venlyInvalidateCache();
     await loadUserListings();
     // silent = true when called from handlePayment(): keep the modal open and
     // don't show a "saved as draft" toast while we're mid-way to Stripe.

@@ -337,12 +337,36 @@ function _mapFiltersFromDb(row) {
 // reads venues. Safe to call multiple times (re-fetches fresh data each
 // time — used after every write, so the cache never goes stale) and safe
 // to call in demo mode (does nothing).
+// ── Session cache helpers ──────────────────────────────────────────────────
+// Venues and filters are stored in sessionStorage after the first fetch so
+// every subsequent page in the same browser session loads instantly with
+// zero network requests. The cache is keyed with a version string — bump
+// VENLY_CACHE_VERSION whenever the data shape changes (e.g. new columns).
+// sessionStorage is automatically cleared when the tab is closed, so users
+// always get fresh data on their next visit.
+var VENLY_CACHE_VERSION = 'v1';
+var _SS_VENUES_KEY  = 'venly_ss_venues_'  + VENLY_CACHE_VERSION;
+var _SS_FILTERS_KEY = 'venly_ss_filters_' + VENLY_CACHE_VERSION;
+var _SS_BLOG_KEY    = 'venly_ss_blog_'    + VENLY_CACHE_VERSION;
+
+function _ssGet(key) {
+  try { var v = sessionStorage.getItem(key); return v ? JSON.parse(v) : null; } catch(e) { return null; }
+}
+function _ssSet(key, val) {
+  try { sessionStorage.setItem(key, JSON.stringify(val)); } catch(e) { /* storage full — ignore */ }
+}
+
 async function venlyBootstrapVenues() {
   if (!SUPABASE_READY) return;
   try {
-    // Use the early-fired promise if the page pre-started the fetch before
-    // this script even finished parsing (see index.html inline script).
-    // Falls back to a fresh query on pages that don't pre-fire.
+    // 1. Serve from sessionStorage instantly if already fetched this session
+    var cached = _ssGet(_SS_VENUES_KEY);
+    if (cached) {
+      _venlyCache.venues = cached.map(_mapVenueFromDb);
+      _venlyCache.venuesError = false;
+      return;
+    }
+    // 2. Use the early-fired promise if available, otherwise fire fresh
     var cols = [
       'id','name','type','region','district','address','capacity','website',
       'price_from','price_to','price_type','pricing_details','plan','hits',
@@ -351,12 +375,13 @@ async function venlyBootstrapVenues() {
       'photos','features','event_types','featured_home','featured_occasion',
       'discount_percent','discount_code','lat','lng','created_at'
     ].join(',');
-    var venuesPromise = (window._venlyEarlyVenues)
+    var venuesPromise = window._venlyEarlyVenues
       ? window._venlyEarlyVenues
       : sb.from('venues').select(cols).order('created_at', { ascending: false });
-    window._venlyEarlyVenues = null; // consume it
+    window._venlyEarlyVenues = null;
     var venuesRes = await venuesPromise;
     if (venuesRes.error) throw venuesRes.error;
+    _ssSet(_SS_VENUES_KEY, venuesRes.data); // cache raw rows
     _venlyCache.venues = venuesRes.data.map(_mapVenueFromDb);
     _venlyCache.venuesError = false;
   } catch (e) {
@@ -368,12 +393,19 @@ async function venlyBootstrapVenues() {
 async function venlyBootstrapFilters() {
   if (!SUPABASE_READY) return;
   try {
-    var filtersPromise = (window._venlyEarlyFilters)
+    var cached = _ssGet(_SS_FILTERS_KEY);
+    if (cached) {
+      _venlyCache.filters = _mapFiltersFromDb(cached);
+      _venlyCache.filtersError = false;
+      return;
+    }
+    var filtersPromise = window._venlyEarlyFilters
       ? window._venlyEarlyFilters
       : sb.from('site_filters').select('*').eq('id', 1).maybeSingle();
     window._venlyEarlyFilters = null;
     var filtersRes = await filtersPromise;
     if (filtersRes.error) throw filtersRes.error;
+    _ssSet(_SS_FILTERS_KEY, filtersRes.data);
     _venlyCache.filters = _mapFiltersFromDb(filtersRes.data);
     _venlyCache.filtersError = false;
   } catch (e) {
@@ -405,13 +437,20 @@ function _mapBlogPostFromDbPublic(row) {
 async function venlyBootstrapBlog() {
   if (!SUPABASE_READY) return;
   try {
+    var cached = _ssGet(_SS_BLOG_KEY);
+    if (cached) {
+      _venlyCache.blog = cached.map(_mapBlogPostFromDbPublic);
+      _venlyCache.blogError = false;
+      return;
+    }
     var blogCols = 'id,title,slug,category,excerpt,cover_image,read_time,featured,created_at,views';
-    var blogPromise = (window._venlyEarlyBlog)
+    var blogPromise = window._venlyEarlyBlog
       ? window._venlyEarlyBlog
       : sb.from('blog_posts').select(blogCols).eq('published', true).order('created_at', { ascending: false });
     window._venlyEarlyBlog = null;
     var res = await blogPromise;
     if (res.error) throw res.error;
+    _ssSet(_SS_BLOG_KEY, res.data);
     _venlyCache.blog = res.data.map(_mapBlogPostFromDbPublic);
     _venlyCache.blogError = false;
   } catch (e) {
@@ -446,6 +485,16 @@ function getVenlyBlogPosts() {
 // both in parallel. Pages migrating just one piece at a time (e.g. the
 // admin, currently venues-only) should call the specific one they need
 // instead, so an unmigrated feature's cache stays untouched.
+// Call this before venlyBootstrapVenues() after any write operation (save,
+// delete, publish) so the session cache is cleared and fresh data is fetched.
+function venlyInvalidateCache() {
+  try {
+    sessionStorage.removeItem(_SS_VENUES_KEY);
+    sessionStorage.removeItem(_SS_FILTERS_KEY);
+    sessionStorage.removeItem(_SS_BLOG_KEY);
+  } catch(e) {}
+}
+
 async function venlyBootstrap() {
   await Promise.all([venlyBootstrapVenues(), venlyBootstrapFilters()]);
   // Sync favourites in parallel — don't block page rendering on it

@@ -5218,7 +5218,7 @@ function confirmCancelSubscription() {
       if (SUPABASE_READY) {
         var res = await sb.from('venues').update({ subscription_status: 'cancelled', is_live: false }).eq('id', currentEditingVenueId);
         if (res.error) { showToast('Could not cancel subscription: ' + res.error.message); return; }
-        await venlyBootstrapVenues();
+        venlyInvalidateCache(); await venlyBootstrapVenues();
         var v2 = getAllVenues().find(function(x) { return x.id === currentEditingVenueId; });
         if (v2) renderVenueStatusBanner(v2);
         buildVenuesTable();
@@ -5252,7 +5252,7 @@ async function reactivateVenue() {
   if (SUPABASE_READY) {
     var res = await sb.from('venues').update({ subscription_status: 'active', is_live: true }).eq('id', currentEditingVenueId);
     if (res.error) { showToast('Could not reactivate venue: ' + res.error.message); return; }
-    await venlyBootstrapVenues();
+    venlyInvalidateCache(); await venlyBootstrapVenues();
     var v2 = getAllVenues().find(function(x) { return x.id === currentEditingVenueId; });
     document.getElementById('ven-live-toggle').classList.add('on');
     updateVenueLiveHelper();
@@ -5596,7 +5596,7 @@ async function saveVenue() {
       return;
     }
 
-    await venlyBootstrapVenues(); // refresh the cache so every page reflects this change
+    venlyInvalidateCache(); await venlyBootstrapVenues(); // refresh the cache so every page reflects this change
     showToast('Venue saved');
     closeVenueEditor();
     buildVenuesTable();
@@ -5703,7 +5703,7 @@ function deleteVenueWithConfirm(venueId) {
       // nothing left to count for "Net venues per month", so this is what
       // that chart's "removed" side actually reads from.
       await sb.from('venue_deletion_log').insert({ venue_name: venue.name });
-      await venlyBootstrapVenues();
+      venlyInvalidateCache(); await venlyBootstrapVenues();
       buildVenuesTable();
       if (typeof buildAccountsTable === 'function') buildAccountsTable();
       if (typeof buildOverviewRevenueStat === 'function') buildOverviewRevenueStat();
