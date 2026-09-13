@@ -487,17 +487,14 @@ section { padding: 80px 48px; }
     window.venlyReady = (typeof venlyBootstrap === 'function') ? venlyBootstrap() : Promise.resolve();
     window.venlyBlogReady = (typeof venlyBootstrapBlog === 'function') ? venlyBootstrapBlog() : Promise.resolve();
 
-    // If Supabase is connected but a fetch genuinely failed, say so - don't
-    // let the page silently look "normal" while showing incomplete data.
+    // If Supabase is connected but a core fetch genuinely failed, say so.
+    // Blog is non-fatal — it falls back to placeholder posts — so we only
+    // banner on venues/filters which are critical to the page working.
     window.venlyReady.then(function() {
       if (typeof venlyFetchFailed !== 'function') return;
       if (venlyFetchFailed('venues') || venlyFetchFailed('filters')) {
         venlyShowLoadError();
       }
-    });
-    window.venlyBlogReady.then(function() {
-      if (typeof venlyFetchFailed !== 'function') return;
-      if (venlyFetchFailed('blog')) venlyShowLoadError();
     });
   </script>
 </head>

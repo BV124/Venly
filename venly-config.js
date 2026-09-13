@@ -398,15 +398,22 @@ function _mapBlogPostFromDbPublic(row) {
 async function venlyBootstrapBlog() {
   if (!SUPABASE_READY) return;
   try {
-    // Exclude 'blocks' (full post content) — not needed for listing pages
-    var blogCols = 'id,title,slug,category,excerpt,cover_image,read_time,published,featured,created_at,views,seo_title,meta_desc';
-    var res = await sb.from('blog_posts').select(blogCols).order('created_at', { ascending: false });
+    // Exclude 'blocks' (full post content) — not needed for listing pages.
+    // Only fetch published posts — RLS already enforces this for anon users,
+    // but adding it explicitly avoids drafts showing for logged-in hosts/admins
+    // and makes the intent clear.
+    var blogCols = 'id,title,slug,category,excerpt,cover_image,read_time,featured,created_at,views';
+    var res = await sb.from('blog_posts').select(blogCols).eq('published', true).order('created_at', { ascending: false });
     if (res.error) throw res.error;
     _venlyCache.blog = res.data.map(_mapBlogPostFromDbPublic);
     _venlyCache.blogError = false;
   } catch (e) {
     console.error('venlyBootstrapBlog failed:', e);
-    _venlyCache.blogError = true;
+    // Blog failing is non-fatal — the page falls back to placeholder posts.
+    // Don't set blogError to true, which would trigger the scary red banner
+    // for something that's just a supplementary content section.
+    _venlyCache.blog = null;
+    _venlyCache.blogError = false;
   }
 }
 
