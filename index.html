@@ -754,17 +754,12 @@ section { padding: 80px 48px; }
 
   var all = getAllVenues().filter(function(v) { return v.isLive; });
   var selected = all.filter(function(v) { return v.featuredHome; });
+  // Fallback: if no venues are explicitly featured, show all live venues with photos
+  if (!selected.length) selected = all.filter(function(v) { return v.photos && v.photos[0]; });
   var venues = selected.slice(0, MAX);
 
   if (!venues.length) {
-    // Same idea as For All Occasions' empty slideshows - a plain grey box
-    // that holds the section's shape, rather than the grid collapsing to
-    // nothing (which is what happens if this div is just left empty).
-    var skeletonTile = '<div class="ja-tile ja-tile-skeleton">' +
-      '<div class="ja-tile-img"></div>' +
-      '<div class="ja-tile-info"><div class="ja-tile-row"></div></div>' +
-    '</div>';
-    grid.innerHTML = skeletonTile.repeat(4);
+    // No live venues yet - keep shimmer skeletons
     return;
   }
 
@@ -1041,6 +1036,8 @@ section { padding: 80px 48px; }
 
     var ofType = all.filter(function(v) { return v.type === spaceType; });
     var selected = ofType.filter(function(v) { return v.featuredOccasion; });
+    // Fallback: if no venues are explicitly featured for this type, show all live venues of this type with photos
+    if (!selected.length) selected = ofType.filter(function(v) { return v.photos && v.photos[0]; });
     var venues = selected.slice(0, MAX);
     if (!venues.length) return;
 
