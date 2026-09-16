@@ -620,7 +620,7 @@ nav {
       var key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhdXB0d2F3dmpzbnNzd3VtaXlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTE3NjAsImV4cCI6MjA5Njg2Nzc2MH0.wEuNw75JhWFHDdvYLCzhg2K466U45BsLPappxMgJdCw';
       try {
         var _sb = window.supabase.createClient(url, key);
-        var cols = 'id,name,type,region,district,capacity,plan,is_live,featured_home,featured_occasion,event_types,lat,lng,price_from,price_to,price_type,pricing_details,subscription_status,created_at,photos';
+        var cols = 'id,name,type,region,district,capacity,plan,is_live,featured_home,featured_occasion,event_types,lat,lng,price_from,price_to,price_type,pricing_details,subscription_status,created_at,cover_photo:photos->>0';
         window._venlyEarlyVenues = _sb.from('venues').select(cols).order('created_at', { ascending: false });
         window._venlyEarlyFilters = _sb.from('site_filters').select('*').eq('id', 1).maybeSingle();
       } catch(e) {}

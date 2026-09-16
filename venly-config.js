@@ -346,7 +346,7 @@ function _mapFiltersFromDb(row) {
 // VENLY_CACHE_VERSION whenever the data shape changes (e.g. new columns).
 // sessionStorage is automatically cleared when the tab is closed, so users
 // always get fresh data on their next visit.
-var VENLY_CACHE_VERSION = 'v3';
+var VENLY_CACHE_VERSION = 'v4';
 var _SS_VENUES_KEY  = 'venly_ss_venues_'  + VENLY_CACHE_VERSION;
 var _SS_FILTERS_KEY = 'venly_ss_filters_' + VENLY_CACHE_VERSION;
 var _SS_BLOG_KEY    = 'venly_ss_blog_'    + VENLY_CACHE_VERSION;
@@ -368,15 +368,11 @@ async function venlyBootstrapVenues() {
       _venlyCache.venuesError = false;
       return;
     }
-    // 2. Use the early-fired promise if available, otherwise fire fresh
-    var cols = [
-      'id','name','type','region','district','address','capacity','website',
-      'price_from','price_to','price_type','pricing_details','plan','hits',
-      'host_user_id','host_email','host_name','host_phone','enquiry_email',
-      'description','is_live','subscription_status','created_by',
-      'photos','features','event_types','featured_home','featured_occasion',
-      'discount_percent','discount_code','lat','lng','created_at'
-    ].join(',');
+    // 2. Use the early-fired promise if available, otherwise fire fresh.
+    // List pages only need the cover photo (photos->>0 as cover_photo), not the
+    // full photos array — that array is base64-heavy and was making this fetch
+    // multi-megabyte. The venue detail page fetches the full record separately.
+    var cols = 'id,name,type,region,district,capacity,plan,is_live,featured_home,featured_occasion,event_types,lat,lng,price_from,price_to,price_type,pricing_details,subscription_status,created_at,cover_photo:photos->>0';
     var venuesPromise = window._venlyEarlyVenues
       ? window._venlyEarlyVenues
       : sb.from('venues').select(cols).order('created_at', { ascending: false });

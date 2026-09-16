@@ -481,7 +481,7 @@ section { padding: 80px 48px; }
       var key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhdXB0d2F3dmpzbnNzd3VtaXlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTE3NjAsImV4cCI6MjA5Njg2Nzc2MH0.wEuNw75JhWFHDdvYLCzhg2K466U45BsLPappxMgJdCw';
       try {
         var _sb = window.supabase.createClient(url, key);
-        var venuesCols = 'id,name,type,region,district,capacity,plan,is_live,featured_home,featured_occasion,event_types,lat,lng,price_from,price_to,price_type,pricing_details,subscription_status,created_at,photos';
+        var venuesCols = 'id,name,type,region,district,capacity,plan,is_live,featured_home,featured_occasion,event_types,lat,lng,price_from,price_to,price_type,pricing_details,subscription_status,created_at,cover_photo:photos->>0';
         window._venlyEarlyVenues = _sb.from('venues').select(venuesCols).order('created_at', { ascending: false });
         window._venlyEarlyFilters = _sb.from('site_filters').select('*').eq('id', 1).maybeSingle();
         window._venlyEarlyBlog = _sb.from('blog_posts').select('id,title,slug,category,excerpt,cover_image,read_time,featured,created_at,views').eq('published', true).order('created_at', { ascending: false });
