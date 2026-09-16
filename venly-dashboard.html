@@ -186,6 +186,8 @@ tbody tr:last-child td { border-bottom: none; }
 
 /* PHOTO UPLOAD */
 .photo-upload-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 8px; }
+.photo-uploading-spinner { width: 28px; height: 28px; border: 3px solid var(--border, #e5e7eb); border-top-color: var(--red, #e03a2f); border-radius: 50%; animation: photoSpin 0.7s linear infinite; }
+@keyframes photoSpin { to { transform: rotate(360deg); } }
 .photo-slot {
   aspect-ratio: 1; border-radius: var(--radius-sm); border: 2px dashed var(--border);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -2648,6 +2650,13 @@ async function saveListing(isLive, silent) {
   var title = document.getElementById('v-title').value.trim();
   if (!title) { showToast('Please give your space a title before saving'); return; }
 
+  // Don't save while a photo is still uploading to Storage — the slot holds a
+  // '__uploading__' placeholder that must resolve to a real URL first.
+  if (photoDataUrls.indexOf('__uploading__') !== -1) {
+    showToast('Please wait — photos are still uploading');
+    return;
+  }
+
   // LIVE MODE: write to Supabase instead of localStorage
   if (typeof SUPABASE_READY !== 'undefined' && SUPABASE_READY) {
     var enquiryEmailField = document.getElementById('h-enquiry-email').value.trim();
@@ -3179,6 +3188,12 @@ function renderPhotoGrid() {
     // Photos in slots beyond the cap are over-limit: kept, but greyed with a
     // note so the host understands they won't show publicly until they upgrade.
     const overCap = i >= cap;
+    // Slot currently uploading to Storage — show a spinner placeholder.
+    if (url === '__uploading__') {
+      return '<div class="photo-slot" id="photo-slot-' + i + '" style="display:flex;align-items:center;justify-content:center;pointer-events:none">'
+        + '<div class="photo-uploading-spinner"></div>'
+        + '</div>';
+    }
     if (url) {
       const isCover = i === coverPhotoIndex && !overCap;
       const dragHandlers = !overCap
@@ -3435,24 +3450,101 @@ function handleFileUpload(e) {
     return;
   }
 
-  // Process each file with compression, then render once all done
+  // Process each file with compression, then upload to Supabase Storage.
+  // We store the returned public URL (not base64) — this keeps the venues
+  // table tiny and makes every page load fast. Compression still runs first
+  // so we upload a reasonably-sized image, not the raw multi-MB original.
   var remaining = pairs.length;
+  var anyError = false;
   pairs.forEach(function(pair) {
     const reader = new FileReader();
     reader.onload = function(ev) {
-      compressImage(ev.target.result, 1400, 0.82, function(compressed) {
-        photoDataUrls[pair.slot] = compressed;
-        remaining--;
-        if (remaining === 0) {
-          markDirty();
-          renderPhotoGrid();
+      compressImageToBlob(ev.target.result, 1400, 0.82, function(blob) {
+        if (!blob) { // compression failed — skip this one
+          remaining--;
+          if (remaining === 0) finishUpload();
+          return;
         }
+        // Show a placeholder while this slot uploads
+        photoDataUrls[pair.slot] = '__uploading__';
+        renderPhotoGrid();
+        uploadPhotoToStorage(blob, function(url) {
+          if (url) {
+            photoDataUrls[pair.slot] = url;
+          } else {
+            photoDataUrls[pair.slot] = ''; // clear the placeholder on failure
+            anyError = true;
+          }
+          remaining--;
+          if (remaining === 0) finishUpload();
+        });
       });
     };
     reader.readAsDataURL(pair.file);
   });
 
+  function finishUpload() {
+    markDirty();
+    renderPhotoGrid();
+    if (anyError) showToast('Some photos failed to upload — please try again');
+  }
+
   e.target.value = '';
+}
+
+// Uploads a compressed image blob to the venue-photos Storage bucket and
+// returns its public URL via callback. Filenames are namespaced by user id
+// and made unique with a timestamp + random suffix so uploads never collide
+// and the "delete your own" storage policy (which checks owner = auth.uid())
+// works correctly.
+async function uploadPhotoToStorage(blob, callback) {
+  if (typeof sb === 'undefined' || !SUPABASE_READY) {
+    // No Supabase (demo mode) — fall back to base64 so the flow still works.
+    var r = new FileReader();
+    r.onload = function(e) { callback(e.target.result); };
+    r.onerror = function() { callback(null); };
+    r.readAsDataURL(blob);
+    return;
+  }
+  try {
+    var userRes = await sb.auth.getUser();
+    var user = userRes.data && userRes.data.user;
+    var uid = user ? user.id : 'anon';
+    var filename = uid + '/' + Date.now() + '-' + Math.random().toString(36).slice(2, 10) + '.jpg';
+    var up = await sb.storage.from('venue-photos').upload(filename, blob, {
+      contentType: 'image/jpeg',
+      cacheControl: '31536000', // 1 year — images are immutable once uploaded
+      upsert: false,
+    });
+    if (up.error) {
+      console.error('Photo upload failed:', up.error.message);
+      callback(null);
+      return;
+    }
+    var pub = sb.storage.from('venue-photos').getPublicUrl(filename);
+    var url = pub && pub.data && pub.data.publicUrl;
+    callback(url || null);
+  } catch (e) {
+    console.error('Photo upload error:', e);
+    callback(null);
+  }
+}
+
+// Like compressImage, but returns a Blob (for uploading) instead of a base64
+// data URL. Falls back to null on error so the caller can skip the file.
+function compressImageToBlob(dataUrl, maxWidth, quality, callback) {
+  const img = new Image();
+  img.onload = function() {
+    const scale = Math.min(1, maxWidth / img.width);
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width * scale;
+    canvas.height = img.height * scale;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob(function(blob) { callback(blob); }, 'image/jpeg', quality);
+  };
+  img.onerror = function() { callback(null); };
+  img.src = dataUrl;
 }
 
 // Resizes/compresses an uploaded image client-side so it doesn't bloat
