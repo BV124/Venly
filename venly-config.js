@@ -308,8 +308,9 @@ function _mapVenueFromDb(row) {
     isLive: row.is_live,
     subscriptionStatus: row.subscription_status,
     createdBy: row.created_by,
-    // List pages fetch only the first photo (as cover_photo) to keep the
-    // payload tiny; the detail page fetches the full photos array. Support both.
+    // Photos are Storage URLs (small), so every fetch returns the full array.
+    // The cover_photo fallback stays as a harmless safety net for any legacy
+    // response shape.
     photos: row.photos || (row.cover_photo ? [row.cover_photo] : []),
     features: row.features || [],
     eventTypes: row.event_types || [],
@@ -346,7 +347,7 @@ function _mapFiltersFromDb(row) {
 // VENLY_CACHE_VERSION whenever the data shape changes (e.g. new columns).
 // sessionStorage is automatically cleared when the tab is closed, so users
 // always get fresh data on their next visit.
-var VENLY_CACHE_VERSION = 'v4';
+var VENLY_CACHE_VERSION = 'v5';
 var _SS_VENUES_KEY  = 'venly_ss_venues_'  + VENLY_CACHE_VERSION;
 var _SS_FILTERS_KEY = 'venly_ss_filters_' + VENLY_CACHE_VERSION;
 var _SS_BLOG_KEY    = 'venly_ss_blog_'    + VENLY_CACHE_VERSION;
@@ -369,10 +370,8 @@ async function venlyBootstrapVenues() {
       return;
     }
     // 2. Use the early-fired promise if available, otherwise fire fresh.
-    // List pages only need the cover photo (photos->>0 as cover_photo), not the
-    // full photos array — that array is base64-heavy and was making this fetch
-    // multi-megabyte. The venue detail page fetches the full record separately.
-    var cols = 'id,name,type,region,district,capacity,plan,is_live,featured_home,featured_occasion,event_types,lat,lng,price_from,price_to,price_type,pricing_details,subscription_status,created_at,cover_photo:photos->>0';
+    // Photos are now Storage URLs, so fetching the full photos array is cheap.
+    var cols = 'id,name,type,region,district,capacity,plan,is_live,featured_home,featured_occasion,event_types,lat,lng,price_from,price_to,price_type,pricing_details,subscription_status,created_at,photos';
     var venuesPromise = window._venlyEarlyVenues
       ? window._venlyEarlyVenues
       : sb.from('venues').select(cols).order('created_at', { ascending: false });
