@@ -719,6 +719,8 @@ tbody tr:last-child td { border-bottom: none; }
   font-size: 11px; color: var(--text-muted); gap: 6px;
 }
 .photo-slot:hover { border-color: var(--red); background: var(--red-light); color: var(--red); }
+.photo-uploading-spinner { width: 26px; height: 26px; border: 3px solid var(--border, #e5e7eb); border-top-color: var(--red, #e03a2f); border-radius: 50%; animation: photoSpin 0.7s linear infinite; }
+@keyframes photoSpin { to { transform: rotate(360deg); } }
 .photo-slot svg { width: 20px; height: 20px; }
 .photo-slot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .photo-slot .remove-photo { position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; background: rgba(0,0,0,0.6); border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; line-height: 1; }
@@ -3745,9 +3747,18 @@ function handleHeroFile(file) {
 
   var reader = new FileReader();
   reader.onload = function(e) {
-    compressImage(e.target.result, 1400, 0.82, function(compressedDataUrl) {
-      document.getElementById('ed-img').value = compressedDataUrl;
-      setHeroPreview(compressedDataUrl);
+    compressImageToBlob(e.target.result, 1400, 0.82, function(blob) {
+      if (!blob) { showToast('Could not process that image'); return; }
+      setHeroPreview(''); // clear preview while uploading
+      showToast('Uploading cover image…');
+      venlyUploadToStorage(blob, 'blog-images', function(url) {
+        if (url) {
+          document.getElementById('ed-img').value = url;
+          setHeroPreview(url);
+        } else {
+          showToast('Cover image upload failed — please try again');
+        }
+      });
     });
   };
   reader.readAsDataURL(file);
@@ -3768,6 +3779,58 @@ function compressImage(dataUrl, maxWidth, quality, callback) {
   };
   img.onerror = function() { callback(dataUrl); }; // fall back to original if something goes wrong
   img.src = dataUrl;
+}
+
+// Like compressImage but returns a Blob for uploading to Storage (not base64).
+function compressImageToBlob(dataUrl, maxWidth, quality, callback) {
+  var img = new Image();
+  img.onload = function() {
+    var scale = Math.min(1, maxWidth / img.width);
+    var canvas = document.createElement('canvas');
+    canvas.width = img.width * scale;
+    canvas.height = img.height * scale;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob(function(blob) { callback(blob); }, 'image/jpeg', quality);
+  };
+  img.onerror = function() { callback(null); };
+  img.src = dataUrl;
+}
+
+// Uploads an image blob to a Storage bucket and returns its public URL.
+// Used for both venue photos (venue-photos bucket) and blog images
+// (blog-images bucket). Stores URLs in the DB instead of base64, keeping
+// rows tiny and pages fast.
+async function venlyUploadToStorage(blob, bucket, callback) {
+  if (typeof sb === 'undefined' || !SUPABASE_READY) {
+    // Demo mode — fall back to base64 so local testing still works.
+    var r = new FileReader();
+    r.onload = function(e) { callback(e.target.result); };
+    r.onerror = function() { callback(null); };
+    r.readAsDataURL(blob);
+    return;
+  }
+  try {
+    var userRes = await sb.auth.getUser();
+    var user = userRes.data && userRes.data.user;
+    var uid = user ? user.id : 'admin';
+    var filename = uid + '/' + Date.now() + '-' + Math.random().toString(36).slice(2, 10) + '.jpg';
+    var up = await sb.storage.from(bucket).upload(filename, blob, {
+      contentType: 'image/jpeg',
+      cacheControl: '31536000',
+      upsert: false,
+    });
+    if (up.error) {
+      console.error('Storage upload failed (' + bucket + '):', up.error.message);
+      callback(null);
+      return;
+    }
+    var pub = sb.storage.from(bucket).getPublicUrl(filename);
+    callback((pub && pub.data && pub.data.publicUrl) || null);
+  } catch (e) {
+    console.error('Storage upload error:', e);
+    callback(null);
+  }
 }
 
 function removeHeroImage(evt) {
@@ -4711,6 +4774,10 @@ function renderVenuePhotoGrid() {
 
   var grid = document.getElementById('ven-photo-grid');
   grid.innerHTML = venuePhotoDataUrls.map(function(url, i) {
+    if (url === '__uploading__') {
+      return '<div class="photo-slot" id="ven-photo-slot-' + i + '" style="display:flex;align-items:center;justify-content:center;pointer-events:none">'
+        + '<div class="photo-uploading-spinner"></div></div>';
+    }
     if (url) {
       var isCover = i === venueCoverPhotoIndex;
       return '<div class="photo-slot' + (isCover ? ' is-cover' : '') + '" id="ven-photo-slot-' + i + '" onclick="triggerVenuePhotoUpload(' + i + ')">' +
@@ -4759,11 +4826,18 @@ function handleVenuePhotoUpload(e) {
   var file = e.target.files[0];
   if (!file || !file.type.startsWith('image/')) { e.target.value = ''; return; }
 
+  var slot = venueCurrentUploadSlot;
   var reader = new FileReader();
   reader.onload = function(ev) {
-    compressImage(ev.target.result, 1400, 0.82, function(compressed) {
-      venuePhotoDataUrls[venueCurrentUploadSlot] = compressed;
+    compressImageToBlob(ev.target.result, 1400, 0.82, function(blob) {
+      if (!blob) { showToast('Could not process that image'); return; }
+      venuePhotoDataUrls[slot] = '__uploading__';
       renderVenuePhotoGrid();
+      venlyUploadToStorage(blob, 'venue-photos', function(url) {
+        venuePhotoDataUrls[slot] = url || '';
+        if (!url) showToast('Photo upload failed — please try again');
+        renderVenuePhotoGrid();
+      });
     });
   };
   reader.readAsDataURL(file);
@@ -5497,6 +5571,11 @@ document.addEventListener('click', function(e) {
 async function saveVenue() {
   var name = document.getElementById('ven-name').value.trim();
   if (!name) { showToast('Please add a venue name before saving'); return; }
+
+  if (venuePhotoDataUrls.indexOf('__uploading__') !== -1) {
+    showToast('Please wait — photos are still uploading');
+    return;
+  }
 
   var hostEmail = document.getElementById('ven-host-email').value.trim();
   if (!hostEmail) { showToast('Please tag a host email before saving'); return; }
