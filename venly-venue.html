@@ -336,10 +336,6 @@ textarea { resize: none; min-height: 90px; }
   <div class="gallery-main" id="gallery-main-slot" onclick="openLightbox(0)">
     <img id="gallery-main-img" src="" alt="" />
     <div class="gallery-overlay"></div>
-    <div class="gallery-viewall" id="gallery-viewall" onclick="event.stopPropagation(); openLightbox(0)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      <span id="gallery-viewall-text">View all photos</span>
-    </div>
   </div>
   <div class="gallery-thumb" id="gallery-thumb-1" onclick="openLightbox(1)">
     <img id="gallery-thumb-1-img" src="" alt="" />
@@ -348,6 +344,10 @@ textarea { resize: none; min-height: 90px; }
   <div class="gallery-thumb" id="gallery-thumb-2" onclick="openLightbox(2)">
     <img id="gallery-thumb-2-img" src="" alt="" />
     <div class="gallery-overlay"></div>
+  </div>
+  <div class="gallery-viewall" id="gallery-viewall" onclick="event.stopPropagation(); openLightbox(0)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span id="gallery-viewall-text">View all photos</span>
   </div>
 </div>
 
@@ -1022,6 +1022,33 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeLightbox();
   }
 });
+
+// Swipe support for the lightbox on touch devices — swipe left for next,
+// right for previous. A minimum horizontal distance avoids treating a tap
+// or a vertical scroll as a swipe.
+(function() {
+  var lb = document.getElementById('lightbox');
+  if (!lb) return;
+  var startX = 0, startY = 0, tracking = false;
+  lb.addEventListener('touchstart', function(e) {
+    if (e.touches.length !== 1) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    tracking = true;
+  }, { passive: true });
+  lb.addEventListener('touchend', function(e) {
+    if (!tracking) return;
+    tracking = false;
+    var touch = e.changedTouches[0];
+    var dx = touch.clientX - startX;
+    var dy = touch.clientY - startY;
+    // Only count as a swipe if mostly horizontal and far enough
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+      if (dx < 0) nextPhoto();
+      else prevPhoto();
+    }
+  }, { passive: true });
+})();
 
 function toggleFav() {
   var btn = document.getElementById('fav-btn');
