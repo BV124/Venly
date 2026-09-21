@@ -191,7 +191,7 @@ textarea { resize: none; min-height: 90px; }
 /* LIGHTBOX */
 .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 300; display: flex; align-items: center; justify-content: center; }
 .lightbox.hidden { display: none; }
-.lightbox-img { max-width: 90vw; max-height: 85vh; border-radius: var(--radius); object-fit: contain; }
+.lightbox-img { max-width: 90vw; max-height: 85vh; border-radius: var(--radius); object-fit: contain; transition: opacity 0.2s ease; }
 .lightbox-close { position: absolute; top: 20px; right: 24px; background: rgba(255,255,255,0.15); border: none; color: #fff; font-size: 28px; cursor: pointer; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
 .lightbox-close:hover { background: rgba(255,255,255,0.25); }
 .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.15); border: none; color: #fff; width: 48px; height: 48px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: background 0.15s; }
@@ -336,6 +336,10 @@ textarea { resize: none; min-height: 90px; }
   <div class="gallery-main" id="gallery-main-slot" onclick="openLightbox(0)">
     <img id="gallery-main-img" src="" alt="" />
     <div class="gallery-overlay"></div>
+    <div class="gallery-viewall" id="gallery-viewall" onclick="event.stopPropagation(); openLightbox(0)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span id="gallery-viewall-text">View all photos</span>
+    </div>
   </div>
   <div class="gallery-thumb" id="gallery-thumb-1" onclick="openLightbox(1)">
     <img id="gallery-thumb-1-img" src="" alt="" />
@@ -344,10 +348,6 @@ textarea { resize: none; min-height: 90px; }
   <div class="gallery-thumb" id="gallery-thumb-2" onclick="openLightbox(2)">
     <img id="gallery-thumb-2-img" src="" alt="" />
     <div class="gallery-overlay"></div>
-    <div class="gallery-viewall" id="gallery-viewall" onclick="event.stopPropagation(); openLightbox(0)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      <span id="gallery-viewall-text">View all photos</span>
-    </div>
   </div>
 </div>
 
@@ -717,6 +717,18 @@ async function loadVenue() {
   // Photos for the gallery + lightbox
   photos = (v.photos && v.photos.length) ? v.photos.slice() : FALLBACK_PHOTOS;
   renderGallery();
+  preloadPhotos(); // warm the browser cache so lightbox navigation is instant
+}
+
+// Preloads every venue photo into the browser cache in the background, so
+// clicking through the lightbox is instant instead of fetching each image
+// on demand (which caused the click-through lag).
+function preloadPhotos() {
+  if (!photos || !photos.length) return;
+  photos.forEach(function(src) {
+    var img = new Image();
+    img.src = src;
+  });
 }
 
 // Renders the 3-tile gallery preview from whatever's in `photos`
@@ -972,10 +984,22 @@ function closeMiniMap() {
 
 function openLightbox(idx) {
   currentPhoto = idx;
-  document.getElementById('lightbox-img').src = photos[idx];
+  setLightboxImg(photos[idx]);
   document.getElementById('lightbox-counter').textContent = (idx+1) + ' / ' + photos.length;
   document.getElementById('lightbox').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
+}
+// Swaps the lightbox image with a quick fade so navigation feels smooth.
+// Photos are already preloaded (see preloadPhotos), so the new image is
+// usually cached and appears immediately.
+function setLightboxImg(src) {
+  var el = document.getElementById('lightbox-img');
+  if (!el) return;
+  el.style.opacity = '0';
+  el.onload = function() { el.style.opacity = '1'; };
+  el.onerror = function() { el.style.opacity = '1'; };
+  el.src = src;
+  if (el.complete && el.naturalWidth > 0) el.style.opacity = '1';
 }
 function closeLightbox() {
   document.getElementById('lightbox').classList.add('hidden');
@@ -983,12 +1007,12 @@ function closeLightbox() {
 }
 function nextPhoto() {
   currentPhoto = (currentPhoto + 1) % photos.length;
-  document.getElementById('lightbox-img').src = photos[currentPhoto];
+  setLightboxImg(photos[currentPhoto]);
   document.getElementById('lightbox-counter').textContent = (currentPhoto+1) + ' / ' + photos.length;
 }
 function prevPhoto() {
   currentPhoto = (currentPhoto - 1 + photos.length) % photos.length;
-  document.getElementById('lightbox-img').src = photos[currentPhoto];
+  setLightboxImg(photos[currentPhoto]);
   document.getElementById('lightbox-counter').textContent = (currentPhoto+1) + ' / ' + photos.length;
 }
 document.addEventListener('keydown', function(e) {
