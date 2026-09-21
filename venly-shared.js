@@ -444,11 +444,23 @@ function _venlyMonthKey(d) {
 // analytics beacon.
 function trackPageView() {
   if (SUPABASE_READY) {
-    // General page views now bump a compact monthly counter (one row per
-    // month) instead of inserting a row per view. Venue detail views are
-    // tracked separately via incrementVenueHits (which keeps granular rows
-    // for per-venue monthly charts).
-    sb.rpc('bump_page_view');
+    // General page views bump a compact monthly counter (one row per month).
+    // We send this with a keepalive fetch rather than sb.rpc(), because a
+    // normal request is cancelled by the browser the instant you click a link
+    // and navigate away — which was dropping most views. keepalive tells the
+    // browser to finish the request even as the page unloads.
+    try {
+      fetch(VENLY_CONFIG.supabaseUrl + '/rest/v1/rpc/bump_page_view', {
+        method: 'POST',
+        headers: {
+          'apikey': VENLY_CONFIG.supabaseKey,
+          'Authorization': 'Bearer ' + VENLY_CONFIG.supabaseKey,
+          'Content-Type': 'application/json',
+        },
+        body: '{}',
+        keepalive: true,
+      });
+    } catch (e) { /* tracking is best-effort — never block the page */ }
     return;
   }
   var store = JSON.parse(localStorage.getItem('venly_analytics_pageviews') || '{"total":0,"monthly":{}}');
