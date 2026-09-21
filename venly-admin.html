@@ -5369,7 +5369,7 @@ function updateVenueLiveHelper() {
 }
 
 // ── Open / close / save ──────────────────────────────────────
-function openVenueEditor(venueId) {
+async function openVenueEditor(venueId) {
   document.getElementById('venues-list-view').style.display = 'none';
   document.getElementById('venue-editor-view').style.display = 'block';
 
@@ -5377,7 +5377,18 @@ function openVenueEditor(venueId) {
   var heading = document.getElementById('venue-editor-heading');
 
   if (venueId) {
-    var venue = getAllVenues().find(function(v) { return v.id === venueId; });
+    // Fetch the FULL venue record by id — the shared list cache (getAllVenues)
+    // carries a slimmed column set for speed and may be missing fields the
+    // editor needs (full photos array, description, host contact, etc.).
+    var venue = null;
+    if (typeof venlyFetchVenueById === 'function') {
+      venue = await venlyFetchVenueById(venueId);
+    }
+    if (!venue) {
+      // Fallback to the cache if the direct fetch failed for any reason.
+      venue = getAllVenues().find(function(v) { return v.id === venueId; });
+    }
+    if (!venue) { showToast('Could not load that venue'); return; }
     currentEditingVenueId = venueId;
     heading.textContent = 'Edit venue';
 
