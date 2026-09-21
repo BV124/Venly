@@ -976,7 +976,7 @@ tbody tr:last-child td { border-bottom: none; }
         <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
         <div class="stat-label">Total Venues</div>
         <div class="stat-value stat-loading" id="stat-total-venues">—</div>
-        <div class="stat-change up" id="stat-venues-change" style="color:var(--text-muted)">Live &amp; currently paying</div>
+        <div class="stat-change up" id="stat-venues-change" style="color:var(--text-muted)">Currently live</div>
       </div>
       <div class="stat-card">
         <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
@@ -3066,7 +3066,13 @@ function buildOverviewRevenueStat() {
 function buildOverviewVenuesStat() {
   var el = document.getElementById('stat-total-venues');
   if (!el) return;
-  var count = getAllVenues().filter(function(v) { return v.isLive && v.subscriptionStatus === 'active'; }).length;
+  // Live venues that are either paying (active) or admin-published (overridden).
+  // Both are genuinely live listings; only drafts, cancelled and past_due are
+  // excluded. Previously this counted only 'active', which missed every
+  // admin-published venue and showed 0 when all live venues were overridden.
+  var count = getAllVenues().filter(function(v) {
+    return v.isLive && (v.subscriptionStatus === 'active' || v.subscriptionStatus === 'overridden');
+  }).length;
   el.classList.remove('stat-loading');
   el.textContent = count.toLocaleString();
 }
