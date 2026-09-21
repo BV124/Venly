@@ -3330,13 +3330,20 @@ function buildAnalyticsStats() {
     return e.createdAt && e.createdAt.slice(0, 7) === mk;
   }).length;
 
-  var pvEl=document.getElementById('stat-total-pageviews'); pvEl.classList.remove('stat-loading'); pvEl.textContent=pageviewsTotal.toLocaleString();
-  document.getElementById('stat-pageviews-change').textContent = '↑ ' + pageviewsThisMonth + ' this month';
-  var vvEl=document.getElementById('stat-total-venueviews'); vvEl.classList.remove('stat-loading'); vvEl.textContent=totalVenueViews.toLocaleString();
-  document.getElementById('stat-venueviews-change').textContent = '↑ ' + venueviewsThisMonth + ' this month';
-  document.getElementById('stat-total-favourites').textContent = totalFavourites.toLocaleString();
-  document.getElementById('stat-total-enquiries').textContent = enquiries.length.toLocaleString();
-  document.getElementById('stat-enquiries-change').textContent = '↑ ' + enquiriesThisMonth + ' this month';
+  // Guard every element: buildAnalyticsStats runs on both the Overview and
+  // Analytics sections, which don't have identical stat cards. A missing
+  // element must not crash the whole function partway through (which would
+  // leave later stats un-updated).
+  function _setText(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
+  function _setStat(id, val) { var el = document.getElementById(id); if (el) { el.classList.remove('stat-loading'); el.textContent = val; } }
+
+  _setStat('stat-total-pageviews', pageviewsTotal.toLocaleString());
+  _setText('stat-pageviews-change', '↑ ' + pageviewsThisMonth + ' this month');
+  _setStat('stat-total-venueviews', totalVenueViews.toLocaleString());
+  _setText('stat-venueviews-change', '↑ ' + venueviewsThisMonth + ' this month');
+  _setText('stat-total-favourites', totalFavourites.toLocaleString());
+  _setText('stat-total-enquiries', enquiries.length.toLocaleString());
+  _setText('stat-enquiries-change', '↑ ' + enquiriesThisMonth + ' this month');
 
   // Overview page has its own Page Views card — keep it in sync with the same data
   var overviewPV = document.getElementById('stat-overview-pageviews');
