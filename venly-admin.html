@@ -3273,15 +3273,18 @@ async function adminBootstrapPageViews() {
     // Venue views: read the per-venue monthly counters and sum across all
     // venues for each month. One small table, no row-per-view scanning.
     var monthlyVenueViews = {};
+    var venueViewsTotal = 0;
     var venueCountsRes = await sb.from('venue_view_counts').select('month_key, views');
     if (venueCountsRes.error) throw venueCountsRes.error;
     (venueCountsRes.data || []).forEach(function(row) {
       monthlyVenueViews[row.month_key] = (monthlyVenueViews[row.month_key] || 0) + row.views;
+      venueViewsTotal += row.views;
     });
 
     var mk = _analyticsMonthKey();
     _adminPageViewsCache = {
       total: pageviewsTotal,
+      venueViewsTotal: venueViewsTotal,
       monthlyPageviews: monthlyPageviews,
       monthlyVenueViews: monthlyVenueViews,
       thisMonthPageviews: monthlyPageviews[mk] || 0,
@@ -3298,18 +3301,20 @@ function buildAnalyticsStats() {
   var venues = getAllVenues();
   var mk = _analyticsMonthKey();
 
-  var pageviewsTotal, pageviewsThisMonth, venueviewsThisMonth, enquiries, enquiriesThisMonth;
+  var pageviewsTotal, pageviewsThisMonth, venueviewsThisMonth, venueviewsTotal, enquiries, enquiriesThisMonth;
 
   if (SUPABASE_READY) {
     pageviewsTotal = _adminPageViewsCache ? _adminPageViewsCache.total : 0;
     pageviewsThisMonth = _adminPageViewsCache ? _adminPageViewsCache.thisMonthPageviews : 0;
     venueviewsThisMonth = _adminPageViewsCache ? _adminPageViewsCache.thisMonthVenueViews : 0;
+    venueviewsTotal = _adminPageViewsCache ? _adminPageViewsCache.venueViewsTotal : 0;
   } else {
     var pageviews = JSON.parse(localStorage.getItem('venly_analytics_pageviews') || '{"total":0,"monthly":{}}');
     var venueviewsMonthly = JSON.parse(localStorage.getItem('venly_analytics_venueviews_monthly') || '{}');
     pageviewsTotal = pageviews.total || 0;
     pageviewsThisMonth = pageviews.monthly[mk] || 0;
     venueviewsThisMonth = venueviewsMonthly[mk] || 0;
+    venueviewsTotal = Object.keys(venueviewsMonthly).reduce(function(s, k) { return s + venueviewsMonthly[k]; }, 0);
   }
 
   if (SUPABASE_READY) {
@@ -3318,7 +3323,7 @@ function buildAnalyticsStats() {
     enquiries = JSON.parse(localStorage.getItem('venly_enquiries') || '[]').map(function(e) { return { createdAt: e.createdAt }; });
   }
 
-  var totalVenueViews = venues.reduce(function(sum, v) { return sum + (v.hits || 0); }, 0);
+  var totalVenueViews = venueviewsTotal;
   var totalFavourites = venues.reduce(function(sum, v) { return sum + getVenueFavouriteCount(v.id); }, 0);
   enquiriesThisMonth = enquiries.filter(function(e) {
     return e.createdAt && e.createdAt.slice(0, 7) === mk;
