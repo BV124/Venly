@@ -290,13 +290,13 @@ textarea { resize: none; min-height: 90px; }
           var full = 'id,name,type,region,district,address,capacity,website,price_from,price_to,price_type,pricing_details,plan,hits,host_user_id,host_email,host_name,host_phone,enquiry_email,description,is_live,subscription_status,created_by,photos,features,event_types,featured_home,featured_occasion,discount_percent,discount_code,lat,lng,created_at';
           window._venlyEarlyVenue = _sb.from('venues').select(full).eq('id', id).maybeSingle();
         }
-        var listCols = 'id,name,type,region,district,capacity,plan,is_live,featured_home,featured_occasion,event_types,lat,lng,price_from,price_to,price_type,pricing_details,subscription_status,created_at,photos';
+        var listCols = 'id,name,type,region,district,capacity,plan,hits,is_live,featured_home,featured_occasion,event_types,lat,lng,price_from,price_to,price_type,pricing_details,subscription_status,created_at,photos';
         window._venlyEarlyVenues = _sb.from('venues').select(listCols).order('created_at', { ascending: false });
         window._venlyEarlyFilters = _sb.from('site_filters').select('*').eq('id', 1).maybeSingle();
       } catch(e) {}
     })();
   </script>
-  <script src="venly-config.js?v=4"></script>
+  <script src="venly-config.js?v=5"></script>
   <script src="venly-shared.js?v=5"></script>
   <script>
     window.venlyReady = (typeof venlyBootstrap === 'function') ? venlyBootstrap() : Promise.resolve();

@@ -371,7 +371,7 @@ async function venlyBootstrapVenues() {
     }
     // 2. Use the early-fired promise if available, otherwise fire fresh.
     // Photos are now Storage URLs, so fetching the full photos array is cheap.
-    var cols = 'id,name,type,region,district,capacity,plan,is_live,featured_home,featured_occasion,event_types,lat,lng,price_from,price_to,price_type,pricing_details,subscription_status,created_at,photos';
+    var cols = 'id,name,type,region,district,capacity,plan,hits,is_live,featured_home,featured_occasion,event_types,lat,lng,price_from,price_to,price_type,pricing_details,subscription_status,created_at,photos';
     var venuesPromise = window._venlyEarlyVenues
       ? window._venlyEarlyVenues
       : sb.from('venues').select(cols).order('created_at', { ascending: false });
