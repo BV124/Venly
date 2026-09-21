@@ -849,7 +849,7 @@ tbody tr:last-child td { border-bottom: none; }
 </style>
   <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="venly-config.js?v=3"></script>
+  <script src="venly-config.js?v=4"></script>
   <script src="venly-shared.js"></script>
   <script>
     // ---- ADMIN AUTH GATE ----
@@ -2286,11 +2286,12 @@ async function openVenueStats(venueId, venueName) {
   document.getElementById('venue-stats-subtitle').textContent =
     venue ? (venue.type || '') + (venue.district ? ' · ' + venue.district : '') + (venue.region ? ', ' + venue.region : '') : '';
 
-  // Monthly breakdown — fetch per-venue page_views and enquiries from Supabase
+  // Monthly breakdown — views from the per-venue monthly counter; enquiries
+  // and favourites still from their own tables (low volume, granular).
   if (SUPABASE_READY) {
     try {
       var results = await Promise.all([
-        sb.from('page_views').select('created_at').eq('venue_id', venueId),
+        sb.from('venue_view_counts').select('month_key, views').eq('venue_id', venueId),
         sb.from('enquiries').select('created_at').eq('venue_id', venueId),
         sb.from('favourites').select('created_at').eq('venue_id', venueId),
       ]);
@@ -2298,11 +2299,10 @@ async function openVenueStats(venueId, venueName) {
       var monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
       var mk = _analyticsMonthKey();
 
-      // Build monthly stores
+      // Views come pre-aggregated per month from venue_view_counts.
       if (!results[0].error) {
         results[0].data.forEach(function(r) {
-          var k = r.created_at.slice(0, 7);
-          _venueStatsMonthlyViews[k] = (_venueStatsMonthlyViews[k] || 0) + 1;
+          _venueStatsMonthlyViews[r.month_key] = r.views;
         });
       }
       if (!results[1].error) {
@@ -3264,26 +3264,14 @@ async function adminBootstrapPageViews() {
       pageviewsTotal += row.views;
     });
 
-    // Venue views: aggregate the granular rows by month. Supabase caps a
-    // single query at 1000 rows, so page through in batches to get them all.
+    // Venue views: read the per-venue monthly counters and sum across all
+    // venues for each month. One small table, no row-per-view scanning.
     var monthlyVenueViews = {};
-    var from = 0;
-    var BATCH = 1000;
-    while (true) {
-      var batchRes = await sb.from('page_views')
-        .select('created_at')
-        .not('venue_id', 'is', null)
-        .order('created_at', { ascending: true })
-        .range(from, from + BATCH - 1);
-      if (batchRes.error) throw batchRes.error;
-      var rows = batchRes.data || [];
-      rows.forEach(function(row) {
-        var key = row.created_at.slice(0, 7);
-        monthlyVenueViews[key] = (monthlyVenueViews[key] || 0) + 1;
-      });
-      if (rows.length < BATCH) break; // last page
-      from += BATCH;
-    }
+    var venueCountsRes = await sb.from('venue_view_counts').select('month_key, views');
+    if (venueCountsRes.error) throw venueCountsRes.error;
+    (venueCountsRes.data || []).forEach(function(row) {
+      monthlyVenueViews[row.month_key] = (monthlyVenueViews[row.month_key] || 0) + row.views;
+    });
 
     var mk = _analyticsMonthKey();
     _adminPageViewsCache = {

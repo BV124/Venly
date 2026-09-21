@@ -622,11 +622,22 @@ async function incrementVenueViews(venueId) {
   if (!venueId) return;
 
   if (typeof SUPABASE_READY !== 'undefined' && SUPABASE_READY) {
+    // Use a keepalive fetch so the request survives the user navigating away
+    // immediately (a normal request gets cancelled on unload, dropping views).
+    // record_venue_view bumps BOTH the venue's lifetime hits and its monthly
+    // counter (venue_view_counts) in one atomic call.
     try {
-      await sb.rpc('increment_venue_hits', { venue_id_input: venueId });
-    } catch (e) {
-      console.error('incrementVenueViews (live) failed:', e);
-    }
+      fetch(VENLY_CONFIG.supabaseUrl + '/rest/v1/rpc/record_venue_view', {
+        method: 'POST',
+        headers: {
+          'apikey': VENLY_CONFIG.supabaseKey,
+          'Authorization': 'Bearer ' + VENLY_CONFIG.supabaseKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ venue_id_input: venueId }),
+        keepalive: true,
+      });
+    } catch (e) { /* tracking is best-effort — never block the page */ }
     return;
   }
 
