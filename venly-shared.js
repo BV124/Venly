@@ -444,8 +444,11 @@ function _venlyMonthKey(d) {
 // analytics beacon.
 function trackPageView() {
   if (SUPABASE_READY) {
-    var path = window.location.pathname.split('/').pop() || 'index.html';
-    sb.rpc('track_page_view', { path_input: path });
+    // General page views now bump a compact monthly counter (one row per
+    // month) instead of inserting a row per view. Venue detail views are
+    // tracked separately via incrementVenueHits (which keeps granular rows
+    // for per-venue monthly charts).
+    sb.rpc('bump_page_view');
     return;
   }
   var store = JSON.parse(localStorage.getItem('venly_analytics_pageviews') || '{"total":0,"monthly":{}}');

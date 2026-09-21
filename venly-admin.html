@@ -3250,31 +3250,44 @@ var _adminPageViewsCache = null;
 async function adminBootstrapPageViews() {
   if (!SUPABASE_READY) return;
   try {
-    // Fetch ALL history — no date filter — so we can show the full timeline.
-    // The chart scrolls horizontally so older months are always accessible.
-    var results = await Promise.all([
-      sb.from('page_views').select('id', { count: 'exact', head: true }).is('venue_id', null),
-      sb.from('page_views').select('venue_id, created_at'),
-    ]);
-    var totalRes = results[0];
-    var rangeRes = results[1];
-    if (totalRes.error) throw totalRes.error;
-    if (rangeRes.error) throw rangeRes.error;
+    // General page views come from the compact monthly counter table
+    // (page_view_counts) — one row per month. Venue detail views still come
+    // from page_views (venue_id set), which stays granular for per-venue charts.
+    var countsRes = await sb.from('page_view_counts').select('month_key, views');
+    if (countsRes.error) throw countsRes.error;
 
+    // General page views: build monthly map + total from the counter rows.
     var monthlyPageviews = {};
-    var monthlyVenueViews = {};
-    rangeRes.data.forEach(function(row) {
-      var key = row.created_at.slice(0, 7);
-      if (row.venue_id) {
-        monthlyVenueViews[key] = (monthlyVenueViews[key] || 0) + 1;
-      } else {
-        monthlyPageviews[key] = (monthlyPageviews[key] || 0) + 1;
-      }
+    var pageviewsTotal = 0;
+    (countsRes.data || []).forEach(function(row) {
+      monthlyPageviews[row.month_key] = row.views;
+      pageviewsTotal += row.views;
     });
+
+    // Venue views: aggregate the granular rows by month. Supabase caps a
+    // single query at 1000 rows, so page through in batches to get them all.
+    var monthlyVenueViews = {};
+    var from = 0;
+    var BATCH = 1000;
+    while (true) {
+      var batchRes = await sb.from('page_views')
+        .select('created_at')
+        .not('venue_id', 'is', null)
+        .order('created_at', { ascending: true })
+        .range(from, from + BATCH - 1);
+      if (batchRes.error) throw batchRes.error;
+      var rows = batchRes.data || [];
+      rows.forEach(function(row) {
+        var key = row.created_at.slice(0, 7);
+        monthlyVenueViews[key] = (monthlyVenueViews[key] || 0) + 1;
+      });
+      if (rows.length < BATCH) break; // last page
+      from += BATCH;
+    }
 
     var mk = _analyticsMonthKey();
     _adminPageViewsCache = {
-      total: totalRes.count || 0,
+      total: pageviewsTotal,
       monthlyPageviews: monthlyPageviews,
       monthlyVenueViews: monthlyVenueViews,
       thisMonthPageviews: monthlyPageviews[mk] || 0,
