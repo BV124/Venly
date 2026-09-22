@@ -2274,12 +2274,13 @@ async function openVenueStats(venueId, venueName) {
   document.getElementById('vstats-chart-wrap').style.display = 'none';
   overlay.classList.remove('hidden');
 
-  // Totals — views and enquiries from cache, favourites updated after Supabase fetch
+  // Totals — enquiries from cache; views and favourites resolved from
+  // Supabase below. Views total is summed from the monthly counters (same
+  // source as the chart) so the headline number always equals the bars.
   var venue = getAllVenues().find(function(v) { return String(v.id) === String(venueId); });
-  var totalViews = venue ? (venue.hits || 0) : 0;
   var totalEnqs = getVenueEnquiryCount(venueId);
 
-  document.getElementById('vstats-views').textContent = totalViews.toLocaleString();
+  document.getElementById('vstats-views').textContent = '…'; // updated after fetch
   document.getElementById('vstats-favs').textContent = '…'; // updated after fetch
   document.getElementById('vstats-enqs').textContent = totalEnqs.toLocaleString();
 
@@ -2300,11 +2301,14 @@ async function openVenueStats(venueId, venueName) {
       var mk = _analyticsMonthKey();
 
       // Views come pre-aggregated per month from venue_view_counts.
+      var viewsTotal = 0;
       if (!results[0].error) {
         results[0].data.forEach(function(r) {
           _venueStatsMonthlyViews[r.month_key] = r.views;
+          viewsTotal += r.views;
         });
       }
+      document.getElementById('vstats-views').textContent = viewsTotal.toLocaleString();
       if (!results[1].error) {
         results[1].data.forEach(function(r) {
           var k = r.created_at.slice(0, 7);
