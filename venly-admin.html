@@ -6023,7 +6023,8 @@ async function initCrmAccess() {
     if (!user) { allowed = false; }
     else {
       var { data } = await sb.from('profiles').select('role').eq('id', user.id).single();
-      allowed = !!(data && data.role === 'admin');
+      var roleNorm = (data && data.role) ? String(data.role).toLowerCase() : '';
+      allowed = (roleNorm === 'admin');
     }
   } else {
     // DEMO MODE: there's no real login gate on the admin panel itself yet
