@@ -2393,28 +2393,63 @@ function closeVenueStats() {
 // dependencies). Pulls its numbers from the values already resolved for the
 // stats modal (_venueStatsTotals / _venueStatsMonthly*), so it always matches
 // what's on screen.
+// Show/hide the "Include in PDF" options popover. Closes on outside click.
+function toggleSnapshotOptions(e) {
+  if (e) e.stopPropagation();
+  var panel = document.getElementById('snapshot-options');
+  if (!panel) return;
+  var opening = panel.classList.contains('hidden');
+  panel.classList.toggle('hidden');
+  if (opening) {
+    setTimeout(function() {
+      document.addEventListener('click', _closeSnapshotOptionsOnOutside);
+    }, 0);
+  }
+}
+function _closeSnapshotOptionsOnOutside(e) {
+  var panel = document.getElementById('snapshot-options');
+  if (panel && !panel.contains(e.target)) {
+    panel.classList.add('hidden');
+    document.removeEventListener('click', _closeSnapshotOptionsOnOutside);
+  }
+}
+
 async function downloadVenueSnapshot() {
   var v = _venueStatsVenue;
   if (!v) { showToast('Open a venue’s stats first'); return; }
 
-  // Platform-wide totals for context (venue vs whole of Venly). Reuse the
-  // admin cache if it's already loaded; otherwise fetch the two small counter
-  // tables directly so the snapshot works even if Overview wasn't visited.
+  // Which sections to include (from the options popover). Default everything on.
+  function _optOn(id) { var el = document.getElementById(id); return el ? el.checked : true; }
+  var opt = {
+    photo: _optOn('snap-opt-photo'),
+    summary: _optOn('snap-opt-summary'),
+    chart: _optOn('snap-opt-chart'),
+    platform: _optOn('snap-opt-platform'),
+  };
+  // Close the popover now that we're generating.
+  var _panel = document.getElementById('snapshot-options');
+  if (_panel) _panel.classList.add('hidden');
+
+  // Platform-wide totals for context (venue vs whole of Venly). Only fetched
+  // if the platform section is included. Reuses the admin cache if loaded,
+  // otherwise fetches the two small counter tables directly.
   var platform = { pageViews: 0, venueViews: 0, liveVenues: 0 };
-  try {
-    if (_adminPageViewsCache) {
-      platform.pageViews = _adminPageViewsCache.total || 0;
-      platform.venueViews = _adminPageViewsCache.venueViewsTotal || 0;
-    } else if (SUPABASE_READY) {
-      var pv = await sb.from('page_view_counts').select('views');
-      var vv = await sb.from('venue_view_counts').select('views');
-      if (!pv.error) platform.pageViews = (pv.data || []).reduce(function(s,r){ return s + (r.views||0); }, 0);
-      if (!vv.error) platform.venueViews = (vv.data || []).reduce(function(s,r){ return s + (r.views||0); }, 0);
-    }
-  } catch (e) { /* platform band is best-effort */ }
-  platform.liveVenues = getAllVenues().filter(function(x) {
-    return x.isLive && (x.subscriptionStatus === 'active' || x.subscriptionStatus === 'overridden');
-  }).length;
+  if (opt.platform) {
+    try {
+      if (_adminPageViewsCache) {
+        platform.pageViews = _adminPageViewsCache.total || 0;
+        platform.venueViews = _adminPageViewsCache.venueViewsTotal || 0;
+      } else if (SUPABASE_READY) {
+        var pv = await sb.from('page_view_counts').select('views');
+        var vv = await sb.from('venue_view_counts').select('views');
+        if (!pv.error) platform.pageViews = (pv.data || []).reduce(function(s,r){ return s + (r.views||0); }, 0);
+        if (!vv.error) platform.venueViews = (vv.data || []).reduce(function(s,r){ return s + (r.views||0); }, 0);
+      }
+    } catch (e) { /* platform band is best-effort */ }
+    platform.liveVenues = getAllVenues().filter(function(x) {
+      return x.isLive && (x.subscriptionStatus === 'active' || x.subscriptionStatus === 'overridden');
+    }).length;
+  }
 
   var monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   function esc(s) {
@@ -2481,28 +2516,35 @@ async function downloadVenueSnapshot() {
 '</style></head><body>' +
 '<div class="head"><div class="logo">Venly.</div>' +
 '<div class="head-meta">Venue Performance Snapshot<br>Generated ' + esc(genDate) + '</div></div>' +
+// Header/identity always shows. The photo within it is optional.
 '<div class="hero">' +
-(photo ? '<img src="' + esc(photo) + '" alt="">' : '<div class="hero-noimg">No photo</div>') +
+(opt.photo ? (photo ? '<img src="' + esc(photo) + '" alt="">' : '<div class="hero-noimg">No photo</div>') : '') +
 '<div class="hero-info"><h1>' + esc(v.name) + '</h1>' +
 (location ? '<div class="loc">' + esc(location) + '</div>' : '') +
 '<span class="pill">' + esc(v.plan || 'Basic') + '</span>' +
 '<span class="pill grey">' + esc(v.type || '') + '</span>' +
 (v.isLive ? '<span class="pill">Live</span>' : '<span class="pill grey">Draft</span>') +
 '</div></div>' +
-'<div class="section-title">Performance summary</div>' +
-'<div class="stats">' +
-'<div class="stat"><div class="lbl">Total Views</div><div class="num">' + t.views.toLocaleString() + '</div><div class="sub">↑ ' + t.viewsMonth + ' this month</div></div>' +
-'<div class="stat"><div class="lbl">Favourites</div><div class="num">' + t.favs.toLocaleString() + '</div><div class="sub">↑ ' + t.favsMonth + ' this month</div></div>' +
-'<div class="stat"><div class="lbl">Enquiries</div><div class="num">' + t.enqs.toLocaleString() + '</div><div class="sub">↑ ' + t.enqsMonth + ' this month</div></div>' +
-'</div>' +
-'<div class="section-title">Monthly views</div>' +
-'<div class="chart">' + (barsHtml || '<div class="empty">No view data yet.</div>') + '</div>' +
-'<div class="platform"><div class="platform-title">Across the Venly platform</div>' +
-'<div class="platform-grid">' +
-'<div class="platform-stat"><div class="num">' + platform.pageViews.toLocaleString() + '</div><div class="lbl">Total page views</div></div>' +
-'<div class="platform-stat"><div class="num">' + platform.venueViews.toLocaleString() + '</div><div class="lbl">Total venue views</div></div>' +
-'<div class="platform-stat"><div class="num">' + platform.liveVenues.toLocaleString() + '</div><div class="lbl">Live venues</div></div>' +
-'</div></div>' +
+(opt.summary ?
+  '<div class="section-title">Performance summary</div>' +
+  '<div class="stats">' +
+  '<div class="stat"><div class="lbl">Total Views</div><div class="num">' + t.views.toLocaleString() + '</div><div class="sub">↑ ' + t.viewsMonth + ' this month</div></div>' +
+  '<div class="stat"><div class="lbl">Favourites</div><div class="num">' + t.favs.toLocaleString() + '</div><div class="sub">↑ ' + t.favsMonth + ' this month</div></div>' +
+  '<div class="stat"><div class="lbl">Enquiries</div><div class="num">' + t.enqs.toLocaleString() + '</div><div class="sub">↑ ' + t.enqsMonth + ' this month</div></div>' +
+  '</div>'
+: '') +
+(opt.chart ?
+  '<div class="section-title">Monthly views</div>' +
+  '<div class="chart">' + (barsHtml || '<div class="empty">No view data yet.</div>') + '</div>'
+: '') +
+(opt.platform ?
+  '<div class="platform"><div class="platform-title">Across the Venly platform</div>' +
+  '<div class="platform-grid">' +
+  '<div class="platform-stat"><div class="num">' + platform.pageViews.toLocaleString() + '</div><div class="lbl">Total page views</div></div>' +
+  '<div class="platform-stat"><div class="num">' + platform.venueViews.toLocaleString() + '</div><div class="lbl">Total venue views</div></div>' +
+  '<div class="platform-stat"><div class="num">' + platform.liveVenues.toLocaleString() + '</div><div class="lbl">Live venues</div></div>' +
+  '</div></div>'
+: '') +
 '<div class="foot">Venly · venly.co.nz · This snapshot reflects data at the time of generation.</div>' +
 '</body></html>';
 
@@ -6907,14 +6949,24 @@ document.querySelector('nav .btn-red') && document.querySelector('nav .btn-red')
         <h3 id="venue-stats-title" style="font-size:18px;font-weight:800;margin-bottom:4px"></h3>
         <div id="venue-stats-subtitle" style="font-size:13px;color:var(--text-muted)"></div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-        <button onclick="downloadVenueSnapshot()" class="action-btn" style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap">
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;position:relative">
+        <button onclick="toggleSnapshotOptions(event)" class="action-btn" style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Download PDF
         </button>
         <button onclick="closeVenueStats()" style="background:none;border:none;cursor:pointer;padding:8px;color:var(--text-muted);font-size:20px;line-height:1">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
+
+        <!-- Snapshot options popover -->
+        <div id="snapshot-options" class="hidden" style="position:absolute;top:calc(100% + 8px);right:0;z-index:20;background:var(--white);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,0.16);padding:16px;width:230px;text-align:left">
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin-bottom:12px">Include in PDF</div>
+          <label style="display:flex;align-items:center;gap:9px;font-size:13px;padding:6px 0;cursor:pointer"><input type="checkbox" id="snap-opt-photo" checked style="width:15px;height:15px;accent-color:var(--red)"> Venue photo</label>
+          <label style="display:flex;align-items:center;gap:9px;font-size:13px;padding:6px 0;cursor:pointer"><input type="checkbox" id="snap-opt-summary" checked style="width:15px;height:15px;accent-color:var(--red)"> Performance summary</label>
+          <label style="display:flex;align-items:center;gap:9px;font-size:13px;padding:6px 0;cursor:pointer"><input type="checkbox" id="snap-opt-chart" checked style="width:15px;height:15px;accent-color:var(--red)"> Monthly views chart</label>
+          <label style="display:flex;align-items:center;gap:9px;font-size:13px;padding:6px 0;cursor:pointer"><input type="checkbox" id="snap-opt-platform" checked style="width:15px;height:15px;accent-color:var(--red)"> Platform totals</label>
+          <button onclick="downloadVenueSnapshot()" class="btn-sm btn-red" style="width:100%;margin-top:12px;justify-content:center">Generate PDF</button>
+        </div>
       </div>
     </div>
 
