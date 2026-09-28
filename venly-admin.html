@@ -2428,10 +2428,14 @@ async function downloadVenueSnapshot() {
   function _optOn(id) { var el = document.getElementById(id); return el ? el.checked : true; }
   var opt = {
     photo: _optOn('snap-opt-photo'),
-    summary: _optOn('snap-opt-summary'),
     chart: _optOn('snap-opt-chart'),
     platform: _optOn('snap-opt-platform'),
+    views: _optOn('snap-opt-views'),
+    favs: _optOn('snap-opt-favs'),
+    enqs: _optOn('snap-opt-enqs'),
   };
+  // The performance summary shows if at least one stat tile is selected.
+  opt.summary = opt.views || opt.favs || opt.enqs;
   // Close the popover now that we're generating.
   var _panel = document.getElementById('snapshot-options');
   if (_panel) _panel.style.display = 'none';
@@ -2484,14 +2488,21 @@ async function downloadVenueSnapshot() {
   var genDate = now.getDate() + ' ' + monthNames[now.getMonth()] + ' ' + now.getFullYear();
   var t = _venueStatsTotals;
 
+  // Build only the selected stat tiles, so the grid sizes to how many show.
+  var tiles = [];
+  if (opt.views) tiles.push('<div class="stat"><div class="lbl">Total Views</div><div class="num">' + t.views.toLocaleString() + '</div><div class="sub">↑ ' + t.viewsMonth + ' this month</div></div>');
+  if (opt.favs)  tiles.push('<div class="stat"><div class="lbl">Favourites</div><div class="num">' + t.favs.toLocaleString() + '</div><div class="sub">↑ ' + t.favsMonth + ' this month</div></div>');
+  if (opt.enqs)  tiles.push('<div class="stat"><div class="lbl">Enquiries</div><div class="num">' + t.enqs.toLocaleString() + '</div><div class="sub">↑ ' + t.enqsMonth + ' this month</div></div>');
+  var statsGridCols = tiles.length || 1;
+
   var html =
 '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(v.name) + ' — Venly Snapshot</title>' +
 '<style>' +
 '*{margin:0;padding:0;box-sizing:border-box}' +
 'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;color:#1a1a1a;padding:40px;max-width:800px;margin:0 auto;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
-'.head{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #e03a2f;padding-bottom:16px;margin-bottom:24px}' +
-'.logo{font-size:26px;font-weight:800;color:#e03a2f;letter-spacing:-0.5px}' +
-'.head-meta{text-align:right;font-size:12px;color:#6b7280;line-height:1.5}' +
+'.head{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:2px solid #f0f0f0;padding-bottom:14px;margin-bottom:28px}' +
+'.head-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#e03a2f}' +
+'.head-meta{text-align:right;font-size:12px;color:#9ca3af;line-height:1.5}' +
 '.hero{display:flex;gap:20px;margin-bottom:28px;align-items:flex-start}' +
 '.hero img{width:260px;height:180px;object-fit:cover;border-radius:12px;flex-shrink:0;background:#f9fafb}' +
 '.hero-noimg{width:260px;height:180px;border-radius:12px;background:#f9fafb;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:13px;flex-shrink:0}' +
@@ -2516,12 +2527,14 @@ async function downloadVenueSnapshot() {
 '.platform-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}' +
 '.platform-stat .num{font-size:26px;font-weight:800;line-height:1}' +
 '.platform-stat .lbl{font-size:11px;color:#9ca3af;margin-top:6px}' +
-'.foot{margin-top:28px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:11px;color:#9ca3af;text-align:center}' +
+'.foot{margin-top:40px;padding-top:20px;border-top:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between}' +
+'.foot-logo{font-size:16px;font-weight:800;color:#e03a2f;letter-spacing:-0.3px}' +
+'.foot-meta{font-size:11px;color:#9ca3af;text-align:right;line-height:1.5}' +
 '.empty{color:#9ca3af;font-size:13px;padding:20px 0}' +
 '@media print{body{padding:24px}}' +
 '</style></head><body>' +
-'<div class="head"><div class="logo">Venly.</div>' +
-'<div class="head-meta">Venue Performance Snapshot<br>Generated ' + esc(genDate) + '</div></div>' +
+'<div class="head"><div class="head-title">Venue Performance Snapshot</div>' +
+'<div class="head-meta">Generated ' + esc(genDate) + '</div></div>' +
 // Header/identity always shows. The photo within it is optional.
 '<div class="hero">' +
 (opt.photo ? (photo ? '<img src="' + esc(photo) + '" alt="">' : '<div class="hero-noimg">No photo</div>') : '') +
@@ -2533,10 +2546,8 @@ async function downloadVenueSnapshot() {
 '</div></div>' +
 (opt.summary ?
   '<div class="section-title">Performance summary</div>' +
-  '<div class="stats">' +
-  '<div class="stat"><div class="lbl">Total Views</div><div class="num">' + t.views.toLocaleString() + '</div><div class="sub">↑ ' + t.viewsMonth + ' this month</div></div>' +
-  '<div class="stat"><div class="lbl">Favourites</div><div class="num">' + t.favs.toLocaleString() + '</div><div class="sub">↑ ' + t.favsMonth + ' this month</div></div>' +
-  '<div class="stat"><div class="lbl">Enquiries</div><div class="num">' + t.enqs.toLocaleString() + '</div><div class="sub">↑ ' + t.enqsMonth + ' this month</div></div>' +
+  '<div class="stats" style="grid-template-columns:repeat(' + statsGridCols + ',1fr)">' +
+  tiles.join('') +
   '</div>'
 : '') +
 (opt.chart ?
@@ -2551,7 +2562,8 @@ async function downloadVenueSnapshot() {
   '<div class="platform-stat"><div class="num">' + platform.liveVenues.toLocaleString() + '</div><div class="lbl">Live venues</div></div>' +
   '</div></div>'
 : '') +
-'<div class="foot">Venly · venly.co.nz · This snapshot reflects data at the time of generation.</div>' +
+'<div class="foot"><div class="foot-logo">Venly.</div>' +
+'<div class="foot-meta">venly.co.nz<br>Reflects data at the time of generation</div></div>' +
 '</body></html>';
 
   var w = window.open('', '_blank');
@@ -6965,13 +6977,16 @@ document.querySelector('nav .btn-red') && document.querySelector('nav .btn-red')
         </button>
 
         <!-- Snapshot options popover -->
-        <div id="snapshot-options" style="display:none;position:absolute;top:calc(100% + 8px);right:0;z-index:20;background:var(--white);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,0.16);padding:16px;width:230px;text-align:left">
-          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin-bottom:12px">Include in PDF</div>
-          <label style="display:flex;align-items:center;gap:9px;font-size:13px;padding:6px 0;cursor:pointer"><input type="checkbox" id="snap-opt-photo" checked style="width:15px;height:15px;accent-color:var(--red)"> Venue photo</label>
-          <label style="display:flex;align-items:center;gap:9px;font-size:13px;padding:6px 0;cursor:pointer"><input type="checkbox" id="snap-opt-summary" checked style="width:15px;height:15px;accent-color:var(--red)"> Performance summary</label>
-          <label style="display:flex;align-items:center;gap:9px;font-size:13px;padding:6px 0;cursor:pointer"><input type="checkbox" id="snap-opt-chart" checked style="width:15px;height:15px;accent-color:var(--red)"> Monthly views chart</label>
-          <label style="display:flex;align-items:center;gap:9px;font-size:13px;padding:6px 0;cursor:pointer"><input type="checkbox" id="snap-opt-platform" checked style="width:15px;height:15px;accent-color:var(--red)"> Platform totals</label>
-          <button onclick="downloadVenueSnapshot()" class="btn-sm btn-red" style="width:100%;margin-top:12px;justify-content:center">Generate PDF</button>
+        <div id="snapshot-options" style="display:none;position:absolute;top:calc(100% + 8px);right:0;z-index:20;background:var(--white);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,0.16);padding:16px;width:240px;text-align:left">
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin-bottom:10px">Include in PDF</div>
+          <label style="display:flex;align-items:center;gap:9px;font-size:13px;padding:5px 0;cursor:pointer"><input type="checkbox" id="snap-opt-photo" checked style="width:15px;height:15px;accent-color:var(--red)"> Venue photo</label>
+          <label style="display:flex;align-items:center;gap:9px;font-size:13px;padding:5px 0;cursor:pointer"><input type="checkbox" id="snap-opt-chart" checked style="width:15px;height:15px;accent-color:var(--red)"> Monthly views chart</label>
+          <label style="display:flex;align-items:center;gap:9px;font-size:13px;padding:5px 0;cursor:pointer"><input type="checkbox" id="snap-opt-platform" checked style="width:15px;height:15px;accent-color:var(--red)"> Platform totals</label>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin:12px 0 6px">Stat tiles</div>
+          <label style="display:flex;align-items:center;gap:9px;font-size:13px;padding:5px 0;cursor:pointer"><input type="checkbox" id="snap-opt-views" checked style="width:15px;height:15px;accent-color:var(--red)"> Total views</label>
+          <label style="display:flex;align-items:center;gap:9px;font-size:13px;padding:5px 0;cursor:pointer"><input type="checkbox" id="snap-opt-favs" checked style="width:15px;height:15px;accent-color:var(--red)"> Favourites</label>
+          <label style="display:flex;align-items:center;gap:9px;font-size:13px;padding:5px 0;cursor:pointer"><input type="checkbox" id="snap-opt-enqs" checked style="width:15px;height:15px;accent-color:var(--red)"> Enquiries</label>
+          <button onclick="downloadVenueSnapshot()" class="btn-sm btn-red" style="width:100%;margin-top:14px;justify-content:center">Generate PDF</button>
         </div>
       </div>
     </div>
