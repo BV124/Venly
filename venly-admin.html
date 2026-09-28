@@ -2393,9 +2393,28 @@ function closeVenueStats() {
 // dependencies). Pulls its numbers from the values already resolved for the
 // stats modal (_venueStatsTotals / _venueStatsMonthly*), so it always matches
 // what's on screen.
-function downloadVenueSnapshot() {
+async function downloadVenueSnapshot() {
   var v = _venueStatsVenue;
   if (!v) { showToast('Open a venue’s stats first'); return; }
+
+  // Platform-wide totals for context (venue vs whole of Venly). Reuse the
+  // admin cache if it's already loaded; otherwise fetch the two small counter
+  // tables directly so the snapshot works even if Overview wasn't visited.
+  var platform = { pageViews: 0, venueViews: 0, liveVenues: 0 };
+  try {
+    if (_adminPageViewsCache) {
+      platform.pageViews = _adminPageViewsCache.total || 0;
+      platform.venueViews = _adminPageViewsCache.venueViewsTotal || 0;
+    } else if (SUPABASE_READY) {
+      var pv = await sb.from('page_view_counts').select('views');
+      var vv = await sb.from('venue_view_counts').select('views');
+      if (!pv.error) platform.pageViews = (pv.data || []).reduce(function(s,r){ return s + (r.views||0); }, 0);
+      if (!vv.error) platform.venueViews = (vv.data || []).reduce(function(s,r){ return s + (r.views||0); }, 0);
+    }
+  } catch (e) { /* platform band is best-effort */ }
+  platform.liveVenues = getAllVenues().filter(function(x) {
+    return x.isLive && (x.subscriptionStatus === 'active' || x.subscriptionStatus === 'overridden');
+  }).length;
 
   var monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   function esc(s) {
@@ -2451,7 +2470,12 @@ function downloadVenueSnapshot() {
 '.bar-track{flex:1;background:#f3f4f6;border-radius:6px;height:22px;overflow:hidden}' +
 '.bar-fill{background:#e03a2f;height:100%;border-radius:6px;min-width:2px}' +
 '.bar-val{width:40px;text-align:right;font-size:13px;font-weight:700;flex-shrink:0}' +
-'.foot{margin-top:36px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:11px;color:#9ca3af;text-align:center}' +
+'.platform{margin-top:28px;background:#1a1a1a;border-radius:12px;padding:22px 24px;color:#fff}' +
+'.platform-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#9ca3af;margin-bottom:16px}' +
+'.platform-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}' +
+'.platform-stat .num{font-size:26px;font-weight:800;line-height:1}' +
+'.platform-stat .lbl{font-size:11px;color:#9ca3af;margin-top:6px}' +
+'.foot{margin-top:28px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:11px;color:#9ca3af;text-align:center}' +
 '.empty{color:#9ca3af;font-size:13px;padding:20px 0}' +
 '@media print{body{padding:24px}}' +
 '</style></head><body>' +
@@ -2473,6 +2497,12 @@ function downloadVenueSnapshot() {
 '</div>' +
 '<div class="section-title">Monthly views</div>' +
 '<div class="chart">' + (barsHtml || '<div class="empty">No view data yet.</div>') + '</div>' +
+'<div class="platform"><div class="platform-title">Across the Venly platform</div>' +
+'<div class="platform-grid">' +
+'<div class="platform-stat"><div class="num">' + platform.pageViews.toLocaleString() + '</div><div class="lbl">Total page views</div></div>' +
+'<div class="platform-stat"><div class="num">' + platform.venueViews.toLocaleString() + '</div><div class="lbl">Total venue views</div></div>' +
+'<div class="platform-stat"><div class="num">' + platform.liveVenues.toLocaleString() + '</div><div class="lbl">Live venues</div></div>' +
+'</div></div>' +
 '<div class="foot">Venly · venly.co.nz · This snapshot reflects data at the time of generation.</div>' +
 '</body></html>';
 
