@@ -2499,7 +2499,8 @@ async function downloadVenueSnapshot() {
 '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(v.name) + ' — Venly Snapshot</title>' +
 '<style>' +
 '*{margin:0;padding:0;box-sizing:border-box}' +
-'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;color:#1a1a1a;padding:40px;max-width:800px;margin:0 auto;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+'html,body{height:100%}' +
+'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;color:#1a1a1a;padding:40px;max-width:800px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
 '.head{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:2px solid #f0f0f0;padding-bottom:14px;margin-bottom:28px}' +
 '.head-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#e03a2f}' +
 '.head-meta{text-align:right;font-size:12px;color:#9ca3af;line-height:1.5}' +
@@ -2527,9 +2528,9 @@ async function downloadVenueSnapshot() {
 '.platform-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}' +
 '.platform-stat .num{font-size:26px;font-weight:800;line-height:1}' +
 '.platform-stat .lbl{font-size:11px;color:#9ca3af;margin-top:6px}' +
-'.foot{margin-top:40px;padding-top:20px;border-top:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between}' +
+'.foot{margin-top:auto;padding-top:20px;border-top:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between}' +
 '.foot-logo{font-size:16px;font-weight:800;color:#e03a2f;letter-spacing:-0.3px}' +
-'.foot-meta{font-size:11px;color:#9ca3af;text-align:right;line-height:1.5}' +
+'.foot-meta{font-size:11px;color:#9ca3af;text-align:right}' +
 '.empty{color:#9ca3af;font-size:13px;padding:20px 0}' +
 '@media print{body{padding:24px}}' +
 '</style></head><body>' +
@@ -2563,7 +2564,7 @@ async function downloadVenueSnapshot() {
   '</div></div>'
 : '') +
 '<div class="foot"><div class="foot-logo">Venly.</div>' +
-'<div class="foot-meta">venly.co.nz<br>Reflects data at the time of generation</div></div>' +
+'<div class="foot-meta">venly.co.nz - Reflects data at the time of generation</div></div>' +
 '</body></html>';
 
   var w = window.open('', '_blank');
