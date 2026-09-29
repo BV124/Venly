@@ -518,6 +518,8 @@ function _venueToDbRow(v) {
     website: v.website,
     price_from: (v.priceFrom !== '' && v.priceFrom != null) ? Number(v.priceFrom) : null,
     price_to: (v.priceTo !== '' && v.priceTo != null) ? Number(v.priceTo) : null,
+    price_type: v.priceType || null,
+    pricing_details: (v.pricingDetails != null) ? v.pricingDetails : null,
     plan: v.plan,
     host_user_id: v.hostUserId || null,
     host_email: v.hostEmail,
