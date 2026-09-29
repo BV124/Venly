@@ -544,12 +544,24 @@ function _venueToDbRow(v) {
 // is shown, used by the venue page, find-a-space cards and the
 // dashboard/admin live preview. Maps the host's chosen price type
 // + numbers into a human label.
-//   hourly     → "from $X/hr" (or "$X/hr")
-//   fixed      → "$X" (or "$X–$Y")
-//   per_person → "$X pp" (or "from $X pp")
-//   free       → "Free hire / minimum spend"
-//   enquire    → "Enquire for pricing"
-//   (none set) → "" (callers substitute the default "Enquire for pricing")
+//
+// IMPORTANT — what each numeric field means depends on the type
+// (see PRICE_TYPE_CONFIG in the dashboard):
+//   hourly     → priceFrom = rate/hr,  priceTo = MIN. HOURS (not an upper price)
+//   fixed      → priceFrom = total price, no priceTo
+//   per_person → priceFrom = $ per head, no priceTo
+//   free       → priceFrom = min. spend (optional), no priceTo
+//   enquire    → no numbers
+//
+// Output examples:
+//   hourly, 75, 5      → "from $75/hr (min. 5 hours)"
+//   hourly, 75         → "from $75/hr"
+//   fixed, 500         → "$500"
+//   per_person, 20     → "from $20 pp"
+//   free, 2000         → "Free hire (min. spend $2,000)"
+//   free               → "Free hire / minimum spend"
+//   enquire            → "Enquire for pricing"
+//   (nothing set)      → "" (callers substitute "Enquire for pricing")
 // ============================================================
 function _venlyNum(x) {
   if (x === '' || x == null) return null;
@@ -571,31 +583,27 @@ function venlyFormatPrice(v) {
     case 'enquire':
       return 'Enquire for pricing';
     case 'free':
-      return 'Free hire / minimum spend';
+      // Optional minimum spend lives in priceFrom for this type.
+      return (from != null)
+        ? 'Free hire (min. spend ' + _venlyMoney(from) + ')'
+        : 'Free hire / minimum spend';
     case 'hourly':
       if (from == null) return '';
-      return (to != null && to > from)
-        ? _venlyMoney(from) + '–' + _venlyMoney(to) + '/hr'
-        : 'from ' + _venlyMoney(from) + '/hr';
+      // priceTo is the minimum number of HOURS, not an upper price.
+      var hrs = (to != null && to > 0)
+        ? ' (min. ' + to + ' hour' + (to === 1 ? '' : 's') + ')'
+        : '';
+      return 'from ' + _venlyMoney(from) + '/hr' + hrs;
     case 'per_person':
       if (from == null) return '';
-      return (to != null && to > from)
-        ? _venlyMoney(from) + '–' + _venlyMoney(to) + ' pp'
-        : 'from ' + _venlyMoney(from) + ' pp';
+      return 'from ' + _venlyMoney(from) + ' pp';
     case 'fixed':
       if (from == null) return '';
-      return (to != null && to > from)
-        ? _venlyMoney(from) + '–' + _venlyMoney(to)
-        : _venlyMoney(from);
+      return _venlyMoney(from);
     default:
       // No type chosen. If there's a number, show a neutral "from $X",
       // otherwise return '' so callers use their default label.
-      if (from != null) {
-        return (to != null && to > from)
-          ? _venlyMoney(from) + '–' + _venlyMoney(to)
-          : 'from ' + _venlyMoney(from);
-      }
-      return '';
+      return (from != null) ? 'from ' + _venlyMoney(from) : '';
   }
 }
 
