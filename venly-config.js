@@ -539,6 +539,74 @@ function _venueToDbRow(v) {
   };
 }
 
+// ============================================================
+// PRICE DISPLAY — single source of truth for how a venue's price
+// is shown, used by the venue page, find-a-space cards and the
+// dashboard/admin live preview. Maps the host's chosen price type
+// + numbers into a human label.
+//   hourly     → "from $X/hr" (or "$X/hr")
+//   fixed      → "$X" (or "$X–$Y")
+//   per_person → "$X pp" (or "from $X pp")
+//   free       → "Free hire / minimum spend"
+//   enquire    → "Enquire for pricing"
+//   (none set) → "" (callers substitute the default "Enquire for pricing")
+// ============================================================
+function _venlyNum(x) {
+  if (x === '' || x == null) return null;
+  var n = Number(x);
+  return isNaN(n) ? null : n;
+}
+function _venlyMoney(n) {
+  // Whole dollars, thousands separators, no trailing .00
+  return '$' + Number(n).toLocaleString('en-NZ', { maximumFractionDigits: 0 });
+}
+
+function venlyFormatPrice(v) {
+  if (!v) return '';
+  var from = _venlyNum(v.priceFrom);
+  var to = _venlyNum(v.priceTo);
+  var type = v.priceType || '';
+
+  switch (type) {
+    case 'enquire':
+      return 'Enquire for pricing';
+    case 'free':
+      return 'Free hire / minimum spend';
+    case 'hourly':
+      if (from == null) return '';
+      return (to != null && to > from)
+        ? _venlyMoney(from) + '–' + _venlyMoney(to) + '/hr'
+        : 'from ' + _venlyMoney(from) + '/hr';
+    case 'per_person':
+      if (from == null) return '';
+      return (to != null && to > from)
+        ? _venlyMoney(from) + '–' + _venlyMoney(to) + ' pp'
+        : 'from ' + _venlyMoney(from) + ' pp';
+    case 'fixed':
+      if (from == null) return '';
+      return (to != null && to > from)
+        ? _venlyMoney(from) + '–' + _venlyMoney(to)
+        : _venlyMoney(from);
+    default:
+      // No type chosen. If there's a number, show a neutral "from $X",
+      // otherwise return '' so callers use their default label.
+      if (from != null) {
+        return (to != null && to > from)
+          ? _venlyMoney(from) + '–' + _venlyMoney(to)
+          : 'from ' + _venlyMoney(from);
+      }
+      return '';
+  }
+}
+
+// Numeric value used for price sorting/filtering on find-a-space.
+// Returns null for "enquire"/"free"/unset so they sort last.
+function venlyPriceValue(v) {
+  if (!v) return null;
+  if (v.priceType === 'enquire' || v.priceType === 'free') return null;
+  return _venlyNum(v.priceFrom);
+}
+
 function getAllVenues() {
   if (SUPABASE_READY) return _venlyCache.venues || []; // never fall back to demo data once live — an empty result + venuesError flag instead
   var fromStorage = JSON.parse(localStorage.getItem('venly_venues') || 'null');

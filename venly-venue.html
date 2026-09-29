@@ -296,7 +296,7 @@ textarea { resize: none; min-height: 90px; }
       } catch(e) {}
     })();
   </script>
-  <script src="venly-config.js?v=5"></script>
+  <script src="venly-config.js?v=6"></script>
   <script src="venly-shared.js?v=5"></script>
   <script>
     window.venlyReady = (typeof venlyBootstrap === 'function') ? venlyBootstrap() : Promise.resolve();
@@ -696,22 +696,23 @@ async function loadVenue() {
   }
   var hasDetails = v.pricingDetails && v.pricingDetails.trim();
 
-  if (priceLabel || hasDetails) {
-    document.getElementById('enquiry-price-wrap').style.display = '';
-    // "Starting from" only reads right for from-style prices; use a neutral
-    // label otherwise (fixed, free, enquire).
-    var labelText = (v.priceType === 'hourly' || v.priceType === 'per_person' || !v.priceType)
-      ? 'Starting from' : 'Pricing';
-    document.getElementById('enquiry-price-label').textContent = labelText;
-    document.getElementById('enquiry-price-val').innerHTML =
-      escapeHtmlVenue(priceLabel || 'See details') +
-      (hasDetails
-        ? '<div style="font-size:13px;font-weight:400;color:var(--text-muted);line-height:1.5;margin-top:8px">' +
-            escapeHtmlVenue(v.pricingDetails).replace(/\n/g, '<br>') + '</div>'
-        : '');
-  } else {
-    document.getElementById('enquiry-price-wrap').style.display = 'none';
-  }
+  // Always show the price box. If the host chose nothing (no type, no number),
+  // default to "Enquire for pricing" so the sidebar never looks unfinished.
+  if (!priceLabel) priceLabel = 'Enquire for pricing';
+
+  document.getElementById('enquiry-price-wrap').style.display = '';
+  // Heading above the price: "Starting from" only reads right for from-style
+  // prices (hourly / per person); everything else (fixed, free, enquire, or
+  // the default) uses the neutral "Pricing".
+  var labelText = (v.priceType === 'hourly' || v.priceType === 'per_person')
+    ? 'Starting from' : 'Pricing';
+  document.getElementById('enquiry-price-label').textContent = labelText;
+  document.getElementById('enquiry-price-val').innerHTML =
+    escapeHtmlVenue(priceLabel) +
+    (hasDetails
+      ? '<div style="font-size:13px;font-weight:400;color:var(--text-muted);line-height:1.5;margin-top:8px">' +
+          escapeHtmlVenue(v.pricingDetails).replace(/\n/g, '<br>') + '</div>'
+      : '');
 
   document.getElementById('enquiry-success-text').textContent =
     (v.hostName ? v.hostName.split(' ')[0] : 'The host') + ' will be in touch shortly. Check your email for a confirmation.';
