@@ -1663,6 +1663,7 @@ function cancelSubscription(i) {
         var end = (res && res.currentPeriodEnd) || listing.currentPeriodEnd;
         listing.subscriptionStatus = 'cancelled';
         listing.currentPeriodEnd = end;
+        if (typeof venlyInvalidateCache === 'function') venlyInvalidateCache();
         buildTable();
         showToast(end
           ? 'Subscription cancelled — your listing stays live until ' +
@@ -1684,6 +1685,7 @@ function cancelSubscription(i) {
         listing.status = 'draft';
         listing.subscriptionStatus = 'cancelled';
         listing.currentPeriodEnd = null;
+        if (typeof venlyInvalidateCache === 'function') venlyInvalidateCache();
         buildTable();
         showToast('Listing removed — it\'s saved as a draft');
         setTimeout(function() { loadUserListings(); }, 2500);
@@ -1792,6 +1794,7 @@ function unlistListing(i) {
       listing.status = 'draft';
       listing.subscriptionStatus = 'cancelled';
       listing.currentPeriodEnd = null;
+      if (typeof venlyInvalidateCache === 'function') venlyInvalidateCache();
       buildTable();
 
       showToast('Listing removed — it\'s saved as a draft');
