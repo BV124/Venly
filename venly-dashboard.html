@@ -435,7 +435,7 @@ tbody tr:last-child td { border-bottom: none; }
   <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://js.stripe.com/v3/"></script>
-  <script src="venly-config.js?v=7"></script>
+  <script src="venly-config.js?v=9"></script>
   <script src="venly-shared.js?v=5"></script>
 </head>
 <body>
@@ -956,6 +956,21 @@ tbody tr:last-child td { border-bottom: none; }
     <button id="cancel-sub-back" style="width:100%;padding:12px;border:1.5px solid var(--border);border-radius:8px;background:var(--white);font-family:Inter,sans-serif;font-size:14px;font-weight:600;cursor:pointer">
       Never mind, keep my subscription
     </button>
+
+    <!-- CONFIRM STEP — hidden until an option is chosen. Requires typing CONFIRM. -->
+    <div id="cancel-sub-confirm-step" style="display:none">
+      <div id="cancel-sub-confirm-summary" style="font-size:14px;color:var(--text);line-height:1.6;margin-bottom:18px;text-align:center;font-weight:600"></div>
+      <label style="display:block;font-size:13px;color:var(--text-muted);margin-bottom:8px;text-align:center">Type <strong style="color:var(--text);letter-spacing:0.05em">CONFIRM</strong> to proceed</label>
+      <input type="text" id="cancel-sub-confirm-input" autocomplete="off" placeholder="CONFIRM"
+             style="width:100%;padding:12px;border:1.5px solid var(--border);border-radius:8px;font-family:Inter,sans-serif;font-size:15px;text-align:center;letter-spacing:0.05em;margin-bottom:16px;box-sizing:border-box" />
+      <button id="cancel-sub-confirm-go" disabled
+              style="width:100%;padding:13px;border:none;border-radius:8px;background:var(--red);color:#fff;font-family:Inter,sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;opacity:0.5">
+        Yes, proceed
+      </button>
+      <button id="cancel-sub-confirm-cancel" style="width:100%;padding:12px;border:1.5px solid var(--border);border-radius:8px;background:var(--white);font-family:Inter,sans-serif;font-size:14px;font-weight:600;cursor:pointer">
+        Go back
+      </button>
+    </div>
   </div>
 </div>
 
@@ -1579,6 +1594,14 @@ function cancelSubscription(i) {
       '</strong> and then becomes a draft. You won\'t be charged again.';
   }
 
+  // Reset to the options view every time the modal opens (a previous run may
+  // have left it on the confirm step with the options hidden).
+  document.getElementById('cancel-sub-confirm-step').style.display = 'none';
+  document.getElementById('cancel-sub-now').style.display = 'block';
+  document.getElementById('cancel-sub-back').style.display = 'block';
+  Array.prototype.forEach.call(overlay.querySelectorAll('p'), function(p) { p.style.display = ''; });
+  // graceBtn visibility is set above based on subscription state, leave it.
+
   overlay.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
 
@@ -1587,59 +1610,88 @@ function cancelSubscription(i) {
     document.body.style.overflow = '';
   }
 
+  // ── Confirm-step elements ──────────────────────────────────────────────
+  var optionEls = [graceBtn, document.getElementById('cancel-sub-now'), document.getElementById('cancel-sub-back')];
+  var confirmStep = document.getElementById('cancel-sub-confirm-step');
+  var confirmInput = document.getElementById('cancel-sub-confirm-input');
+  var confirmGo = document.getElementById('cancel-sub-confirm-go');
+  var confirmCancel = document.getElementById('cancel-sub-confirm-cancel');
+
+  // Show the "type CONFIRM" step for a chosen action. `run` is the async
+  // function that actually performs it; `summary` is the line shown above
+  // the input so the host knows exactly what they're confirming.
+  function showConfirmStep(summary, run) {
+    // Hide the option buttons + surrounding copy, show the confirm panel.
+    optionEls.forEach(function(el) { if (el) el.style.display = 'none'; });
+    // Hide the two explanatory paragraphs too (siblings between the buttons).
+    Array.prototype.forEach.call(overlay.querySelectorAll('p'), function(p) { p.style.display = 'none'; });
+    document.getElementById('cancel-sub-confirm-summary').textContent = summary;
+    confirmStep.style.display = 'block';
+    confirmInput.value = '';
+    confirmGo.disabled = true;
+    confirmGo.style.opacity = '0.5';
+    confirmGo.style.cursor = 'not-allowed';
+    setTimeout(function() { confirmInput.focus(); }, 50);
+
+    // Enable "Yes, proceed" only when they've typed CONFIRM (case-insensitive,
+    // trimmed) so a stray space or lowercase doesn't block a genuine confirm.
+    confirmInput.oninput = function() {
+      var ok = confirmInput.value.trim().toUpperCase() === 'CONFIRM';
+      confirmGo.disabled = !ok;
+      confirmGo.style.opacity = ok ? '1' : '0.5';
+      confirmGo.style.cursor = ok ? 'pointer' : 'not-allowed';
+    };
+    // Enter key submits when valid.
+    confirmInput.onkeydown = function(e) {
+      if (e.key === 'Enter' && !confirmGo.disabled) { e.preventDefault(); confirmGo.click(); }
+    };
+    confirmGo.onclick = async function() {
+      if (confirmInput.value.trim().toUpperCase() !== 'CONFIRM') return;
+      close();
+      await run();
+    };
+    confirmCancel.onclick = function() { close(); };
+  }
+
   document.getElementById('cancel-sub-back').onclick = close;
 
   // Option A - schedule cancellation, stay live until the period boundary.
-  graceBtn.onclick = async function() {
-    close();
-    try {
-      var res = await callStripeFn('cancel_subscription', { venueId: listing.id });
-      // The function returns the authoritative period end from Stripe - use
-      // that rather than whatever we had cached, which may have been null.
-      var end = (res && res.currentPeriodEnd) || listing.currentPeriodEnd;
-
-      // Optimistic update: reflect the change in the UI immediately, rather
-      // than waiting for Stripe's webhook to write it to the database and a
-      // reload to pick it up. The webhook still does the authoritative write
-      // in the background; this just stops the row looking unchanged for the
-      // second or two that round-trip takes. Grace period = still live, but
-      // now cancelled, with the paid-through date.
-      listing.subscriptionStatus = 'cancelled';
-      listing.currentPeriodEnd = end;
-      buildTable();
-
-      showToast(end
-        ? 'Subscription cancelled — your listing stays live until ' +
-          new Date(end).toLocaleDateString('en-NZ', { day: 'numeric', month: 'long' })
-        : 'Subscription cancelled — your listing stays live until the end of your paid period');
-
-      // Reconcile with the server shortly after, once the webhook has landed,
-      // so the row ends up matching the database exactly.
-      setTimeout(function() { loadUserListings(); }, 2500);
-    } catch (e) {
-      console.error('cancel_subscription failed:', e);
-      showToast('Could not cancel — please try again');
-    }
+  graceBtn.onclick = function() {
+    showConfirmStep('Cancel subscription — stay live until your period ends?', async function() {
+      try {
+        var res = await callStripeFn('cancel_subscription', { venueId: listing.id });
+        var end = (res && res.currentPeriodEnd) || listing.currentPeriodEnd;
+        listing.subscriptionStatus = 'cancelled';
+        listing.currentPeriodEnd = end;
+        buildTable();
+        showToast(end
+          ? 'Subscription cancelled — your listing stays live until ' +
+            new Date(end).toLocaleDateString('en-NZ', { day: 'numeric', month: 'long' })
+          : 'Subscription cancelled — your listing stays live until the end of your paid period');
+        setTimeout(function() { loadUserListings(); }, 2500);
+      } catch (e) {
+        console.error('cancel_subscription failed:', e);
+        showToast('Could not cancel — please try again');
+      }
+    });
   };
 
   // Option B - down now, forfeit the remainder.
-  document.getElementById('cancel-sub-now').onclick = async function() {
-    close();
-    try {
-      await callStripeFn('unlist_now', { venueId: listing.id });
-
-      // Optimistic update: unlisted -> draft, immediately.
-      listing.status = 'draft';
-      listing.subscriptionStatus = 'cancelled';
-      listing.currentPeriodEnd = null;
-      buildTable();
-
-      showToast('Listing removed — it\'s saved as a draft');
-      setTimeout(function() { loadUserListings(); }, 2500);
-    } catch (e) {
-      console.error('unlist_now failed:', e);
-      showToast('Could not remove — please try again');
-    }
+  document.getElementById('cancel-sub-now').onclick = function() {
+    showConfirmStep('Take the listing down now and forfeit the remaining paid days?', async function() {
+      try {
+        await callStripeFn('unlist_now', { venueId: listing.id });
+        listing.status = 'draft';
+        listing.subscriptionStatus = 'cancelled';
+        listing.currentPeriodEnd = null;
+        buildTable();
+        showToast('Listing removed — it\'s saved as a draft');
+        setTimeout(function() { loadUserListings(); }, 2500);
+      } catch (e) {
+        console.error('unlist_now failed:', e);
+        showToast('Could not remove — please try again');
+      }
+    });
   };
 }
 
