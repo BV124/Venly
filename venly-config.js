@@ -296,6 +296,8 @@ function _mapVenueFromDb(row) {
     website: row.website,
     priceFrom: row.price_from,
     priceTo: row.price_to,
+    priceType: row.price_type || null,
+    pricingDetails: row.pricing_details || null,
     plan: row.plan,
     hits: row.hits,
     hostUserId: row.host_user_id,
