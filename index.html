@@ -488,7 +488,7 @@ section { padding: 80px 48px; }
       } catch(e) { /* config not ready yet — venlyBootstrap will run normally */ }
     })();
   </script>
-  <script src="venly-config.js?v=9"></script>
+  <script src="venly-config.js?v=10"></script>
   <script src="venly-shared.js?v=5"></script>
   <script>
     window.venlyReady = (typeof venlyBootstrap === 'function') ? venlyBootstrap() : Promise.resolve();
@@ -756,16 +756,23 @@ section { padding: 80px 48px; }
   var TYPE_LABELS = { 'Event space': 'Event Space', 'Meeting space': 'Meeting Space', 'Shoot Location': 'Shoot Location' };
   var MAX = (typeof VENLY_MAX_TRENDING_HOME_VENUES === 'number') ? VENLY_MAX_TRENDING_HOME_VENUES : 8;
 
+  // Show ONLY venues explicitly toggled as "Trending" in the admin — no
+  // fallback to all live venues. This makes the section predictable: it shows
+  // exactly what's been featured, and nothing when nothing is featured.
+  var trendingSection = grid.closest ? grid.closest('section') : null;
   var all = getAllVenues().filter(function(v) { return v.isLive; });
-  var selected = all.filter(function(v) { return v.featuredHome; });
-  // Fallback: if no venues are explicitly featured, show all live venues with photos
-  if (!selected.length) selected = all.filter(function(v) { return v.photos && v.photos[0]; });
+  var selected = all.filter(function(v) { return v.featuredHome && v.photos && v.photos[0]; });
   var venues = selected.slice(0, MAX);
 
   if (!venues.length) {
-    // No live venues yet - keep shimmer skeletons
+    // Nothing featured — hide the whole Trending section rather than showing
+    // an empty grid or lingering skeletons.
+    if (trendingSection) trendingSection.style.display = 'none';
     return;
   }
+  // Venues exist — make sure the section is visible (it may have been hidden
+  // on an earlier render this session).
+  if (trendingSection) trendingSection.style.display = '';
 
   grid.innerHTML = venues.filter(function(v) { return v.photos && v.photos[0]; }).map(function(v, i) {
     var img = v.photos[0];

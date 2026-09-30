@@ -349,16 +349,34 @@ function _mapFiltersFromDb(row) {
 // VENLY_CACHE_VERSION whenever the data shape changes (e.g. new columns).
 // sessionStorage is automatically cleared when the tab is closed, so users
 // always get fresh data on their next visit.
-var VENLY_CACHE_VERSION = 'v5';
+var VENLY_CACHE_VERSION = 'v6';
 var _SS_VENUES_KEY  = 'venly_ss_venues_'  + VENLY_CACHE_VERSION;
 var _SS_FILTERS_KEY = 'venly_ss_filters_' + VENLY_CACHE_VERSION;
 var _SS_BLOG_KEY    = 'venly_ss_blog_'    + VENLY_CACHE_VERSION;
 
+// Cache entries carry a timestamp and expire after VENLY_CACHE_TTL_MS. This
+// keeps the instant-load speed for rapid navigation within a session, while
+// ensuring visitors pick up admin changes (e.g. a venue newly featured on the
+// homepage) within a minute — rather than being stuck on a stale snapshot for
+// their whole session. _ssGet returns null once an entry is past its TTL, so
+// the next load re-fetches fresh from Supabase.
+var VENLY_CACHE_TTL_MS = 60 * 1000; // 60 seconds
+
 function _ssGet(key) {
-  try { var v = sessionStorage.getItem(key); return v ? JSON.parse(v) : null; } catch(e) { return null; }
+  try {
+    var raw = sessionStorage.getItem(key);
+    if (!raw) return null;
+    var wrapped = JSON.parse(raw);
+    // Support both the new {t, v} shape and any legacy raw value.
+    if (wrapped && typeof wrapped === 'object' && wrapped.__venlyTs) {
+      if (Date.now() - wrapped.__venlyTs > VENLY_CACHE_TTL_MS) return null; // expired
+      return wrapped.v;
+    }
+    return wrapped; // legacy entry (no timestamp) — treat as valid this once
+  } catch(e) { return null; }
 }
 function _ssSet(key, val) {
-  try { sessionStorage.setItem(key, JSON.stringify(val)); } catch(e) { /* storage full — ignore */ }
+  try { sessionStorage.setItem(key, JSON.stringify({ __venlyTs: Date.now(), v: val })); } catch(e) { /* storage full — ignore */ }
 }
 
 async function venlyBootstrapVenues() {
