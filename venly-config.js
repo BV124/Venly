@@ -61,9 +61,8 @@ const VENLY_CONFIG = {
   // SOCIAL LINKS
   // ----------------------------------------------------------
   social: {
-    instagram: 'https://instagram.com/venly.co.nz',
-    facebook:  'https://facebook.com/venly.co.nz',
-    linkedin:  'https://linkedin.com/company/venly',
+    instagram: 'https://www.instagram.com/venly_nz/',
+    linkedin:  'https://www.linkedin.com/company/venly-nz',
   },
 
 };
