@@ -147,8 +147,9 @@ nav {
   position: relative;
   /* Keep a steady gap between the blinking cursor and the word "space"
      that follows, so the cursor never butts right up against it as the
-     word shrinks during the delete animation. */
-  margin-right: 14px;
+     word shrinks during the delete animation. Tuned to read as a single
+     normal space (the cursor itself sits 8px past the word). */
+  margin-right: 10px;
 }
 #typewriter-word::after {
   content: '|';
