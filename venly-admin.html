@@ -245,6 +245,98 @@ tbody tr:last-child td { border-bottom: none; }
 }
 .crm-add-btn:hover { border-color: var(--red); color: var(--red); border-style: solid; }
 
+/* ── CRM grid / card view ───────────────────────────────────────────────── */
+.crm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px;
+  padding: 18px;
+}
+.crm-card {
+  position: relative;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 16px 14px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: box-shadow 0.15s, border-color 0.15s, transform 0.15s;
+  overflow: hidden;
+}
+.crm-card::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: var(--crm-accent, var(--border));
+}
+.crm-card:hover {
+  border-color: #d9dce0;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  transform: translateY(-2px);
+}
+.crm-card-top { display: flex; align-items: flex-start; gap: 11px; }
+.crm-card-avatar {
+  width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 800; font-size: 15px;
+}
+.crm-card-head { min-width: 0; flex: 1; }
+.crm-card-name {
+  font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.25;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.crm-card-cat { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+.crm-card-status {
+  align-self: flex-start; font-size: 9.5px; font-weight: 700; padding: 3px 9px;
+  border-radius: 20px; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.03em;
+}
+.crm-card-contact {
+  font-size: 12px; color: var(--text); display: flex; align-items: center; gap: 6px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.crm-card-contact svg { width: 12px; height: 12px; color: #b4b8bf; flex-shrink: 0; }
+.crm-card-next {
+  font-size: 12px; color: var(--text-muted); line-height: 1.35;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  min-height: 16px;
+}
+.crm-card-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  margin-top: 2px; padding-top: 11px; border-top: 1px solid var(--border);
+}
+.crm-card-due {
+  font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 6px; white-space: nowrap;
+}
+.crm-card-due.overdue { background: #fdecec; color: #c0392b; border: 1px solid #f5c4bf; }
+.crm-card-due.today   { background: #fff8e1; color: #a06000; border: 1px solid #ffe082; }
+.crm-card-due.soon    { background: #f0f7ff; color: #1565c0; border: 1px solid #bbdefb; }
+.crm-card-due.future  { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+.crm-card-due.none    { background: transparent; color: #c3c6ca; border: 1px dashed var(--border); font-weight: 600; }
+.crm-card-activity { font-size: 11px; color: #9aa0a8; white-space: nowrap; }
+
+/* Pagination */
+.crm-pager {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 6px 18px 22px; flex-wrap: wrap;
+}
+.crm-pager button {
+  min-width: 34px; height: 34px; padding: 0 10px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--white); color: var(--text);
+  font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif;
+  transition: all 0.12s; display: inline-flex; align-items: center; justify-content: center;
+}
+.crm-pager button:hover:not(:disabled) { border-color: var(--red); color: var(--red); }
+.crm-pager button.active { background: var(--red); border-color: var(--red); color: #fff; }
+.crm-pager button:disabled { opacity: 0.4; cursor: default; }
+.crm-pager .crm-pager-gap { color: var(--text-muted); padding: 0 2px; font-size: 13px; }
+.crm-pager-info {
+  width: 100%; text-align: center; font-size: 11.5px; color: var(--text-muted);
+  margin-bottom: 8px; order: -1;
+}
+
 .crm-row {
   padding: 10px 10px; border-radius: var(--radius-sm); cursor: pointer; margin-bottom: 2px;
   border: 1px solid transparent; transition: all 0.12s; position: relative;
@@ -1563,23 +1655,24 @@ tbody tr:last-child td { border-bottom: none; }
           <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
             <div id="crm-status-tabs" style="display:flex;gap:6px;flex-wrap:wrap"></div>
             <div style="display:flex;gap:8px;align-items:center">
-              <select id="crm-sort" class="search-input" style="width:auto;padding-left:10px;cursor:pointer" onchange="renderCrmList()">
+              <select id="crm-sort" class="search-input" style="width:auto;padding-left:10px;cursor:pointer" onchange="crmFiltersChanged()">
                 <option value="activity">Sort: Recent activity</option>
                 <option value="due">Sort: Due date</option>
                 <option value="name">Sort: Name A–Z</option>
                 <option value="status">Sort: Status</option>
               </select>
-              <select id="crm-filter-category" class="search-input" style="width:auto;padding-left:10px;cursor:pointer" onchange="renderCrmList()">
+              <select id="crm-filter-category" class="search-input" style="width:auto;padding-left:10px;cursor:pointer" onchange="crmFiltersChanged()">
                 <option value="">All types</option>
                 <option value="Event space">Event space</option>
                 <option value="Meeting space">Meeting space</option>
                 <option value="Shoot Location">Shoot Location</option>
               </select>
-              <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input id="crm-search" class="search-input" style="padding-left:28px;width:200px" placeholder="Search prospects..." oninput="renderCrmList()" /></div>
+              <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input id="crm-search" class="search-input" style="padding-left:28px;width:200px" placeholder="Search prospects..." oninput="crmFiltersChanged()" /></div>
             </div>
           </div>
         </div>
-        <div id="crm-list-rows"></div>
+        <div id="crm-list-rows" class="crm-grid"></div>
+        <div id="crm-pager" class="crm-pager" style="display:none"></div>
       </div>
     </div>
 
@@ -6323,6 +6416,8 @@ var CRM_DUE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" s
 
 var CRM_STATUSES = ['All', 'New', 'Contacted', 'Interested', 'Listed', 'Not Now', 'Lost', 'Do Not Contact'];
 var _crmActiveStatus = 'All';
+var CRM_PAGE_SIZE = 30;   // max cards shown per page
+var _crmPage = 1;         // current page (1-based)
 
 function renderCrmStatusTabs() {
   var wrap = document.getElementById('crm-status-tabs');
@@ -6341,6 +6436,14 @@ function renderCrmStatusTabs() {
 
 function setCrmStatusTab(status) {
   _crmActiveStatus = status;
+  _crmPage = 1;
+  renderCrmList();
+}
+
+// Called by the search box, sort and category dropdowns — any change to the
+// filtered set should send the user back to the first page.
+function crmFiltersChanged() {
+  _crmPage = 1;
   renderCrmList();
 }
 
@@ -6385,72 +6488,110 @@ function renderCrmList() {
   });
 
   var rowsEl = document.getElementById('crm-list-rows');
+  var pagerEl = document.getElementById('crm-pager');
   if (!rowsEl) return;
 
   if (filtered.length === 0) {
-    rowsEl.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-size:13px">' +
+    rowsEl.innerHTML = '<div style="grid-column:1/-1;padding:48px 20px;text-align:center;color:var(--text-muted);font-size:13px">' +
       (_crmActiveStatus === 'All' ? 'No prospects yet — click "+ Add prospect" to get started.' : 'No prospects with status "' + _crmActiveStatus + '".') +
       '</div>';
+    if (pagerEl) pagerEl.style.display = 'none';
     return;
   }
 
-  rowsEl.innerHTML = filtered.map(function(r) {
+  // Pagination — clamp the current page in case the filtered set shrank.
+  var totalPages = Math.max(1, Math.ceil(filtered.length / CRM_PAGE_SIZE));
+  if (_crmPage > totalPages) _crmPage = totalPages;
+  if (_crmPage < 1) _crmPage = 1;
+  var startIdx = (_crmPage - 1) * CRM_PAGE_SIZE;
+  var pageRecords = filtered.slice(startIdx, startIdx + CRM_PAGE_SIZE);
+
+  rowsEl.innerHTML = pageRecords.map(function(r) {
     var colors = CRM_STATUS_COLORS[r.status] || CRM_STATUS_COLORS['New'];
     var dueBucket = getCrmDueBucket(r.dueDate);
 
-    // More prominent due date pill — expressed in days so the sales team can
-    // see at a glance when to follow up ("Follow up in 5 days" / "Overdue by
-    // 3 days") rather than reading off a calendar date.
-    var duePill = '';
+    // Follow-up expressed in days so the sales team sees at a glance when to act.
+    var dueClass = r.dueDate ? dueBucket : 'none';
+    var dueText = 'No follow-up set';
     if (r.dueDate) {
       var _today = new Date(); _today.setHours(0, 0, 0, 0);
       var diffDays = Math.round((new Date(r.dueDate + 'T00:00:00') - _today) / 86400000);
       var dayWord = function(n) { return Math.abs(n) === 1 ? 'day' : 'days'; };
-      if (dueBucket === 'overdue') {
-        var late = Math.abs(diffDays);
-        duePill = '<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#fdecec;color:#c0392b;border:1px solid #f5c4bf">Overdue by ' + late + ' ' + dayWord(late) + '</span>';
-      } else if (dueBucket === 'today') {
-        duePill = '<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#fff8e1;color:#a06000;border:1px solid #ffe082">Follow up today</span>';
-      } else if (dueBucket === 'soon') {
-        duePill = '<span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:#f0f7ff;color:#1565c0;border:1px solid #bbdefb">Follow up in ' + diffDays + ' ' + dayWord(diffDays) + '</span>';
-      } else {
-        duePill = '<span style="font-size:11px;color:var(--text-muted);padding:3px 8px;border-radius:6px;background:var(--bg);border:1px solid var(--border)">Follow up in ' + diffDays + ' ' + dayWord(diffDays) + '</span>';
-      }
+      if (dueBucket === 'overdue') { var late = Math.abs(diffDays); dueText = 'Overdue by ' + late + ' ' + dayWord(late); }
+      else if (dueBucket === 'today') { dueText = 'Follow up today'; }
+      else { dueText = 'Follow up in ' + diffDays + ' ' + dayWord(diffDays); }
     }
 
     var lastActivity = r.timeline && r.timeline.length
       ? fmtActivityDate(r.timeline[r.timeline.length - 1].ts || r.timeline[r.timeline.length - 1].createdAt)
-      : 'No activity yet';
+      : 'No activity';
     var initials = ((r.venueName || '?')[0] || '?').toUpperCase();
     var avatarColor = msgAvatarColor(r.venueName || '');
+    var nextStep = r.nextStep || r.nextAction || '';
 
-    return '<div class="msg-row" onclick="selectCrmRecord(\'' + r.id + '\')" style="cursor:pointer">' +
-      '<div style="display:flex;align-items:flex-start;gap:14px;flex:1;min-width:0">' +
-        '<div class="msg-avatar" style="background:' + avatarColor + ';flex-shrink:0">' + initials + '</div>' +
-        '<div style="min-width:0;flex:1">' +
+    // Contact line: prefer name, fall back to email then phone.
+    var contactMain = r.contactName || r.email || r.phone || 'No contact';
+    var personIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
 
-          // Row 1: name + last activity
-          '<div class="msg-top" style="margin-bottom:4px">' +
-            '<span class="msg-name">' + escapeHtml(r.venueName || 'Untitled') + '</span>' +
-            '<span class="msg-time">' + lastActivity + '</span>' +
-          '</div>' +
-
-          // Row 2: contact · category + status badge (separated clearly)
-          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">' +
-            '<span style="font-size:13px;color:var(--text-muted)">' + escapeHtml(r.contactName || 'No contact') + (r.category ? ' · ' + escapeHtml(r.category) : '') + '</span>' +
-            '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:' + colors.bg + ';color:' + colors.text + ';border:1px solid ' + colors.border + '">' + escapeHtml(r.status || 'New') + '</span>' +
-          '</div>' +
-
-          // Row 3: next step + due date pill on its own line
-          '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
-            '<span style="font-size:12px;color:var(--text-muted)">' + (r.nextStep ? '→ ' + escapeHtml(r.nextStep) : '<span style="color:#ccc">No next step</span>') + '</span>' +
-            (duePill ? duePill : '') +
-          '</div>' +
-
+    return '<div class="crm-card" style="--crm-accent:' + colors.text + '" onclick="selectCrmRecord(\'' + r.id + '\')">' +
+      '<div class="crm-card-top">' +
+        '<div class="crm-card-avatar" style="background:' + avatarColor + '">' + escapeHtml(initials) + '</div>' +
+        '<div class="crm-card-head">' +
+          '<div class="crm-card-name">' + escapeHtml(r.venueName || 'Untitled') + '</div>' +
+          (r.category ? '<div class="crm-card-cat">' + escapeHtml(r.category) + '</div>' : '') +
         '</div>' +
+      '</div>' +
+      '<span class="crm-card-status" style="background:' + colors.bg + ';color:' + colors.text + ';border:1px solid ' + colors.border + '">' + escapeHtml(r.status || 'New') + '</span>' +
+      '<div class="crm-card-contact">' + personIcon + '<span style="overflow:hidden;text-overflow:ellipsis">' + escapeHtml(contactMain) + '</span></div>' +
+      '<div class="crm-card-next">' + (nextStep ? '→ ' + escapeHtml(nextStep) : '<span style="color:#c7cace">No next step</span>') + '</div>' +
+      '<div class="crm-card-foot">' +
+        '<span class="crm-card-due ' + dueClass + '">' + escapeHtml(dueText) + '</span>' +
+        '<span class="crm-card-activity">' + escapeHtml(lastActivity) + '</span>' +
       '</div>' +
     '</div>';
   }).join('');
+
+  renderCrmPager(totalPages, filtered.length, startIdx, pageRecords.length);
+}
+
+// Builds the page controls below the CRM grid. Shows first/last, a window of
+// nearby pages, and ellipsis gaps — standard pager behaviour.
+function renderCrmPager(totalPages, totalItems, startIdx, shownCount) {
+  var pagerEl = document.getElementById('crm-pager');
+  if (!pagerEl) return;
+  if (totalPages <= 1) { pagerEl.style.display = 'none'; pagerEl.innerHTML = ''; return; }
+  pagerEl.style.display = 'flex';
+
+  var from = startIdx + 1;
+  var to = startIdx + shownCount;
+
+  // Decide which page numbers to show: always 1 and last, plus a window
+  // around the current page.
+  var pages = [];
+  for (var p = 1; p <= totalPages; p++) {
+    if (p === 1 || p === totalPages || (p >= _crmPage - 1 && p <= _crmPage + 1)) {
+      pages.push(p);
+    } else if (pages[pages.length - 1] !== '…') {
+      pages.push('…');
+    }
+  }
+
+  var html = '<div class="crm-pager-info">Showing ' + from + '–' + to + ' of ' + totalItems + ' prospects</div>';
+  html += '<button onclick="goCrmPage(' + (_crmPage - 1) + ')"' + (_crmPage === 1 ? ' disabled' : '') + '>‹ Prev</button>';
+  html += pages.map(function(p) {
+    if (p === '…') return '<span class="crm-pager-gap">…</span>';
+    return '<button class="' + (p === _crmPage ? 'active' : '') + '" onclick="goCrmPage(' + p + ')">' + p + '</button>';
+  }).join('');
+  html += '<button onclick="goCrmPage(' + (_crmPage + 1) + ')"' + (_crmPage === totalPages ? ' disabled' : '') + '>Next ›</button>';
+  pagerEl.innerHTML = html;
+}
+
+function goCrmPage(p) {
+  _crmPage = p;
+  renderCrmList();
+  // Scroll the grid back to the top of the CRM section for the new page.
+  var sec = document.getElementById('section-crm');
+  if (sec && sec.scrollIntoView) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function setCrmDueFilter(value) { renderCrmList(); }
@@ -6458,6 +6599,7 @@ function resetCrmFilters() {
   if (document.getElementById('crm-search')) document.getElementById('crm-search').value = '';
   if (document.getElementById('crm-filter-category')) document.getElementById('crm-filter-category').value = '';
   _crmActiveStatus = 'All';
+  _crmPage = 1;
   renderCrmList();
 }
 
