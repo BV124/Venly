@@ -6398,19 +6398,23 @@ function renderCrmList() {
     var colors = CRM_STATUS_COLORS[r.status] || CRM_STATUS_COLORS['New'];
     var dueBucket = getCrmDueBucket(r.dueDate);
 
-    // More prominent due date pill
+    // More prominent due date pill — expressed in days so the sales team can
+    // see at a glance when to follow up ("Follow up in 5 days" / "Overdue by
+    // 3 days") rather than reading off a calendar date.
     var duePill = '';
     if (r.dueDate) {
-      var d = new Date(r.dueDate + 'T00:00:00');
-      var dateLabel = d.getDate() + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
+      var _today = new Date(); _today.setHours(0, 0, 0, 0);
+      var diffDays = Math.round((new Date(r.dueDate + 'T00:00:00') - _today) / 86400000);
+      var dayWord = function(n) { return Math.abs(n) === 1 ? 'day' : 'days'; };
       if (dueBucket === 'overdue') {
-        duePill = '<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#fdecec;color:#c0392b;border:1px solid #f5c4bf">Contact: Overdue — ' + dateLabel + '</span>';
+        var late = Math.abs(diffDays);
+        duePill = '<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#fdecec;color:#c0392b;border:1px solid #f5c4bf">Overdue by ' + late + ' ' + dayWord(late) + '</span>';
       } else if (dueBucket === 'today') {
-        duePill = '<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#fff8e1;color:#a06000;border:1px solid #ffe082">Contact: Today</span>';
+        duePill = '<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#fff8e1;color:#a06000;border:1px solid #ffe082">Follow up today</span>';
       } else if (dueBucket === 'soon') {
-        duePill = '<span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:#f0f7ff;color:#1565c0;border:1px solid #bbdefb">Contact: ' + dateLabel + '</span>';
+        duePill = '<span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:#f0f7ff;color:#1565c0;border:1px solid #bbdefb">Follow up in ' + diffDays + ' ' + dayWord(diffDays) + '</span>';
       } else {
-        duePill = '<span style="font-size:11px;color:var(--text-muted);padding:3px 8px;border-radius:6px;background:var(--bg);border:1px solid var(--border)">Contact: ' + dateLabel + '</span>';
+        duePill = '<span style="font-size:11px;color:var(--text-muted);padding:3px 8px;border-radius:6px;background:var(--bg);border:1px solid var(--border)">Follow up in ' + diffDays + ' ' + dayWord(diffDays) + '</span>';
       }
     }
 
