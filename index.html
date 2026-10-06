@@ -145,6 +145,10 @@ nav {
 
 #typewriter-word {
   position: relative;
+  /* Keep a steady gap between the blinking cursor and the word "space"
+     that follows, so the cursor never butts right up against it as the
+     word shrinks during the delete animation. */
+  margin-right: 14px;
 }
 #typewriter-word::after {
   content: '|';
@@ -1217,7 +1221,7 @@ section { padding: 80px 48px; }
 <div class="hiw-cta-section">
   <div class="hiw-cta-inner">
     <div class="hiw-cta-eyebrow">Ready to go?</div>
-    <h2>Find the perfect <span class="typewriter-line"><span id="typewriter-word" style="color:var(--red)">Wedding</span> space<span class="hiw-cta-dot">.</span></span></h2>
+    <h2>Find the perfect <span class="typewriter-line"><span id="typewriter-word" style="color:var(--red)">Wedding</span>space<span class="hiw-cta-dot">.</span></span></h2>
     <p>Browse spaces across New Zealand for free. No account needed to search - just great venues waiting to be discovered.</p>
   </div>
 
