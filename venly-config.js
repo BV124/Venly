@@ -348,7 +348,7 @@ function _mapFiltersFromDb(row) {
 // VENLY_CACHE_VERSION whenever the data shape changes (e.g. new columns).
 // sessionStorage is automatically cleared when the tab is closed, so users
 // always get fresh data on their next visit.
-var VENLY_CACHE_VERSION = 'v6';
+var VENLY_CACHE_VERSION = 'v7';
 var _SS_VENUES_KEY  = 'venly_ss_venues_'  + VENLY_CACHE_VERSION;
 var _SS_FILTERS_KEY = 'venly_ss_filters_' + VENLY_CACHE_VERSION;
 var _SS_BLOG_KEY    = 'venly_ss_blog_'    + VENLY_CACHE_VERSION;
@@ -390,7 +390,7 @@ async function venlyBootstrapVenues() {
     }
     // 2. Use the early-fired promise if available, otherwise fire fresh.
     // Photos are now Storage URLs, so fetching the full photos array is cheap.
-    var cols = 'id,name,type,region,district,capacity,plan,hits,is_live,featured_home,featured_occasion,event_types,lat,lng,price_from,price_to,price_type,pricing_details,subscription_status,created_at,photos';
+    var cols = 'id,name,type,region,district,capacity,plan,hits,is_live,featured_home,featured_occasion,event_types,lat,lng,price_from,price_to,price_type,pricing_details,subscription_status,created_at,photos,host_user_id,host_email,host_name';
     var venuesPromise = window._venlyEarlyVenues
       ? window._venlyEarlyVenues
       : sb.from('venues').select(cols).order('created_at', { ascending: false });
