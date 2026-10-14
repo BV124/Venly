@@ -948,6 +948,9 @@ section { padding: 80px 48px; }
   position: relative; width: 100%; aspect-ratio: 5 / 3; border-radius: 24px;
   overflow: hidden; background: #ddd;
   transition: box-shadow 0.25s ease;
+  /* Let the browser handle vertical scrolling, but leave horizontal gestures
+     to our swipe handler so a sideways swipe doesn't also scroll the page. */
+  touch-action: pan-y;
 }
 /* Shimmer on the slideshow container while it's empty (before venues load) */
 .sts-slideshow:empty {
@@ -1208,7 +1211,10 @@ section { padding: 80px 48px; }
       var dy = e.touches[0].clientY - touchStartY;
       // Once a mostly-horizontal drag is clear, mark it a swipe.
       if (!swiping && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) swiping = true;
-    }, { passive: true });
+      // While swiping horizontally, stop the page from also scrolling. Needs a
+      // non-passive listener (below) for preventDefault to take effect.
+      if (swiping && e.cancelable) e.preventDefault();
+    }, { passive: false });
     var justSwiped = false; // set right after a swipe so the tap doesn't navigate
     swipeTarget.addEventListener('touchend', function(e) {
       if (touchStartX === null) return;
