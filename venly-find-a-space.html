@@ -829,6 +829,7 @@ function getSpacesForDisplay() {
       district: v.district,
       capacity: v.capacity,
       premium: v.plan === 'Premium',
+      plan: v.plan || 'Basic',
       img: (v.photos && v.photos[0]) || '',
       events: v.eventTypes || [],
       priceLabel: (typeof venlyFormatPrice === 'function') ? venlyFormatPrice(v) : '',
@@ -840,6 +841,25 @@ function getSpacesForDisplay() {
     }
     return mapped;
   });
+}
+
+// Orders the results so paid tiers (Premium + Standard) always sit above
+// Basic listings, and — within each band — in a fresh random order rather
+// than by who listed last. Two bands: [Premium + Standard] then [Basic].
+function orderSpacesForDisplay(list) {
+  function tierRank(s) {
+    // Premium and Standard share the top band; everything else is Basic.
+    return (s.plan === 'Premium' || s.plan === 'Standard') ? 0 : 1;
+  }
+  // Fisher–Yates shuffle on a copy so the source array isn't mutated.
+  var shuffled = list.slice();
+  for (var i = shuffled.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = shuffled[i]; shuffled[i] = shuffled[j]; shuffled[j] = tmp;
+  }
+  // Stable sort by band keeps the random order inside each band.
+  shuffled.sort(function(a, b) { return tierRank(a) - tierRank(b); });
+  return shuffled;
 }
 
 // Show skeleton cards immediately so the page feels instant
@@ -862,8 +882,12 @@ function renderSkeletons() {
 
 <script>
 function renderCards(list) {
-  renderMapPins(list);
-  renderCardGrid(list);
+  // Order once here (paid tiers above Basic, randomised within each band) so
+  // the card grid and the map pins share the same ordered list. Map pan/zoom
+  // syncs call renderCardGrid() directly, so they won't re-shuffle.
+  var ordered = orderSpacesForDisplay(list);
+  renderMapPins(ordered);
+  renderCardGrid(ordered);
 }
 
 // Builds the actual card grid HTML and updates the results count / empty
