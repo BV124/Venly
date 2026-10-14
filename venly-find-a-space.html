@@ -886,8 +886,8 @@ function renderCardGrid(list) {
   count.innerHTML = `<strong>${list.length}</strong> space${list.length !== 1 ? 's' : ''} found`;
 
   grid.innerHTML = list.map((s, i) => `
-    <div class="space-card" onclick="goToVenueCard(this, event)" data-venue="${encodeURIComponent(s.name)}" data-venue-id="${s.id}"
-         onmouseenter="previewSpaceOnMap('${escAttr(s.name)}')" onmouseleave="clearMapPreview()" style="cursor:pointer">
+    <div class="space-card" onclick="goToVenueCard(this, event)" data-venue="${encodeURIComponent(s.name)}" data-venue-id="${escAttr(String(s.id))}"
+         onmouseenter="previewSpaceOnMap('${escAttr(String(s.id))}')" onmouseleave="clearMapPreview()" style="cursor:pointer">
       <div class="card-img">
         ${s.img
           ? '<img src="' + s.img + '" alt="' + escAttr(s.name) + '" loading="lazy" />'
@@ -1066,7 +1066,7 @@ function drawMarkers(list, opts) {
 
     // Highlight the matching venue card (in the list pane) when its pin is clicked
     marker.on('click', function() {
-      highlightVenueCard(s.name);
+      highlightVenueCard(s.id);
     });
 
     lMarkers.push(marker);
@@ -1088,21 +1088,25 @@ function drawMarkers(list, opts) {
   setTimeout(() => { programmaticMove = false; }, 350);
 }
 
-// Highlights a sidebar card to match the marker that was clicked
-// Highlights the real venue card matching this name when its map pin is clicked
-function highlightVenueCard(name) {
-  const encoded = encodeURIComponent(name);
+// Highlights the single venue card matching this id. Keyed by the unique
+// venue id (not the name) so that venues sharing a name don't all activate
+// together when one is hovered or its map pin is clicked.
+function highlightVenueCard(id) {
+  const target = String(id);
+  let activeCard = null;
   document.querySelectorAll('.space-card').forEach(function(card) {
-    card.classList.toggle('pin-active', card.dataset.venue === encoded);
+    const match = card.dataset.venueId === target;
+    card.classList.toggle('pin-active', match);
+    if (match) activeCard = card;
   });
-  const activeCard = document.querySelector('.space-card[data-venue="' + encoded + '"]');
   if (activeCard) activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 // Hovering a venue card scales up its matching pin on the map (visual cue only)
-function previewSpaceOnMap(name) {
+function previewSpaceOnMap(id) {
+  const target = String(id);
   const list = window.__currentMapList || [];
-  const idx = list.findIndex(s => s.name === name);
+  const idx = list.findIndex(s => String(s.id) === target);
   const marker = lMarkers[idx];
   if (marker) {
     const el = marker.getElement();
@@ -1111,7 +1115,7 @@ function previewSpaceOnMap(name) {
       el.style.zIndex = 1000;
     }
   }
-  highlightVenueCard(name);
+  highlightVenueCard(target);
 }
 
 // Removes the hover preview effect from all pins
