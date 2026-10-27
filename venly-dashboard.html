@@ -190,6 +190,13 @@ tbody tr:last-child td { border-bottom: none; }
 .modal-section { margin-bottom: 28px; }
 .modal-section-title { font-size: 14px; font-weight: 600; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); color: var(--text); }
 
+/* Inline required-field validation */
+.field-invalid { border-color: var(--red) !important; box-shadow: 0 0 0 3px var(--red-light) !important; }
+.required-flag {
+  display: inline-block; font-size: 11px; font-weight: 700; color: var(--red);
+  text-transform: none; letter-spacing: 0; margin-left: 8px;
+}
+
 /* PHOTO UPLOAD */
 .photo-upload-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 8px; }
 .photo-uploading-spinner { width: 28px; height: 28px; border: 3px solid var(--border, #e5e7eb); border-top-color: var(--red, #e03a2f); border-radius: 50%; animation: photoSpin 0.7s linear infinite; }
@@ -2705,6 +2712,16 @@ function closeModal() {
   _isDirty = false;
   var draftBtn = document.getElementById('btn-draft');
   if (draftBtn) draftBtn.textContent = 'Save as draft';
+  // Clear any leftover required-field highlights so a fresh listing starts clean.
+  if (typeof clearAllRequiredFlags === 'function') clearAllRequiredFlags();
+}
+
+// Remove every required highlight/flag in the modal at once.
+function clearAllRequiredFlags() {
+  ['v-title', 'v-type', 'v-address', 'v-region', 'v-district'].forEach(function(id) {
+    if (typeof clearRequiredField === 'function') clearRequiredField(id);
+  });
+  if (typeof clearPhotosRequired === 'function') clearPhotosRequired();
 }
 
 function requestCloseModal() {
@@ -2827,25 +2844,99 @@ function updateStepUI() {
   }
 }
 
+// ─── Inline required-field highlighting ──────────────────────────────────
+// Adds a red outline to a field and a small "Required" flag next to its label,
+// then wires a one-time listener so both clear the moment the host fills it in.
+function flagRequiredField(inputId, evtName) {
+  var el = document.getElementById(inputId);
+  if (!el) return;
+  el.classList.add('field-invalid');
+
+  // Put the "Required" flag on the field's label (first <label> in the group).
+  var group = el.closest('.form-group') || el.parentElement;
+  var label = group ? group.querySelector('label') : null;
+  if (label && !label.querySelector('.required-flag')) {
+    var flag = document.createElement('span');
+    flag.className = 'required-flag';
+    flag.textContent = 'Required';
+    label.appendChild(flag);
+  }
+
+  // Clear on the next edit. 'change' for selects, 'input' for text fields.
+  var clear = function() {
+    var v = (el.value || '').trim();
+    if (!v) return; // still empty — keep the flag
+    clearRequiredField(inputId);
+    el.removeEventListener(evtName || 'input', clear);
+  };
+  el.removeEventListener(evtName || 'input', clear);
+  el.addEventListener(evtName || 'input', clear);
+}
+
+function clearRequiredField(inputId) {
+  var el = document.getElementById(inputId);
+  if (!el) return;
+  el.classList.remove('field-invalid');
+  var group = el.closest('.form-group') || el.parentElement;
+  var label = group ? group.querySelector('label') : null;
+  var flag = label ? label.querySelector('.required-flag') : null;
+  if (flag) flag.remove();
+}
+
+// Flag the photo step's heading when no photo has been added.
+function flagPhotosRequired() {
+  var title = document.querySelector('#modal-step-2 .modal-section-title');
+  if (title && !title.querySelector('.required-flag')) {
+    var flag = document.createElement('span');
+    flag.className = 'required-flag';
+    flag.textContent = 'Add at least one';
+    title.appendChild(flag);
+  }
+}
+function clearPhotosRequired() {
+  var title = document.querySelector('#modal-step-2 .modal-section-title');
+  var flag = title ? title.querySelector('.required-flag') : null;
+  if (flag) flag.remove();
+}
+
 function validateStep(step) {
   // Step 1 (Venue info): title, type, address, region and district are all
-  // required before the host can move on.
+  // required. We check ALL of them and highlight every missing one at once,
+  // rather than stopping at the first, so the host sees everything to fix.
   if (step >= 1) {
-    var title = document.getElementById('v-title').value.trim();
-    var type = document.getElementById('v-type').value;
-    var address = document.getElementById('v-address').value.trim();
-    var region = document.getElementById('v-region').value;
-    var district = document.getElementById('v-district').value;
-    if (!title) { showToast('Please enter a venue title'); return false; }
-    if (!type) { showToast('Please select a space type'); return false; }
-    if (!address) { showToast('Please enter an address'); return false; }
-    if (!region) { showToast('Please choose a region'); return false; }
-    if (!district) { showToast('Please choose a district'); return false; }
+    var fields = [
+      { id: 'v-title',    evt: 'input'  },
+      { id: 'v-type',     evt: 'change' },
+      { id: 'v-address',  evt: 'input'  },
+      { id: 'v-region',   evt: 'change' },
+      { id: 'v-district', evt: 'change' }
+    ];
+    var firstMissing = null;
+    fields.forEach(function(f) {
+      var el = document.getElementById(f.id);
+      var val = el ? (el.value || '').trim() : '';
+      if (!val) {
+        flagRequiredField(f.id, f.evt);
+        if (!firstMissing) firstMissing = el;
+      } else {
+        clearRequiredField(f.id);
+      }
+    });
+    if (firstMissing) {
+      showToast('Please complete the required fields');
+      if (typeof firstMissing.focus === 'function') { try { firstMissing.focus(); } catch (e) {} }
+      return false;
+    }
   }
   // Step 2 (Photos): at least one photo is required.
   if (step >= 2) {
     var photoCount = photoDataUrls.filter(function(x) { return !!x && x !== '__uploading__'; }).length;
-    if (photoCount < 1) { showToast('Please add at least one photo of your space'); return false; }
+    if (photoCount < 1) {
+      flagPhotosRequired();
+      showToast('Please add at least one photo of your space');
+      return false;
+    }
+    clearPhotosRequired();
   }
   return true;
 }
@@ -3549,6 +3640,12 @@ let _photosExplicitlyCleared = false;
 function renderPhotoGrid() {
   const cap = getCaps().photos;
   document.getElementById('photo-cap-label').textContent = cap;
+
+  // Once at least one real photo exists, drop the "Add at least one" flag.
+  if (typeof clearPhotosRequired === 'function') {
+    var _hasPhoto = photoDataUrls.filter(function(x) { return !!x && x !== '__uploading__'; }).length > 0;
+    if (_hasPhoto) clearPhotosRequired();
+  }
 
   // IMPORTANT: never truncate photoDataUrls to the cap — that permanently
   // discards photos, so downgrading then upgrading lost them. photoDataUrls is
