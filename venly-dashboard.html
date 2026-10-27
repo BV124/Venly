@@ -1325,7 +1325,10 @@ function showUpgradeBanner(limitType, currentCap) {
   document.getElementById('upgrade-banner-msg').textContent =
     "You've reached the " + limitType + " limit on " + activePlan + " (" + currentCap + " max). Upgrade to unlock more.";
   const container = document.getElementById('upgrade-plan-options');
-  container.innerHTML = planOrder.filter(p => planOrder.indexOf(p) > planOrder.indexOf(activePlan)).map(p => {
+  const _upgCat = (typeof VENLY_PLAN_CATEGORY_BY_TYPE !== 'undefined' && VENLY_PLAN_CATEGORY_BY_TYPE[activeType]) || 'event';
+  const _upgOffered = (typeof venlyOfferedPlans === 'function') ? venlyOfferedPlans(_upgCat) : ['Basic', 'Premium'];
+  // Only offer plans we actually sell (Premium) that rank above the current one.
+  container.innerHTML = planOrder.filter(p => planOrder.indexOf(p) > planOrder.indexOf(activePlan) && _upgOffered.indexOf(p) !== -1).map(p => {
     const caps = planCaps[p];
     const cat = (typeof VENLY_PLAN_CATEGORY_BY_TYPE !== 'undefined' && VENLY_PLAN_CATEGORY_BY_TYPE[activeType]) || 'event';
     const planInfo = (VENLY_CONFIG.plans[cat] || {})[p];
