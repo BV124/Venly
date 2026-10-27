@@ -156,12 +156,16 @@ tbody tr:last-child td { border-bottom: none; }
 .modal-close:hover { background: var(--bg); color: var(--text); }
 .modal-close svg { width: 16px; height: 16px; }
 
-.modal-body { padding: 28px; max-height: calc(100vh - 240px); overflow-y: auto; }
+.modal-body { padding: 28px; max-height: calc(100vh - 300px); overflow-y: auto; }
 
 /* MODAL STEPS */
+/* Now a stationary band directly under the header, so it doesn't scroll away
+   with the step content. */
 .step-indicator {
   display: flex; align-items: center; gap: 0;
-  margin-bottom: 28px;
+  padding: 18px 28px;
+  border-bottom: 1px solid var(--border);
+  background: var(--white);
 }
 .step {
   display: flex; align-items: center; gap: 8px;
@@ -393,7 +397,7 @@ tbody tr:last-child td { border-bottom: none; }
   .modal-body { padding: 16px; max-height: 65vh; }
   .modal-header { padding: 16px 20px; }
   .modal-footer { padding: 14px 16px; flex-wrap: wrap; gap: 8px; }
-  .step-indicator { gap: 4px; }
+  .step-indicator { gap: 4px; padding: 12px 16px; }
   .step span { display: none; }
   .photo-upload-grid { grid-template-columns: repeat(3, 1fr); }
   .amenities-grid, .features-grid { gap: 6px; }
@@ -562,18 +566,19 @@ tbody tr:last-child td { border-bottom: none; }
       </button>
     </div>
 
-    <div class="modal-body">
-      <!-- Step indicator -->
-      <div class="step-indicator">
-        <div class="step active" id="step-1" onclick="goToStep(1)" style="cursor:pointer"><div class="step-num">1</div><span>Venue info</span></div>
-        <div class="step-line" id="line-1"></div>
-        <div class="step" id="step-2" onclick="goToStep(2)" style="cursor:pointer"><div class="step-num">2</div><span>Photos</span></div>
-        <div class="step-line" id="line-2"></div>
-        <div class="step" id="step-3" onclick="goToStep(3)" style="cursor:pointer"><div class="step-num">3</div><span>Features</span></div>
-        <div class="step-line" id="line-3"></div>
-        <div class="step" id="step-4" onclick="goToStep(4)" style="cursor:pointer"><div class="step-num">4</div><span>Payment</span></div>
-      </div>
+    <!-- Step indicator — stationary, sits under the plan/type header so it
+         stays visible while the step content below scrolls. -->
+    <div class="step-indicator">
+      <div class="step active" id="step-1" onclick="goToStep(1)" style="cursor:pointer"><div class="step-num">1</div><span>Venue info</span></div>
+      <div class="step-line" id="line-1"></div>
+      <div class="step" id="step-2" onclick="goToStep(2)" style="cursor:pointer"><div class="step-num">2</div><span>Photos</span></div>
+      <div class="step-line" id="line-2"></div>
+      <div class="step" id="step-3" onclick="goToStep(3)" style="cursor:pointer"><div class="step-num">3</div><span>Features</span></div>
+      <div class="step-line" id="line-3"></div>
+      <div class="step" id="step-4" onclick="goToStep(4)" style="cursor:pointer"><div class="step-num">4</div><span>Payment</span></div>
+    </div>
 
+    <div class="modal-body">
       <!-- STEP 1: Venue Info -->
       <div id="modal-step-1">
         <div class="modal-section">
