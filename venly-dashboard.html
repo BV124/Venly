@@ -2823,11 +2823,24 @@ function updateStepUI() {
 }
 
 function validateStep(step) {
+  // Step 1 (Venue info): title, type, address, region and district are all
+  // required before the host can move on.
   if (step >= 1) {
     var title = document.getElementById('v-title').value.trim();
     var type = document.getElementById('v-type').value;
+    var address = document.getElementById('v-address').value.trim();
+    var region = document.getElementById('v-region').value;
+    var district = document.getElementById('v-district').value;
     if (!title) { showToast('Please enter a venue title'); return false; }
     if (!type) { showToast('Please select a space type'); return false; }
+    if (!address) { showToast('Please enter an address'); return false; }
+    if (!region) { showToast('Please choose a region'); return false; }
+    if (!district) { showToast('Please choose a district'); return false; }
+  }
+  // Step 2 (Photos): at least one photo is required.
+  if (step >= 2) {
+    var photoCount = photoDataUrls.filter(function(x) { return !!x && x !== '__uploading__'; }).length;
+    if (photoCount < 1) { showToast('Please add at least one photo of your space'); return false; }
   }
   return true;
 }
@@ -2839,18 +2852,20 @@ function goToStep(target) {
     updateStepUI();
     return;
   }
-  // Going forward: validate all steps up to the target
+  // Going forward: validate every step from the current one up to (but not
+  // including) the target, so a host can't jump a tab past a missing field.
   if (target > currentStep) {
-    if (!validateStep(1)) return;
+    for (var s = currentStep; s < target; s++) {
+      if (!validateStep(s)) return;
+    }
   }
   currentStep = target;
   updateStepUI();
 }
 
 function nextStep() {
-  if (currentStep === 1) {
-    if (!validateStep(1)) return;
-  }
+  // Validate the step we're leaving before advancing.
+  if (!validateStep(currentStep)) return;
   if (currentStep < 4) { currentStep++; updateStepUI(); }
 }
 
@@ -3267,6 +3282,11 @@ async function publishFree() {
   var btn = document.getElementById('btn-free-publish');
   var errEl = document.getElementById('free-publish-error');
   if (errEl) errEl.textContent = '';
+  // Final backstop: enforce the required fields even if the host reached this
+  // panel without passing through every step (e.g. via an upgrade re-render).
+  // Route them back to the step that needs fixing.
+  if (!validateStep(1)) { currentStep = 1; updateStepUI(); return; }
+  if (!validateStep(2)) { currentStep = 2; updateStepUI(); return; }
   if (btn) { btn.disabled = true; btn.textContent = 'Publishing…'; }
 
   // Save the listing first (silent: keep the modal open, no draft toast).
@@ -3360,6 +3380,10 @@ async function saveFreeEdits() {
 
 // ---- Pay ----
 async function handlePayment() {
+  // Final backstop: a paid listing must have all required fields + a photo too.
+  if (!validateStep(1)) { currentStep = 1; updateStepUI(); return; }
+  if (!validateStep(2)) { currentStep = 2; updateStepUI(); return; }
+
   var planInfo = getCurrentPlanInfo();
   if (!planInfo || !planInfo.stripePriceId) {
     showToast('Could not find pricing for this plan. Please try again.');
