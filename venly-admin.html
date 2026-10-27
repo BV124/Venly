@@ -6275,9 +6275,17 @@ function deleteVenueWithConfirm(venueId) {
 
   confirmBtn.onclick = async function() {
     if (SUPABASE_READY) {
-      var delRes = await sb.from('venues').delete().eq('id', venueId);
+      // .select() returns the rows that were actually deleted. If RLS blocks
+      // the delete, Postgres reports no error but removes 0 rows — so an empty
+      // result means the delete silently did nothing, which we must surface
+      // rather than claim success.
+      var delRes = await sb.from('venues').delete().eq('id', venueId).select();
       if (delRes.error) {
         showToast('Could not delete venue: ' + delRes.error.message);
+        return;
+      }
+      if (!delRes.data || delRes.data.length === 0) {
+        showToast('Venue was not deleted — the database blocked it (likely a permissions/RLS rule). Nothing was changed.');
         return;
       }
       // Log the deletion event itself — once the row above is gone, there's
