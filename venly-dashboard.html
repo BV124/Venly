@@ -2903,6 +2903,17 @@ async function saveListing(isLive, silent) {
     _planToWrite = _storedPlan;
   }
 
+  // Enforce the caps of the plan we're ACTUALLY writing. Clicking "Upgrade" in
+  // the over-cap prompt loosens the in-editor caps (activePlan becomes Premium)
+  // so the host can pick more features — but if they never pay, _planToWrite
+  // falls back to the free/stored plan above. Without this clamp they'd save
+  // Premium-count features/event-types/photos onto a free Basic listing. Clamp
+  // to the written plan's caps so a free listing can never exceed free limits.
+  var _writeCaps = planCaps[_planToWrite] || planCaps['Basic'];
+  var _featuresToWrite = selectedFeatures.slice(0, _writeCaps.features);
+  var _eventTypesToWrite = selectedEventTypes.slice(0, _writeCaps.eventTypes);
+  var _photosToWrite = getOrderedPhotos().slice(0, _writeCaps.photos);
+
   // Don't save while a photo is still uploading to Storage — the slot holds a
   // '__uploading__' placeholder that must resolve to a real URL first.
   if (photoDataUrls.indexOf('__uploading__') !== -1) {
@@ -2933,9 +2944,9 @@ async function saveListing(isLive, silent) {
       enquiryEmail: enquiryEmailField,
       plan: _planToWrite,
       isLive: !!isLive,
-      photos: getOrderedPhotos(),
-      features: selectedFeatures.slice(),
-      eventTypes: selectedEventTypes.slice(),
+      photos: _photosToWrite,
+      features: _featuresToWrite,
+      eventTypes: _eventTypesToWrite,
     });
     if (!saved) { showToast('Could not save — please try again'); return null; }
     if (typeof venlyInvalidateCache === 'function') venlyInvalidateCache();
@@ -3000,9 +3011,9 @@ async function saveListing(isLive, silent) {
     enquiryEmail: hostEmailField,
     effectiveEnquiryEmail: hostEmailField || user.email,
     isLive: !!isLive,
-    photos: getOrderedPhotos(),
-    features: selectedFeatures.slice(),
-    eventTypes: selectedEventTypes.slice(),
+    photos: _photosToWrite,
+    features: _featuresToWrite,
+    eventTypes: _eventTypesToWrite,
   };
 
   if (currentEditingListingId) {
