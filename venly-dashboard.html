@@ -815,6 +815,10 @@ tbody tr:last-child td { border-bottom: none; }
             <button class="btn-pay" id="btn-free-publish" type="button" onclick="publishFree()" style="width:100%;justify-content:center">
               Publish my listing — Free
             </button>
+            <button type="button" id="btn-free-upgrade" onclick="upgradeFreeToPremium()" style="display:none;width:100%;justify-content:center;align-items:center;gap:7px;margin-top:10px;padding:13px;border-radius:10px;border:1.5px solid var(--red);background:#fff;color:var(--red);font-family:'Inter',sans-serif;font-size:15px;font-weight:700;cursor:pointer">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="16" height="16"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+              Upgrade to Premium
+            </button>
             <div id="free-publish-error" style="color:var(--red);font-size:13px;margin-top:10px;text-align:center"></div>
           </div>
         </div>
@@ -2778,6 +2782,7 @@ function updateStepUI() {
       var fpBtn = document.getElementById('btn-free-publish');
       var fpTitle = document.getElementById('free-publish-title');
       var fpDesc = document.getElementById('free-publish-desc');
+      var fpUpgrade = document.getElementById('btn-free-upgrade');
       if (fpBtn) {
         fpBtn.disabled = false;
         if (freeAlreadyLive) {
@@ -2786,11 +2791,13 @@ function updateStepUI() {
           fpBtn.setAttribute('onclick', 'saveFreeEdits()');
           if (fpTitle) fpTitle.textContent = 'Your listing is live';
           if (fpDesc) fpDesc.textContent = 'This free Basic listing is already live. Make your changes above and save — it stays live on the free plan.';
+          if (fpUpgrade) fpUpgrade.style.display = 'flex'; // offer the upgrade
         } else {
           fpBtn.textContent = 'Publish my listing — Free';
           fpBtn.setAttribute('onclick', 'publishFree()');
           if (fpTitle) fpTitle.textContent = 'Publish your free listing';
           if (fpDesc) fpDesc.textContent = 'Your listing goes live straight away with up to 4 photos and 6 features. You can upgrade to Premium any time for homepage features, more photos and the Premium highlight.';
+          if (fpUpgrade) fpUpgrade.style.display = 'none';
         }
       }
     } else {
@@ -3263,6 +3270,34 @@ async function publishFree() {
     if (errEl) errEl.textContent = 'Something went wrong. Please try again.';
     if (btn) { btn.disabled = false; btn.textContent = 'Publish my listing — Free'; }
   }
+}
+
+// Upgrade a live free (Basic) listing to Premium. Switches the plan to Premium
+// and shows the checkout panel so the host pays and the listing moves onto a
+// Premium subscription. The listing stays live throughout.
+function upgradeFreeToPremium() {
+  // Move the in-editor plan to Premium (same trims as a normal plan change, so
+  // nothing is selected beyond the new caps — Premium's caps are larger, so in
+  // practice nothing gets trimmed going up).
+  var newCaps = planCaps['Premium'];
+  if (newCaps) {
+    if (selectedFeatures.length > newCaps.features) selectedFeatures = selectedFeatures.slice(0, newCaps.features);
+    if (selectedEventTypes.length > newCaps.eventTypes) selectedEventTypes = selectedEventTypes.slice(0, newCaps.eventTypes);
+  }
+  activePlan = 'Premium';
+
+  var tag = document.getElementById('modal-plan-tag');
+  if (tag) tag.textContent = ((typeof venlyPlanLabel === 'function') ? venlyPlanLabel(activePlan) : activePlan) + ' Plan';
+  var summaryPlan = document.getElementById('summary-plan');
+  if (summaryPlan) summaryPlan.textContent = (typeof venlyPlanLabel === 'function') ? venlyPlanLabel(activePlan) : activePlan;
+
+  markDirty();
+  renderPhotoGrid();
+  renderFeatures();
+  // Re-render step 4: now that the plan is Premium (not free), updateStepUI
+  // will show the card/checkout panel instead of the free-publish panel.
+  updateStepUI();
+  showToast('Switched to Premium — complete payment to upgrade.');
 }
 
 // Save edits to a free listing that's ALREADY live — just persist the changes
