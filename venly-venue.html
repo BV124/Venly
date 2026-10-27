@@ -298,7 +298,7 @@ textarea { resize: none; min-height: 90px; }
       } catch(e) {}
     })();
   </script>
-  <script src="venly-config.js?v=14"></script>
+  <script src="venly-config.js?v=15"></script>
   <script src="venly-shared.js?v=6"></script>
   <script>
     window.venlyReady = (typeof venlyBootstrap === 'function') ? venlyBootstrap() : Promise.resolve();
@@ -620,7 +620,7 @@ async function loadVenue() {
   // Meta pills: plan, space type, location, capacity, price
   var pillsHtml = '';
   if (v.plan === 'Premium') {
-    pillsHtml += '<span class="meta-pill highlight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Venly+ listing</span>';
+    pillsHtml += '<span class="meta-pill highlight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Premium listing</span>';
   }
   pillsHtml += '<span class="meta-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>' + escapeHtmlVenue(v.type || 'Space') + '</span>';
   var locationLabel = [v.district, v.region].filter(Boolean).join(', ');
@@ -876,7 +876,7 @@ function renderSimilarSpaces() {
     var imgHtml = img
       ? '<img src="' + img + '" alt="' + escapeHtmlVenue(v.name) + '" loading="lazy" />'
       : '<div class="card-img-empty">No image</div>';
-    var premiumBadge = v.plan === 'Premium' ? '<span class="badge-premium">Venly+</span>' : '';
+    var premiumBadge = v.plan === 'Premium' ? '<span class="badge-premium">Premium</span>' : '';
     var location = [v.district, v.region].filter(Boolean).join(', ');
     var favActive = (typeof isVenueFavourited === 'function' && isVenueFavourited(v.id));
     return '<div class="space-card" onclick="window.location.href=\'venly-venue.html?id=' + encodeURIComponent(v.id) + '\'" style="cursor:pointer">' +

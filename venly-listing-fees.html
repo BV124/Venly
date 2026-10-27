@@ -8,7 +8,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Listing Fees & Plans | Venly</title>
-<meta name="description" content="See Venly's listing plans and pricing. Choose from Basic, Standard, or Venly+ to get your venue in front of thousands of people looking for spaces across New Zealand." />
+<meta name="description" content="See Venly's listing plans and pricing. Choose from Basic, Standard, or Premium to get your venue in front of thousands of people looking for spaces across New Zealand." />
 <link rel="canonical" href="https://venly.co.nz/venly-listing-fees.html" />
 <meta property="og:title" content="Listing Fees & Plans | Venly" />
 <meta property="og:description" content="See Venly's listing plans and pricing for venues across New Zealand." />
@@ -367,7 +367,7 @@ nav {
 </style>
   <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="venly-config.js?v=14"></script>
+  <script src="venly-config.js?v=15"></script>
   <script src="venly-shared.js?v=6"></script>
 </head>
 <body>
@@ -410,7 +410,7 @@ nav {
         <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        Venly offers a range of plans designed to suit different space owners. Choose from our Basic, Standard, and Venly+ plans, each offering different levels of visibility and features to help showcase your space. Prices vary depending on your space type — use the tabs above to explore the options available.
+        Venly offers a range of plans designed to suit different space owners. Choose from our Basic, Standard, and Premium plans, each offering different levels of visibility and features to help showcase your space. Prices vary depending on your space type — use the tabs above to explore the options available.
       </div>
     </div>
 
@@ -726,7 +726,7 @@ function selectPlan(btn) {
   }
   const card = btn.closest('.plan-card');
   // Read the real plan VALUE from data-plan (the visible title may show a
-  // display name like "Venly+"), so checkout/plan matching stays correct.
+  // display name like "Premium" if changed), so checkout/plan matching stays correct.
   const planName = card.dataset.plan || card.querySelector('.plan-name').textContent.trim();
   const activeTab = document.querySelector('.type-tab.active').textContent.trim();
   // Check if we came here to change an existing listing's plan

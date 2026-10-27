@@ -628,7 +628,7 @@ nav {
       } catch(e) {}
     })();
   </script>
-  <script src="venly-config.js?v=14"></script>
+  <script src="venly-config.js?v=15"></script>
   <script src="venly-shared.js?v=6"></script>
   <script>
     window.venlyReady = (typeof venlyBootstrap === 'function') ? venlyBootstrap() : Promise.resolve();
@@ -778,7 +778,7 @@ nav {
       <div id="leaflet-map"></div>
       <div class="map-legend" id="map-legend" style="display:none">
         <span><span class="dot" style="background:#1a1a1a"></span> Standard listing</span>
-        <span><span class="dot" style="background:var(--red)"></span> ★ Venly+ listing</span>
+        <span><span class="dot" style="background:var(--red)"></span> ★ Premium listing</span>
       </div>
       <div class="map-empty" id="map-empty" style="display:none">No spaces match your filters in this area</div>
     </div>
@@ -917,7 +917,7 @@ function renderCardGrid(list) {
           ? '<img src="' + s.img + '" alt="' + escAttr(s.name) + '" loading="lazy" />'
           : '<div class="card-img-empty">No image</div>'}
         <span class="badge-type">${s.type}</span>
-        ${s.premium ? '<span class="badge-premium">Venly+</span>' : ''}
+        ${s.premium ? '<span class="badge-premium">Premium</span>' : ''}
       </div>
       <div class="card-body">
         <div class="card-body-top">
