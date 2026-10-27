@@ -1580,52 +1580,6 @@ tbody tr:last-child td { border-bottom: none; }
       <div><div class="section-title">Accounts</div><div class="section-subtitle">All host accounts and their subscription status.</div></div>
     </div>
 
-    <!-- ===== PLAN MIGRATION WORKSHEET (temporary) ===== -->
-    <!-- Helper for the Basic/Premium pricing migration: lists every LIVE venue,
-         what its host pays today, and the discount % to set on the NEW Premium
-         price to keep them on exactly that amount. Remove this whole block once
-         the migration is complete. -->
-    <div class="table-card" id="migration-card" style="margin-bottom:18px;border:1px solid #f5c4bf">
-      <div class="table-card-header" style="background:#fdf0ef;border-bottom:1px solid #f5c4bf;cursor:pointer" onclick="toggleMigrationWorksheet()">
-        <div class="table-card-title" style="display:flex;align-items:center;gap:8px;color:#c0392b">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>
-          Plan migration worksheet
-          <span style="font-size:11px;font-weight:500;color:#a06000;background:#fff6e5;border:1px solid #ffe082;padding:2px 8px;border-radius:20px">Temporary</span>
-        </div>
-        <span id="migration-toggle" style="font-size:13px;color:#c0392b;font-weight:600">Show ▾</span>
-      </div>
-      <div id="migration-body" style="display:none;padding:18px">
-        <div style="font-size:13px;color:var(--text-muted);line-height:1.5;margin-bottom:16px">
-          Moving everyone to <strong>Premium</strong> while keeping their current price. New Premium base (ex-GST):
-          <strong>Event $79</strong> · <strong>Meeting $39</strong> · <strong>Shoot $39</strong>.
-          For each live venue below, set the <strong>“Discount % to set”</strong> on the new Premium price so the host keeps paying what they pay now.
-        </div>
-        <div style="overflow-x:auto">
-          <table style="width:100%;border-collapse:collapse;font-size:13px" id="migration-table">
-            <thead>
-              <tr style="text-align:left;border-bottom:2px solid var(--border);color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:0.04em">
-                <th style="padding:8px 10px">Host</th>
-                <th style="padding:8px 10px">Venue</th>
-                <th style="padding:8px 10px">Type</th>
-                <th style="padding:8px 10px">Current plan</th>
-                <th style="padding:8px 10px;text-align:right">Current disc %</th>
-                <th style="padding:8px 10px;text-align:right">Pays now /mo</th>
-                <th style="padding:8px 10px;text-align:right">New Premium base</th>
-                <th style="padding:8px 10px;text-align:right;color:#c0392b">Discount % to set</th>
-              </tr>
-            </thead>
-            <tbody id="migration-tbody"></tbody>
-          </table>
-        </div>
-        <div id="migration-empty" style="display:none;padding:24px;text-align:center;color:var(--text-muted);font-size:13px">No live venues to migrate.</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:14px;line-height:1.5">
-          “Pays now” is the host’s current monthly charge (current plan base × their current discount, ex-GST).
-          “Discount % to set” is what reproduces that same charge against the new Premium base — enter it on the venue’s Premium listing in both Stripe (as a coupon) and here in the admin.
-          Rows where the needed discount would exceed 100% (their current price is above the new Premium base) are flagged — those hosts would actually pay less, so set 0% or your choice.
-        </div>
-      </div>
-    </div>
-
     <div class="table-card">
       <div class="table-card-header">
         <div class="table-card-title" id="accounts-table-title">All accounts</div>
@@ -2127,84 +2081,6 @@ function buildAccountsTable() {
       '<td><span class="badge ' + statusBadge + '">' + escapeHtml(a.status) + '</span></td>' +
       '<td><button class="action-btn" onclick="openAccountModal(\'' + a.id + '\')">View</button></td>' +
       '</tr>';
-  }).join('');
-}
-
-// ── Plan migration worksheet (temporary) ──────────────────────────────────
-// New Premium base prices (ex-GST) for the Basic/Premium migration. These are
-// the advertised Premium prices; the Stripe price IDs are wired separately in
-// venly-config.js once created. Kept here so the worksheet works before the
-// new checkout prices are live.
-var MIGRATION_PREMIUM_BASE = { 'Event space': 79, 'Meeting space': 39, 'Shoot Location': 39 };
-
-function toggleMigrationWorksheet() {
-  var body = document.getElementById('migration-body');
-  var toggle = document.getElementById('migration-toggle');
-  if (!body) return;
-  var opening = body.style.display === 'none' || body.style.display === '';
-  body.style.display = opening ? 'block' : 'none';
-  if (toggle) toggle.textContent = opening ? 'Hide ▴' : 'Show ▾';
-  if (opening) buildMigrationWorksheet();
-}
-
-function buildMigrationWorksheet() {
-  var tbody = document.getElementById('migration-tbody');
-  var emptyEl = document.getElementById('migration-empty');
-  var tableEl = document.getElementById('migration-table');
-  if (!tbody) return;
-
-  // Only live venues need migrating (drafts carry no active subscription).
-  var liveVenues = getAllVenues().filter(function(v) {
-    return v.isLive && (v.subscriptionStatus === 'active' || v.subscriptionStatus === 'overridden');
-  });
-
-  if (!liveVenues.length) {
-    tbody.innerHTML = '';
-    if (tableEl) tableEl.style.display = 'none';
-    if (emptyEl) emptyEl.style.display = 'block';
-    return;
-  }
-  if (tableEl) tableEl.style.display = '';
-  if (emptyEl) emptyEl.style.display = 'none';
-
-  // Sort by host then venue for an easy-to-read worksheet.
-  liveVenues.sort(function(a, b) {
-    var ha = (a.hostName || a.hostEmail || '').toLowerCase();
-    var hb = (b.hostName || b.hostEmail || '').toLowerCase();
-    return ha < hb ? -1 : ha > hb ? 1 : (a.name || '').localeCompare(b.name || '');
-  });
-
-  tbody.innerHTML = liveVenues.map(function(v) {
-    var paysNow = getVenueMonthlyRevenue(v); // base × (1 - current discount), ex-GST, 2dp
-    var newBase = MIGRATION_PREMIUM_BASE[v.type] || 0;
-    var curDisc = Math.min(100, Math.max(0, Number(v.discountPercent) || 0));
-
-    // Discount needed on the new Premium base to reproduce paysNow.
-    var neededDisc = null, flag = '';
-    if (newBase > 0) {
-      neededDisc = Math.round((1 - (paysNow / newBase)) * 10000) / 100; // 2dp %
-      if (neededDisc < 0) { flag = 'over'; } // current price already above new base
-    }
-
-    var neededCell;
-    if (neededDisc === null) {
-      neededCell = '<span style="color:var(--text-muted)">—</span>';
-    } else if (flag === 'over') {
-      neededCell = '<span style="color:#1a8a4a;font-weight:700" title="Host currently pays more than the new Premium base — they would pay less. Set 0% (or your choice).">0% (pays less)</span>';
-    } else {
-      neededCell = '<span style="color:#c0392b;font-weight:800">' + neededDisc.toFixed(2).replace(/\.00$/, '') + '%</span>';
-    }
-
-    return '<tr style="border-bottom:1px solid var(--border)">' +
-      '<td style="padding:8px 10px">' + escapeHtml(v.hostName || v.hostEmail || '—') + '</td>' +
-      '<td style="padding:8px 10px">' + escapeHtml(v.name || 'Untitled') + '</td>' +
-      '<td style="padding:8px 10px;color:var(--text-muted)">' + escapeHtml(v.type || '—') + '</td>' +
-      '<td style="padding:8px 10px">' + escapeHtml(v.plan || 'Basic') + '</td>' +
-      '<td style="padding:8px 10px;text-align:right">' + curDisc + '%</td>' +
-      '<td style="padding:8px 10px;text-align:right;font-weight:600">$' + paysNow.toFixed(2) + '</td>' +
-      '<td style="padding:8px 10px;text-align:right;color:var(--text-muted)">$' + newBase + '</td>' +
-      '<td style="padding:8px 10px;text-align:right">' + neededCell + '</td>' +
-    '</tr>';
   }).join('');
 }
 
