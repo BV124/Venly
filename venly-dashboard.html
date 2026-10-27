@@ -591,12 +591,17 @@ tbody tr:last-child td { border-bottom: none; }
                 <label style="margin-bottom:0">Address</label>
                 <span id="dash-geocode-status" style="font-size:12px;color:var(--text-muted)"></span>
               </div>
-              <input type="text" id="v-address" placeholder="Start typing your address…" autocomplete="off" oninput="onDashAddressInput()" style="margin-top:5px" />
+              <input type="text" id="v-address" placeholder="Type your address, or just the area (e.g. Ponsonby, Auckland)" autocomplete="off" oninput="onDashAddressInput()" style="margin-top:5px" />
               <!-- Coordinates the map actually uses. Filled by picking a result
                    from the dropdown below; the plain address text alone can't
-                   place a pin. -->
+                   place a pin — and that's fine: a host who'd rather not reveal
+                   their exact spot can type whatever they like and simply not
+                   pick a suggestion. No pin just means no precise map marker. -->
               <input type="hidden" id="v-lat" />
               <input type="hidden" id="v-lng" />
+              <div style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.5">
+                Type freely — you don't have to pick a suggestion. Choosing one drops an exact map pin on your listing; skip it to keep your precise location private (you can enter just a suburb or area instead).
+              </div>
               <div id="dash-address-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:50;max-height:260px;overflow-y:auto;margin-top:4px"></div>
             </div>
           </div>
@@ -4113,13 +4118,24 @@ async function searchDashAddress(query) {
     if (addrEl.value.trim() !== query) return;
     _dashAddressResults = results;
 
+    // A host who doesn't want to pin their exact spot can keep exactly what
+    // they typed. This row always appears, even with no matches, so free text
+    // is a first-class choice and not a dead end.
+    var keepTypedRow = '<div onclick="keepTypedDashAddress()" ' +
+      'style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;background:var(--bg,#f9fafb)" ' +
+      'onmouseover="this.style.background=\'var(--red-light)\'" onmouseout="this.style.background=\'var(--bg,#f9fafb)\'">' +
+      '<div style="font-weight:600;color:var(--text)">✏️ Use what I typed (no map pin)</div>' +
+      '<div style="font-size:11px;color:var(--text-muted)">Keeps your exact location private</div>' +
+    '</div>';
+
     if (!_dashAddressResults.length) {
-      dropdown.innerHTML = '<div style="padding:12px 14px;font-size:13px;color:var(--text-muted)">No results found — try adding more detail</div>';
+      dropdown.innerHTML = keepTypedRow +
+        '<div style="padding:12px 14px;font-size:13px;color:var(--text-muted)">No map matches — that\'s okay, your typed address will still be used.</div>';
       dropdown.style.display = 'block';
       return;
     }
 
-    dropdown.innerHTML = _dashAddressResults.map(function(r, i) {
+    dropdown.innerHTML = keepTypedRow + _dashAddressResults.map(function(r, i) {
       var parts = r.display_name.split(', ');
       var display = parts.slice(0, Math.min(parts.length - 1, 4)).join(', ');
       var type = r.type ? r.type.replace(/_/g, ' ') : '';
@@ -4154,6 +4170,21 @@ function selectDashAddress(idx) {
   status.innerHTML = '✓ Map pin set';
   status.style.color = '#22c55e';
 
+  markDirty();
+  hideDashAddressDropdown();
+}
+
+// Host chose to keep their free-typed address rather than pin an exact spot.
+// Leave the text as-is, clear any coordinates, and confirm it as a deliberate
+// privacy choice (green tick) rather than leaving the field looking unfinished.
+function keepTypedDashAddress() {
+  document.getElementById('v-lat').value = '';
+  document.getElementById('v-lng').value = '';
+  var status = document.getElementById('dash-geocode-status');
+  if (status) {
+    status.innerHTML = '✓ Using your typed address (no exact pin)';
+    status.style.color = '#22c55e';
+  }
   markDirty();
   hideDashAddressDropdown();
 }
