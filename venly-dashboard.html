@@ -797,7 +797,7 @@ tbody tr:last-child td { border-bottom: none; }
         <!-- NEW LISTING: normal checkout -->
         <!-- FREE PUBLISH (Basic): no card, no Stripe — publishes instantly -->
         <div class="modal-section" id="free-publish-panel" style="display:none">
-          <div class="modal-section-title">Publish your free listing</div>
+          <div class="modal-section-title" id="free-publish-title">Publish your free listing</div>
           <div style="border:1.5px solid var(--border);border-radius:12px;padding:20px;margin-top:8px">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
               <div style="width:40px;height:40px;border-radius:10px;background:#eaf7ef;display:flex;align-items:center;justify-content:center;flex-shrink:0">
@@ -808,7 +808,7 @@ tbody tr:last-child td { border-bottom: none; }
                 <div style="font-size:13px;color:var(--text-muted)">No card required. No monthly cost, ever.</div>
               </div>
             </div>
-            <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin:8px 0 18px">
+            <div id="free-publish-desc" style="font-size:13px;color:var(--text-muted);line-height:1.6;margin:8px 0 18px">
               Your listing goes live straight away with up to 4 photos and 6 features.
               You can upgrade to Premium any time for homepage features, more photos and the Premium highlight.
             </div>
@@ -2758,6 +2758,9 @@ function updateStepUI() {
     // no card, no Stripe. Otherwise the usual manage/checkout panels.
     var planInfoNow = getCurrentPlanInfo();
     var isFreePlan = !alreadySubscribed && !!(planInfoNow && planInfoNow.free);
+    // Is this a free listing that's ALREADY live? Then there's nothing to
+    // publish — editing it just saves changes.
+    var freeAlreadyLive = isFreePlan && !!(editing && editing.status === 'live');
 
     document.getElementById('sub-manage-panel').style.display = alreadySubscribed ? '' : 'none';
     document.getElementById('free-publish-panel').style.display = (!alreadySubscribed && isFreePlan) ? '' : 'none';
@@ -2766,8 +2769,28 @@ function updateStepUI() {
     if (alreadySubscribed) {
       loadSubscriptionPanel(editing);
     } else if (isFreePlan) {
+      // Always reset the free-publish panel each time it shows, so a stale
+      // "Publishing…" state from a previous click never sticks.
       var fpe = document.getElementById('free-publish-error');
       if (fpe) fpe.textContent = '';
+      var fpBtn = document.getElementById('btn-free-publish');
+      var fpTitle = document.getElementById('free-publish-title');
+      var fpDesc = document.getElementById('free-publish-desc');
+      if (fpBtn) {
+        fpBtn.disabled = false;
+        if (freeAlreadyLive) {
+          // Already live — this button just saves edits, doesn't "publish".
+          fpBtn.textContent = 'Save changes';
+          fpBtn.setAttribute('onclick', 'saveFreeEdits()');
+          if (fpTitle) fpTitle.textContent = 'Your listing is live';
+          if (fpDesc) fpDesc.textContent = 'This free Basic listing is already live. Make your changes above and save — it stays live on the free plan.';
+        } else {
+          fpBtn.textContent = 'Publish my listing — Free';
+          fpBtn.setAttribute('onclick', 'publishFree()');
+          if (fpTitle) fpTitle.textContent = 'Publish your free listing';
+          if (fpDesc) fpDesc.textContent = 'Your listing goes live straight away with up to 4 photos and 6 features. You can upgrade to Premium any time for homepage features, more photos and the Premium highlight.';
+        }
+      }
     } else {
       // Deferred a tick so the container is visible when Stripe mounts.
       setTimeout(function() {
@@ -3238,6 +3261,26 @@ async function publishFree() {
     if (errEl) errEl.textContent = 'Something went wrong. Please try again.';
     if (btn) { btn.disabled = false; btn.textContent = 'Publish my listing — Free'; }
   }
+}
+
+// Save edits to a free listing that's ALREADY live — just persist the changes
+// (it stays live on Basic), no re-publish, no Stripe.
+async function saveFreeEdits() {
+  var btn = document.getElementById('btn-free-publish');
+  var errEl = document.getElementById('free-publish-error');
+  if (errEl) errEl.textContent = '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
+  var saved = await saveListing(true, true); // keep it live, silent save
+  if (!saved) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Save changes'; }
+    return;
+  }
+  if (typeof venlyInvalidateCache === 'function') venlyInvalidateCache();
+  await loadUserListings();
+  closeModal();
+  showToast('Changes saved — your listing stays live.');
+  switchToPanel('listings');
 }
 
 // ---- Pay ----
