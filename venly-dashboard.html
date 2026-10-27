@@ -1791,38 +1791,79 @@ async function syncMissingPeriodEnds() {
 // Take a live listing down when there's no Stripe subscription behind it
 // (admin-published, or an early row from before subscriptions were tracked).
 // Nothing to cancel and no paid period to honour - so this is a plain
-// unpublish, and the draft is kept.
+// unpublish, and the draft is kept. Because there's no money involved, we
+// skip the options screen and go STRAIGHT to the "type CONFIRM" step.
 function unlistListing(i) {
   var listing = listings[i];
   if (!listing) return;
 
   var overlay = document.getElementById('cancel-sub-overlay');
   document.getElementById('cancel-sub-name').textContent = listing.name || 'this venue';
-
-  // No subscription, so there's no "stay live until my period ends" choice
-  // to offer - there's no period being paid for.
-  document.getElementById('cancel-sub-grace').style.display = 'none';
   document.getElementById('cancel-sub-title').textContent = 'Unlist this venue';
+
+  // Hide every option/explanatory element — a free listing has no choices to
+  // weigh, so the modal opens directly on the confirm panel.
+  document.getElementById('cancel-sub-grace').style.display = 'none';
+  document.getElementById('cancel-sub-now').style.display = 'none';
+  document.getElementById('cancel-sub-back').style.display = 'none';
+  Array.prototype.forEach.call(overlay.querySelectorAll('p'), function(p) { p.style.display = 'none'; });
+
+  var confirmStep = document.getElementById('cancel-sub-confirm-step');
+  var confirmInput = document.getElementById('cancel-sub-confirm-input');
+  var confirmGo = document.getElementById('cancel-sub-confirm-go');
+  var confirmCancel = document.getElementById('cancel-sub-confirm-cancel');
+
+  document.getElementById('cancel-sub-confirm-summary').textContent =
+    'Unlist this listing? It will be taken down and saved as a draft.';
+  confirmStep.style.display = 'block';
+  confirmInput.value = '';
+  confirmGo.disabled = true;
+  confirmGo.style.opacity = '0.5';
+  confirmGo.style.cursor = 'not-allowed';
 
   overlay.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
+  setTimeout(function() { confirmInput.focus(); }, 50);
 
   function close() {
     overlay.classList.add('hidden');
     document.body.style.overflow = '';
+    // Reset the modal for its next use (the paid cancel flow reuses it).
+    confirmStep.style.display = 'none';
+    document.getElementById('cancel-sub-now').style.display = 'block';
+    document.getElementById('cancel-sub-back').style.display = 'block';
     document.getElementById('cancel-sub-title').textContent = 'Cancel subscription';
+    Array.prototype.forEach.call(overlay.querySelectorAll('p'), function(p) { p.style.display = ''; });
   }
 
-  document.getElementById('cancel-sub-back').onclick = close;
+  confirmInput.oninput = function() {
+    var ok = confirmInput.value.trim().toUpperCase() === 'CONFIRM';
+    confirmGo.disabled = !ok;
+    confirmGo.style.opacity = ok ? '1' : '0.5';
+    confirmGo.style.cursor = ok ? 'pointer' : 'not-allowed';
+  };
+  confirmInput.onkeydown = function(e) {
+    if (e.key === 'Enter' && !confirmGo.disabled) { e.preventDefault(); confirmGo.click(); }
+  };
+  confirmCancel.onclick = close;
 
-  document.getElementById('cancel-sub-now').onclick = async function() {
+  confirmGo.onclick = async function() {
+    if (confirmInput.value.trim().toUpperCase() !== 'CONFIRM') return;
     close();
     try {
-      await callStripeFn('unlist_now', { venueId: listing.id });
+      if (hasSubscription(listing)) {
+        // Live but with a (non-active) Stripe sub id — let the backend tidy up.
+        await callStripeFn('unlist_now', { venueId: listing.id });
+      } else if (SUPABASE_READY) {
+        // Free listing: no Stripe involved, just draft it directly.
+        var upd = await sb.from('venues').update({ is_live: false }).eq('id', listing.id);
+        if (upd.error) { showToast('Could not unlist — please try again'); return; }
+      }
 
       // Optimistic update: live -> draft, immediately.
       listing.status = 'draft';
-      listing.subscriptionStatus = 'cancelled';
+      listing.isLive = false;
+      listing.subscriptionStatus = (listing.subscriptionStatus === 'active' && !hasSubscription(listing)) ? 'none' : 'cancelled';
       listing.currentPeriodEnd = null;
       if (typeof venlyInvalidateCache === 'function') venlyInvalidateCache();
       buildTable();
@@ -1830,7 +1871,7 @@ function unlistListing(i) {
       showToast('Listing removed — it\'s saved as a draft');
       setTimeout(function() { loadUserListings(); }, 2500);
     } catch (e) {
-      console.error('unlist_now failed:', e);
+      console.error('unlist failed:', e);
       showToast('Could not remove — please try again');
     }
   };
