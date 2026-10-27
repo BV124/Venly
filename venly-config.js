@@ -683,6 +683,14 @@ function saveAllVenues(venues) {
 
 var VENLY_PLAN_CATEGORY_BY_TYPE = { 'Event space': 'event', 'Meeting space': 'meeting', 'Shoot Location': 'shoot' };
 
+// Display name for a plan tier. The stored/internal value stays 'Premium'
+// (database, Stripe price IDs and all plan logic rely on it), but anywhere a
+// plan is SHOWN to a person we route it through here so the top tier reads
+// "Venly+" instead of "Premium". Only change the label, never the value.
+function venlyPlanLabel(plan) {
+  return plan === 'Premium' ? 'Venly+' : (plan || 'Basic');
+}
+
 // What Venly is actually charging this venue's host per month, right now —
 // the LISTING/subscription fee (VENLY_CONFIG.plans), not the venue's own
 // hourly booking rate (priceFrom/priceTo), and NOT counted at all unless

@@ -943,7 +943,7 @@ tbody tr:last-child td { border-bottom: none; }
 </style>
   <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="venly-config.js?v=13"></script>
+  <script src="venly-config.js?v=14"></script>
   <script src="venly-shared.js"></script>
   <script>
     // ---- ADMIN AUTH GATE ----
@@ -1162,7 +1162,7 @@ tbody tr:last-child td { border-bottom: none; }
             <option value="">Plan: All</option>
             <option value="Basic">Basic</option>
             <option value="Standard">Standard</option>
-            <option value="Premium">Premium</option>
+            <option value="Premium">Venly+</option>
           </select>
           <div class="venues-filter-divider"></div>
           <button class="venues-filter-clear" onclick="clearVenueFilters()">
@@ -1236,7 +1236,7 @@ tbody tr:last-child td { border-bottom: none; }
                 <select id="ven-plan" onchange="renderVenuePhotoGrid(); renderVenueFeatures(); renderVenueEventTypes()">
                   <option value="Basic">Basic</option>
                   <option value="Standard">Standard</option>
-                  <option value="Premium">Premium</option>
+                  <option value="Premium">Venly+</option>
                 </select>
               </div>
             </div>
@@ -1724,7 +1724,7 @@ tbody tr:last-child td { border-bottom: none; }
         <div>
           <span class="filter-tag locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Basic</span>
           <span class="filter-tag locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Standard</span>
-          <span class="filter-tag locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Premium</span>
+          <span class="filter-tag locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Venly+</span>
         </div>
         <div class="filter-card-note">Pricing tiers are tied to billing and listing caps — managed on the Pricing &amp; Plans page, not here.</div>
       </div>
@@ -2104,7 +2104,7 @@ function openAccountModal(id) {
 
   var list = document.getElementById('am-venues-list');
   list.innerHTML = account.venues.length ? account.venues.map(function(v) {
-    var planBadge = '<span class="badge badge-' + (v.plan || 'basic').toLowerCase() + '">' + (v.plan || 'Basic') + '</span>';
+    var planBadge = '<span class="badge badge-' + (v.plan || 'basic').toLowerCase() + '">' + venlyPlanLabel(v.plan) + '</span>';
     var statusBadge = v.isLive ? '<span class="badge badge-live">Live</span>' : '<span class="badge badge-draft">Draft</span>';
     return '<div class="account-venue-row">' +
       '<div><div class="account-venue-name">' + escapeHtml(v.name) + '</div><div class="account-venue-type">' + escapeHtml(v.type) + '</div></div>' +
@@ -2264,7 +2264,7 @@ async function loadSupabaseVenues() {
       '<td style="color:var(--text-muted)">' + host + '</td>' +
       '<td>' + (v.type || '—') + '</td>' +
       '<td>' + (v.district || '—') + '</td>' +
-      '<td><span class="badge ' + planBadge + '">' + (v.plan || 'Basic') + '</span></td>' +
+      '<td><span class="badge ' + planBadge + '">' + venlyPlanLabel(v.plan) + '</span></td>' +
       '<td>' + (v.page_hits || 0) + '</td>' +
       '<td><span class="badge ' + statusBadge + '">' + (v.is_live ? 'Live' : 'Draft') + '</span></td>' +
       '<td><button class="action-btn" onclick="showToast(\'Live-mode editing not built yet\')">Edit</button>' +
@@ -2869,7 +2869,7 @@ function buildRecentVenues() {
     return '<tr>' +
       '<td class="cell-name">' + (v.name || '—') + '</td>' +
       '<td style="color:var(--text-muted)">' + (v.type || '—') + '</td>' +
-      '<td><span class="badge ' + planClass + '">' + (v.plan || 'Basic') + '</span></td>' +
+      '<td><span class="badge ' + planClass + '">' + venlyPlanLabel(v.plan) + '</span></td>' +
       '<td><span class="badge ' + statusClass + '">' + statusLabel + '</span></td>' +
       '</tr>';
   }).join('');
@@ -5366,7 +5366,7 @@ function renderVenuesTable(venues, statusTotal, statusFilter) {
       '<td style="color:var(--text-muted)">' + escapeHtml(v.hostName || v.hostEmail || '—') + linkNote + '</td>' +
       '<td>' + escapeHtml(v.type || '—') + '</td>' +
       '<td>' + escapeHtml(v.district || v.region || '—') + '</td>' +
-      '<td><span class="badge badge-' + (v.plan || 'basic').toLowerCase() + '">' + escapeHtml(v.plan || 'Basic') + '</span></td>' +
+      '<td><span class="badge badge-' + (v.plan || 'basic').toLowerCase() + '">' + escapeHtml(venlyPlanLabel(v.plan)) + '</span></td>' +
       '<td>' + getVenueStatusBadge(v) + '</td>' +
       '<td><button class="action-btn" onclick="openVenueStats(\'' + v.id + '\',\'' + escapeHtml(v.name || '').replace(/'/g, "\\'") + '\')">Stats</button>' +
       '<button class="action-btn" onclick="openVenueEditor(\'' + v.id + '\')">Edit</button>' +
@@ -6998,7 +6998,7 @@ function openModal(type) {
   document.getElementById('modal-desc').textContent = descs[type];
   var fields = {
     user: '<div class="modal-form-row"><div class="modal-form-group"><label>Full name</label><input type="text" placeholder="Jane Smith" /></div><div class="modal-form-group"><label>Email</label><input type="email" placeholder="jane@example.com" /></div></div><div class="modal-form-row"><div class="modal-form-group"><label>Phone</label><input type="tel" placeholder="021 000 0000" /></div><div class="modal-form-group"><label>Role</label><select><option>User</option><option>Host</option><option>Admin</option></select></div></div>',
-    venue: '<div class="modal-form-row"><div class="modal-form-group"><label>Venue name</label><input type="text" placeholder="The Rooftop" /></div><div class="modal-form-group"><label>Host</label><input type="text" placeholder="Host name" /></div></div><div class="modal-form-row"><div class="modal-form-group"><label>Type</label><select><option>Event space</option><option>Meeting space</option><option>Shoot Location</option></select></div><div class="modal-form-group"><label>Plan</label><select><option>Basic</option><option>Standard</option><option>Premium</option></select></div></div>',
+    venue: '<div class="modal-form-row"><div class="modal-form-group"><label>Venue name</label><input type="text" placeholder="The Rooftop" /></div><div class="modal-form-group"><label>Host</label><input type="text" placeholder="Host name" /></div></div><div class="modal-form-row"><div class="modal-form-group"><label>Type</label><select><option>Event space</option><option>Meeting space</option><option>Shoot Location</option></select></div><div class="modal-form-group"><label>Plan</label><select><option>Basic</option><option>Standard</option><option>Venly+</option></select></div></div>',
     crm: '<div class="modal-form-row"><div class="modal-form-group"><label>Name</label><input type="text" placeholder="Sophie Williams" /></div><div class="modal-form-group"><label>Email</label><input type="email" placeholder="sophie@example.com" /></div></div><div class="modal-form-row"><div class="modal-form-group"><label>Space type</label><input type="text" placeholder="Event space" /></div><div class="modal-form-group"><label>Stage</label><select><option>Lead</option><option>Contacted</option><option>Listing</option><option>Paying</option></select></div></div><div class="modal-form-group" style="margin-top:10px"><label>Notes</label><textarea rows="3" placeholder="Any notes..."></textarea></div>'
   };
   document.getElementById('modal-fields').innerHTML = fields[type];

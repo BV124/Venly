@@ -437,7 +437,7 @@ tbody tr:last-child td { border-bottom: none; }
   <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://js.stripe.com/v3/"></script>
-  <script src="venly-config.js?v=13"></script>
+  <script src="venly-config.js?v=14"></script>
   <script src="venly-shared.js?v=6"></script>
 </head>
 <body>
@@ -549,7 +549,7 @@ tbody tr:last-child td { border-bottom: none; }
       <div class="modal-header-left">
         <h2>Create a new listing</h2>
         <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
-          <span class="plan-tag" id="modal-plan-tag">Premium Plan</span>
+          <span class="plan-tag" id="modal-plan-tag">Venly+ Plan</span>
           <span style="font-size:12px;color:var(--text-muted)" id="modal-type-tag">Event Space</span>
           <button type="button" id="modal-change-plan" onclick="openDraftPlanChange()"
                   style="display:none;background:none;border:none;padding:0;margin-left:2px;font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:var(--red);cursor:pointer;text-decoration:underline">
@@ -826,7 +826,7 @@ tbody tr:last-child td { border-bottom: none; }
 
                 <div class="plan-summary-row">
                   <span>Plan</span>
-                  <strong id="summary-plan">Premium</strong>
+                  <strong id="summary-plan">Venly+</strong>
                 </div>
                 <div class="plan-summary-row">
                   <span>Space type</span>
@@ -1029,7 +1029,7 @@ tbody tr:last-child td { border-bottom: none; }
           <span style="font-size:11px;color:#1a8a4a;font-weight:600;background:#e8f8ee;padding:3px 10px;border-radius:20px;border:1px solid #b8e8c8">● Active</span>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:18px;font-weight:700" id="current-plan-name">Premium</span>
+          <span style="font-size:18px;font-weight:700" id="current-plan-name">Venly+</span>
           <span style="font-size:16px;font-weight:700;color:var(--red)" id="current-plan-price">$89/mo</span>
         </div>
         <div style="font-size:12px;color:var(--text-muted);margin-top:4px" id="current-plan-features"></div>
@@ -1203,7 +1203,7 @@ function openManagePlan(idx) {
   selectedNewPlan = null;
   const l = listings[idx];
   document.getElementById('manage-listing-name').textContent = l.name + ' · ' + l.type;
-  document.getElementById('current-plan-name').textContent = l.plan;
+  document.getElementById('current-plan-name').textContent = (typeof venlyPlanLabel === 'function') ? venlyPlanLabel(l.plan) : l.plan;
   document.getElementById('current-plan-price').textContent = (planPrices[l.plan]?.[l.type] || '$89/mo');
   document.getElementById('current-plan-features').textContent =
     'Up to ' + planCaps[l.plan].photos + ' photos · ' + planCaps[l.plan].features + ' features · ' + planCaps[l.plan].eventTypes + ' event types';
@@ -1226,7 +1226,7 @@ function renderPlanOptions(currentPlan, spaceType) {
         cursor:pointer;transition:all 0.15s;background:var(--white)">
         <div>
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-            <span style="font-size:15px;font-weight:700">${p}</span>
+            <span style="font-size:15px;font-weight:700">${venlyPlanLabel(p)}</span>
             <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;
               background:${isUpgrade ? '#e8f8ee' : '#fff0ef'};
               color:${isUpgrade ? '#1a8a4a' : '#e03a2f'};
@@ -1383,9 +1383,9 @@ function confirmUpgrade() {
   // New listing — no charge yet. Switch the plan and let them keep editing;
   // they'll pay the new plan's price (incl. GST) when they reach Payment.
   activePlan = targetPlan;
-  document.getElementById('modal-plan-tag').textContent = activePlan + ' Plan';
+  document.getElementById('modal-plan-tag').textContent = ((typeof venlyPlanLabel === 'function') ? venlyPlanLabel(activePlan) : activePlan) + ' Plan';
   var summaryPlan = document.getElementById('summary-plan');
-  if (summaryPlan) summaryPlan.textContent = activePlan;
+  if (summaryPlan) summaryPlan.textContent = (typeof venlyPlanLabel === 'function') ? venlyPlanLabel(activePlan) : activePlan;
   updateDraftPlanControl();
   renderPhotoGrid();
   renderFeatures();
@@ -1951,7 +1951,7 @@ async function loadSubscriptionPanel(listing) {
         ';border-radius:8px;background:' + (isCurrent ? 'var(--red-light)' : 'var(--white)') + ';';
 
       var left = document.createElement('div');
-      left.innerHTML = '<div style="font-size:14px;font-weight:700">' + name +
+      left.innerHTML = '<div style="font-size:14px;font-weight:700">' + venlyPlanLabel(name) +
         (isCurrent ? ' <span style="font-size:11px;font-weight:600;color:var(--red)">· current</span>' : '') +
         '</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px">$' + plan.monthly +
         ' + GST <span style="opacity:0.7">($' + (plan.monthly * 1.15).toFixed(2) + '/mo)</span></div>';
@@ -2200,7 +2200,7 @@ function openDraftPlanChange() {
       'display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-radius:var(--radius);' +
       'border:2px solid ' + (isCurrent ? 'var(--red)' : 'var(--border)') + ';cursor:pointer;transition:all 0.15s;' +
       'background:' + (isCurrent ? 'var(--red-light)' : 'var(--white)') + '">' +
-        '<div><div style="font-size:15px;font-weight:700;margin-bottom:4px">' + p +
+        '<div><div style="font-size:15px;font-weight:700;margin-bottom:4px">' + venlyPlanLabel(p) +
           (isCurrent ? ' <span style="font-size:11px;color:var(--red)">· current</span>' : '') + '</div>' +
           '<div style="font-size:12px;color:var(--text-muted)">' + caps.photos + ' photos · ' + caps.features + ' features · ' + caps.eventTypes + ' event types</div></div>' +
         '<div style="text-align:right;font-size:15px;font-weight:700;color:var(--red)">$' + info.monthly +
@@ -2276,9 +2276,9 @@ function confirmDraftPlanChange() {
   }
 
   activePlan = newPlan;
-  document.getElementById('modal-plan-tag').textContent = activePlan + ' Plan';
+  document.getElementById('modal-plan-tag').textContent = ((typeof venlyPlanLabel === 'function') ? venlyPlanLabel(activePlan) : activePlan) + ' Plan';
   var summaryPlan = document.getElementById('summary-plan');
-  if (summaryPlan) summaryPlan.textContent = activePlan;
+  if (summaryPlan) summaryPlan.textContent = (typeof venlyPlanLabel === 'function') ? venlyPlanLabel(activePlan) : activePlan;
   document.getElementById('draft-plan-overlay').classList.add('hidden');
   markDirty();
   // Re-render so caps (which read activePlan via getCaps) apply on display.
@@ -2433,7 +2433,7 @@ function openModal() {
   var geoOpen = document.getElementById('dash-geocode-status');
   if (geoOpen) { geoOpen.innerHTML = ''; geoOpen.style.color = 'var(--text-muted)'; }
   document.getElementById('modal-overlay').classList.remove('hidden');
-  document.getElementById('modal-plan-tag').textContent = activePlan + ' Plan';
+  document.getElementById('modal-plan-tag').textContent = ((typeof venlyPlanLabel === 'function') ? venlyPlanLabel(activePlan) : activePlan) + ' Plan';
   document.getElementById('modal-type-tag').textContent = activeType;
   updateDraftPlanControl();
   // Set and lock the type dropdown — the user already chose this on the
@@ -2461,7 +2461,7 @@ function openModal() {
     capacityField = capacityField && (capacityField.closest('.form-group') || capacityField.parentElement);
     if (capacityField) capacityField.style.gridColumn = hideType ? '1 / -1' : '';
   }
-  document.getElementById('summary-plan').textContent = activePlan;
+  document.getElementById('summary-plan').textContent = (typeof venlyPlanLabel === 'function') ? venlyPlanLabel(activePlan) : activePlan;
   document.getElementById('summary-type').textContent = activeType;
   document.getElementById('summary-price').textContent = planPrices[activePlan]?.[activeType] || '';
   updateStepUI();
@@ -4248,7 +4248,7 @@ async function loadFavourites() {
       var imgHtml = img
         ? '<img src="' + img + '" alt="' + escapeHtml(v.name) + '" style="width:100%;height:160px;object-fit:cover;display:block" />'
         : '<div style="width:100%;height:160px;background:#eee;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:13px">No image</div>';
-      var premiumBadge = v.plan === 'Premium' ? '<span style="position:absolute;top:10px;left:10px;background:linear-gradient(135deg,#1a1a1a,#333);color:#fff;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700">Premium</span>' : '';
+      var premiumBadge = v.plan === 'Premium' ? '<span style="position:absolute;top:10px;left:10px;background:linear-gradient(135deg,#1a1a1a,#333);color:#fff;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700">Venly+</span>' : '';
       var capacityText = v.capacity ? 'Capacity ' + escapeHtml(v.capacity) : '';
       return '<div style="border-radius:12px;border:1px solid var(--border);overflow:hidden;background:var(--white);cursor:pointer;transition:transform 0.2s,box-shadow 0.2s" onmouseover="this.style.transform=\'translateY(-3px)\';this.style.boxShadow=\'0 8px 24px rgba(0,0,0,0.09)\'" onmouseout="this.style.transform=\'none\';this.style.boxShadow=\'none\'" onclick="window.location.href=\'venly-venue.html?id=' + v.id + '\'">' +
         '<div style="position:relative">' + imgHtml +

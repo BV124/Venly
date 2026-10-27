@@ -495,7 +495,7 @@ section { padding: 80px 48px; }
       } catch(e) { /* config not ready yet — venlyBootstrap will run normally */ }
     })();
   </script>
-  <script src="venly-config.js?v=13"></script>
+  <script src="venly-config.js?v=14"></script>
   <script src="venly-shared.js?v=6"></script>
   <script>
     window.venlyReady = (typeof venlyBootstrap === 'function') ? venlyBootstrap() : Promise.resolve();
@@ -784,7 +784,7 @@ section { padding: 80px 48px; }
   grid.innerHTML = venues.filter(function(v) { return v.photos && v.photos[0]; }).map(function(v, i) {
     var img = v.photos[0];
     var typeLabel = TYPE_LABELS[v.type] || v.type || '';
-    var premiumBadge = v.plan === 'Premium' ? '<span class="badge-premium">Premium</span>' : '';
+    var premiumBadge = v.plan === 'Premium' ? '<span class="badge-premium">Venly+</span>' : '';
     var location = [v.district, v.region].filter(Boolean).join(', ');
     return '' +
     '<a href="venly-venue.html?id=' + encodeURIComponent(v.id) + '" class="ja-tile" style="animation-delay:' + (i * 0.08) + 's">' +
@@ -1096,7 +1096,7 @@ section { padding: 80px 48px; }
       if (v0) {
         badgeWrap.innerHTML =
           (v0.type ? '<span class="badge-type">' + escapeHtmlOccasion(v0.type) + '</span>' : '<span></span>') +
-          (v0.plan === 'Premium' ? '<span class="badge-premium">Premium</span>' : '');
+          (v0.plan === 'Premium' ? '<span class="badge-premium">Venly+</span>' : '');
       }
     }
 
@@ -1142,7 +1142,7 @@ section { padding: 80px 48px; }
     var premium = slide.getAttribute('data-premium') === '1';
     badgeWrap.innerHTML =
       (type ? '<span class="badge-type">' + type + '</span>' : '<span></span>') +
-      (premium ? '<span class="badge-premium">Premium</span>' : '');
+      (premium ? '<span class="badge-premium">Venly+</span>' : '');
   }
 
   document.querySelectorAll('.sts-slideshow').forEach(function(slideshow) {

@@ -8,7 +8,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Listing Fees & Plans | Venly</title>
-<meta name="description" content="See Venly's listing plans and pricing. Choose from Basic, Standard, or Premium to get your venue in front of thousands of people looking for spaces across New Zealand." />
+<meta name="description" content="See Venly's listing plans and pricing. Choose from Basic, Standard, or Venly+ to get your venue in front of thousands of people looking for spaces across New Zealand." />
 <link rel="canonical" href="https://venly.co.nz/venly-listing-fees.html" />
 <meta property="og:title" content="Listing Fees & Plans | Venly" />
 <meta property="og:description" content="See Venly's listing plans and pricing for venues across New Zealand." />
@@ -367,7 +367,7 @@ nav {
 </style>
   <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="venly-config.js?v=13"></script>
+  <script src="venly-config.js?v=14"></script>
   <script src="venly-shared.js?v=6"></script>
 </head>
 <body>
@@ -410,7 +410,7 @@ nav {
         <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        Venly offers a range of plans designed to suit different space owners. Choose from our Basic, Standard, and Premium plans, each offering different levels of visibility and features to help showcase your space. Prices vary depending on your space type — use the tabs above to explore the options available.
+        Venly offers a range of plans designed to suit different space owners. Choose from our Basic, Standard, and Venly+ plans, each offering different levels of visibility and features to help showcase your space. Prices vary depending on your space type — use the tabs above to explore the options available.
       </div>
     </div>
 
@@ -465,6 +465,8 @@ const plans = {
         { text: 'Appears above other listings', included: false },
         { text: 'Features on homepage & promos', included: false },
         { text: 'Premium highlight', included: false },
+        { text: 'Live Performance Reports (downloadable)', included: false },
+        { text: 'Access to new features', included: false },
       ]
     },
     {
@@ -479,6 +481,8 @@ const plans = {
         { text: 'Appears above basic listings', included: true },
         { text: 'Features on homepage & promos', included: false },
         { text: 'Premium highlight', included: false },
+        { text: 'Live Performance Reports (downloadable)', included: false },
+        { text: 'Access to new features', included: false },
       ]
     },
     {
@@ -511,6 +515,8 @@ const plans = {
         { text: 'Appears above other listings', included: false },
         { text: 'Features on homepage & promos', included: false },
         { text: 'Premium highlight', included: false },
+        { text: 'Live Performance Reports (downloadable)', included: false },
+        { text: 'Access to new features', included: false },
       ]
     },
     {
@@ -525,6 +531,8 @@ const plans = {
         { text: 'Appears above basic listings', included: true },
         { text: 'Features on homepage & promos', included: false },
         { text: 'Premium highlight', included: false },
+        { text: 'Live Performance Reports (downloadable)', included: false },
+        { text: 'Access to new features', included: false },
       ]
     },
     {
@@ -557,6 +565,8 @@ const plans = {
         { text: 'Appears above other listings', included: false },
         { text: 'Features on homepage & promos', included: false },
         { text: 'Premium highlight', included: false },
+        { text: 'Live Performance Reports (downloadable)', included: false },
+        { text: 'Access to new features', included: false },
       ]
     },
     {
@@ -571,6 +581,8 @@ const plans = {
         { text: 'Appears above basic listings', included: true },
         { text: 'Features on homepage & promos', included: false },
         { text: 'Premium highlight', included: false },
+        { text: 'Live Performance Reports (downloadable)', included: false },
+        { text: 'Access to new features', included: false },
       ]
     },
     {
@@ -598,10 +610,10 @@ const crossSVG = `<svg class="cross-icon" width="18" height="18" viewBox="0 0 24
 function renderPlans(type) {
   const grid = document.getElementById('plans-grid');
   grid.innerHTML = plans[type].map(p => `
-    <div class="plan-card${p.featured ? ' featured' : ''}">
+    <div class="plan-card${p.featured ? ' featured' : ''}" data-plan="${p.name}">
       <div class="plan-header">
         <div class="plan-header-top">
-          <span class="plan-name">${p.name}</span>
+          <span class="plan-name">${(typeof venlyPlanLabel === 'function') ? venlyPlanLabel(p.name) : p.name}</span>
           <div class="plan-price">
             <span class="plan-price-main">${p.price}</span><span class="plan-price-gst">+GST</span>
           </div>
@@ -713,7 +725,9 @@ function selectPlan(btn) {
     return;
   }
   const card = btn.closest('.plan-card');
-  const planName = card.querySelector('.plan-name').textContent.trim();
+  // Read the real plan VALUE from data-plan (the visible title may show a
+  // display name like "Venly+"), so checkout/plan matching stays correct.
+  const planName = card.dataset.plan || card.querySelector('.plan-name').textContent.trim();
   const activeTab = document.querySelector('.type-tab.active').textContent.trim();
   // Check if we came here to change an existing listing's plan
   const params = new URLSearchParams(window.location.search);
@@ -734,7 +748,7 @@ function selectPlan(btn) {
     const header = document.querySelector('.page-header');
     const banner = document.createElement('div');
     banner.style.cssText = 'background:#fff8ec;border:1px solid #fde7a0;border-radius:8px;padding:12px 20px;font-size:13px;color:#a06000;margin-bottom:16px;text-align:center;max-width:700px;margin-left:auto;margin-right:auto';
-    banner.innerHTML = '📋 You are changing the plan for your listing. Your current plan is <strong>' + currentPlan + '</strong>. Select a new plan below.';
+    banner.innerHTML = '📋 You are changing the plan for your listing. Your current plan is <strong>' + ((typeof venlyPlanLabel === 'function') ? venlyPlanLabel(currentPlan) : currentPlan) + '</strong>. Select a new plan below.';
     header.appendChild(banner);
     // Switch to correct type tab
     const type = params.get('type') || '';
