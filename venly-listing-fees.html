@@ -8,7 +8,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Listing Fees & Plans | Venly</title>
-<meta name="description" content="See Venly's listing plans and pricing. Choose from Basic, Standard, or Premium to get your venue in front of thousands of people looking for spaces across New Zealand." />
+<meta name="description" content="See Venly's listing plans and pricing. Choose from Basic or Premium to get your venue in front of thousands of people looking for spaces across New Zealand." />
 <link rel="canonical" href="https://venly.co.nz/venly-listing-fees.html" />
 <meta property="og:title" content="Listing Fees & Plans | Venly" />
 <meta property="og:description" content="See Venly's listing plans and pricing for venues across New Zealand." />
@@ -75,9 +75,11 @@ nav {
 
 .plans-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 24px;
   align-items: start;
+  max-width: 760px;
+  margin: 0 auto;
 }
 
 .plan-card {
@@ -367,7 +369,7 @@ nav {
 </style>
   <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="venly-config.js?v=15"></script>
+  <script src="venly-config.js?v=16"></script>
   <script src="venly-shared.js?v=6"></script>
 </head>
 <body>
@@ -410,7 +412,7 @@ nav {
         <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        Venly offers a range of plans designed to suit different space owners. Choose from our Basic, Standard, and Premium plans, each offering different levels of visibility and features to help showcase your space. Prices vary depending on your space type — use the tabs above to explore the options available.
+        Venly offers a range of plans designed to suit different space owners. Choose from our Basic and Premium plans, each offering different levels of visibility and features to help showcase your space. Prices vary depending on your space type — use the tabs above to explore the options available.
       </div>
     </div>
 
@@ -454,8 +456,8 @@ nav {
 const plans = {
   event: [
     {
-      name: 'Basic', price: '$39', strikethrough: null, freeLabel: null,
-      subtitle: 'Event Space', perMonth: 'Per month',
+      name: 'Basic', price: 'Free', strikethrough: null, freeLabel: null, free: true,
+      subtitle: 'Event Space', perMonth: 'No cost, ever',
       featured: false,
       features: [
         { text: 'Up to 4 photos', included: true },
@@ -470,23 +472,7 @@ const plans = {
       ]
     },
     {
-      name: 'Standard', price: '$59', strikethrough: null, freeLabel: null,
-      subtitle: 'Event Space', perMonth: 'Per month',
-      featured: false,
-      features: [
-        { text: 'Up to 8 photos', included: true },
-        { text: 'No commission fee', included: true },
-        { text: 'Contact form enabled', included: true },
-        { text: 'List up to 10 features', included: true },
-        { text: 'Appears above basic listings', included: true },
-        { text: 'Features on homepage & promos', included: false },
-        { text: 'Premium highlight', included: false },
-        { text: 'Live Performance Reports (downloadable)', included: false },
-        { text: 'Access to new features', included: false },
-      ]
-    },
-    {
-      name: 'Premium', price: '$89', strikethrough: null, freeLabel: null,
+      name: 'Premium', price: '$79', strikethrough: null, freeLabel: null, free: false,
       subtitle: 'Event Space', perMonth: 'Per month',
       featured: false,
       features: [
@@ -504,8 +490,8 @@ const plans = {
   ],
   meeting: [
     {
-      name: 'Basic', price: '$29', strikethrough: null, freeLabel: null,
-      subtitle: 'Meeting Space', perMonth: 'Per month',
+      name: 'Basic', price: 'Free', strikethrough: null, freeLabel: null, free: true,
+      subtitle: 'Meeting Space', perMonth: 'No cost, ever',
       featured: false,
       features: [
         { text: 'Up to 4 photos', included: true },
@@ -520,23 +506,7 @@ const plans = {
       ]
     },
     {
-      name: 'Standard', price: '$49', strikethrough: null, freeLabel: null,
-      subtitle: 'Meeting Space', perMonth: 'Per month',
-      featured: false,
-      features: [
-        { text: 'Up to 8 photos', included: true },
-        { text: 'No commission fee', included: true },
-        { text: 'Contact form enabled', included: true },
-        { text: 'List up to 10 features', included: true },
-        { text: 'Appears above basic listings', included: true },
-        { text: 'Features on homepage & promos', included: false },
-        { text: 'Premium highlight', included: false },
-        { text: 'Live Performance Reports (downloadable)', included: false },
-        { text: 'Access to new features', included: false },
-      ]
-    },
-    {
-      name: 'Premium', price: '$69', strikethrough: null, freeLabel: null,
+      name: 'Premium', price: '$39', strikethrough: null, freeLabel: null, free: false,
       subtitle: 'Meeting Space', perMonth: 'Per month',
       featured: false,
       features: [
@@ -554,8 +524,8 @@ const plans = {
   ],
   shoot: [
     {
-      name: 'Basic', price: '$19', strikethrough: null, freeLabel: null,
-      subtitle: 'Shoot Location', perMonth: 'Per month',
+      name: 'Basic', price: 'Free', strikethrough: null, freeLabel: null, free: true,
+      subtitle: 'Shoot Location', perMonth: 'No cost, ever',
       featured: false,
       features: [
         { text: 'Up to 4 photos', included: true },
@@ -570,23 +540,7 @@ const plans = {
       ]
     },
     {
-      name: 'Standard', price: '$29', strikethrough: null, freeLabel: null,
-      subtitle: 'Shoot Location', perMonth: 'Per month',
-      featured: false,
-      features: [
-        { text: 'Up to 8 photos', included: true },
-        { text: 'No commission fee', included: true },
-        { text: 'Contact form enabled', included: true },
-        { text: 'List up to 10 features', included: true },
-        { text: 'Appears above basic listings', included: true },
-        { text: 'Features on homepage & promos', included: false },
-        { text: 'Premium highlight', included: false },
-        { text: 'Live Performance Reports (downloadable)', included: false },
-        { text: 'Access to new features', included: false },
-      ]
-    },
-    {
-      name: 'Premium', price: '$49', strikethrough: null, freeLabel: null,
+      name: 'Premium', price: '$39', strikethrough: null, freeLabel: null, free: false,
       subtitle: 'Shoot Location', perMonth: 'Per month',
       featured: false,
       features: [
@@ -615,7 +569,7 @@ function renderPlans(type) {
         <div class="plan-header-top">
           <span class="plan-name">${(typeof venlyPlanLabel === 'function') ? venlyPlanLabel(p.name) : p.name}</span>
           <div class="plan-price">
-            <span class="plan-price-main">${p.price}</span><span class="plan-price-gst">+GST</span>
+            <span class="plan-price-main">${p.price}</span>${p.free ? '' : '<span class="plan-price-gst">+GST</span>'}
           </div>
         </div>
         <div class="plan-subtitle">

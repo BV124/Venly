@@ -30,21 +30,26 @@ const VENLY_CONFIG = {
   // ----------------------------------------------------------
   // PRICING — edit here and it updates the listing fees page
   // ----------------------------------------------------------
+  // Two offered plans: Basic (free) and Premium. Standard is kept as a LEGACY
+  // entry (offered:false) so any venue still stored as 'Standard' keeps a valid
+  // price/label and nothing breaks — it is never shown as a choice to anyone.
+  // 'offered' controls whether a plan appears in pickers/pricing. free:true on
+  // Basic means it publishes instantly with no Stripe checkout.
   plans: {
     event: {
-      Basic:    { price: '$39',  strikethrough: null, monthly: 39,  stripePriceId: 'price_1TsE7FLEXONgPwvxattWCpXN' },
-      Standard: { price: '$59',  strikethrough: null, monthly: 59,  stripePriceId: 'price_1TsEBcLEXONgPwvxzyWTtpB2' },
-      Premium:  { price: '$89',  strikethrough: null, monthly: 89,  stripePriceId: 'price_1TsECmLEXONgPwvx2ZhWHDtP' },
+      Basic:    { price: 'Free', strikethrough: null, monthly: 0,  free: true,  offered: true,  stripePriceId: null },
+      Standard: { price: '$59',  strikethrough: null, monthly: 59, offered: false, stripePriceId: 'price_1TsEBcLEXONgPwvxzyWTtpB2' },
+      Premium:  { price: '$79',  strikethrough: null, monthly: 79, offered: true,  stripePriceId: 'price_1UV4fXLEXONgPwvxo8Ng8MWF' },
     },
     meeting: {
-      Basic:    { price: '$29',  strikethrough: null, monthly: 29,  stripePriceId: 'price_1TsEFuLEXONgPwvxkSsTrcrH' },
-      Standard: { price: '$49',  strikethrough: null, monthly: 49,  stripePriceId: 'price_1TsEHzLEXONgPwvxQiOdN1ea' },
-      Premium:  { price: '$69',  strikethrough: null, monthly: 69,  stripePriceId: 'price_1TsEIYLEXONgPwvxw41xKvh6' },
+      Basic:    { price: 'Free', strikethrough: null, monthly: 0,  free: true,  offered: true,  stripePriceId: null },
+      Standard: { price: '$49',  strikethrough: null, monthly: 49, offered: false, stripePriceId: 'price_1TsEHzLEXONgPwvxQiOdN1ea' },
+      Premium:  { price: '$39',  strikethrough: null, monthly: 39, offered: true,  stripePriceId: 'price_1UV4ewLEXONgPwvx6h2oVh34' },
     },
     shoot: {
-      Basic:    { price: '$19',  strikethrough: null, monthly: 19,  stripePriceId: 'price_1TsEJCLEXONgPwvxK5ckM9Yk' },
-      Standard: { price: '$29',  strikethrough: null, monthly: 29,  stripePriceId: 'price_1TsEJzLEXONgPwvxKlPODRmS' },
-      Premium:  { price: '$49',  strikethrough: null, monthly: 49,  stripePriceId: 'price_1TsEKVLEXONgPwvxVTsAlREW' },
+      Basic:    { price: 'Free', strikethrough: null, monthly: 0,  free: true,  offered: true,  stripePriceId: null },
+      Standard: { price: '$29',  strikethrough: null, monthly: 29, offered: false, stripePriceId: 'price_1TsEJzLEXONgPwvxKlPODRmS' },
+      Premium:  { price: '$39',  strikethrough: null, monthly: 39, offered: true,  stripePriceId: 'price_1UV4eOLEXONgPwvx6kLE573c' },
     },
   },
 
@@ -688,6 +693,27 @@ var VENLY_PLAN_CATEGORY_BY_TYPE = { 'Event space': 'event', 'Meeting space': 'me
 // place later if needed, without touching the stored value anywhere.
 function venlyPlanLabel(plan) {
   return plan || 'Basic';
+}
+
+// The plan names that are actually OFFERED (shown in pickers/pricing), in order,
+// for a given space-type category ('event' | 'meeting' | 'shoot'). Legacy plans
+// (offered:false, e.g. Standard) are excluded. Falls back to Basic+Premium.
+function venlyOfferedPlans(cat) {
+  var order = ['Basic', 'Standard', 'Premium'];
+  var cfg = (VENLY_CONFIG.plans && VENLY_CONFIG.plans[cat]) || {};
+  var out = order.filter(function(name) { return cfg[name] && cfg[name].offered; });
+  return out.length ? out : ['Basic', 'Premium'];
+}
+
+// True if a plan is the free tier (no Stripe subscription / no charge). Checks
+// any category since 'free' is consistent across types.
+function venlyIsFreePlan(plan) {
+  if (!plan) return true; // treat unset as Basic/free
+  var cats = VENLY_CONFIG.plans || {};
+  for (var c in cats) {
+    if (cats[c][plan]) return !!cats[c][plan].free;
+  }
+  return plan === 'Basic';
 }
 
 // What Venly is actually charging this venue's host per month, right now —

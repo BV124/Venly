@@ -437,7 +437,7 @@ tbody tr:last-child td { border-bottom: none; }
   <!-- VENLY SHARED — loads config, Supabase, nav & footer -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://js.stripe.com/v3/"></script>
-  <script src="venly-config.js?v=15"></script>
+  <script src="venly-config.js?v=16"></script>
   <script src="venly-shared.js?v=6"></script>
 </head>
 <body>
@@ -795,6 +795,30 @@ tbody tr:last-child td { border-bottom: none; }
         </div>
 
         <!-- NEW LISTING: normal checkout -->
+        <!-- FREE PUBLISH (Basic): no card, no Stripe — publishes instantly -->
+        <div class="modal-section" id="free-publish-panel" style="display:none">
+          <div class="modal-section-title">Publish your free listing</div>
+          <div style="border:1.5px solid var(--border);border-radius:12px;padding:20px;margin-top:8px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <div style="width:40px;height:40px;border-radius:10px;background:#eaf7ef;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#1a8a4a" stroke-width="2.5" width="20" height="20"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div>
+                <div style="font-size:16px;font-weight:800">Basic — Free</div>
+                <div style="font-size:13px;color:var(--text-muted)">No card required. No monthly cost, ever.</div>
+              </div>
+            </div>
+            <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin:8px 0 18px">
+              Your listing goes live straight away with up to 4 photos and 6 features.
+              You can upgrade to Premium any time for homepage features, more photos and the Premium highlight.
+            </div>
+            <button class="btn-pay" id="btn-free-publish" type="button" onclick="publishFree()" style="width:100%;justify-content:center">
+              Publish my listing — Free
+            </button>
+            <div id="free-publish-error" style="color:var(--red);font-size:13px;margin-top:10px;text-align:center"></div>
+          </div>
+        </div>
+
         <div class="modal-section" id="sub-checkout-panel">
           <div class="modal-section-title">Complete your listing</div>
 
@@ -1215,7 +1239,11 @@ function openManagePlan(idx) {
 
 function renderPlanOptions(currentPlan, spaceType) {
   const container = document.getElementById('plan-options');
-  container.innerHTML = planOrder.filter(p => p !== currentPlan).map(p => {
+  // Only show plans we actually offer (Basic + Premium); Standard is legacy.
+  var _cat = (typeof _typeToCategory !== 'undefined' && _typeToCategory[spaceType]) ||
+             (typeof VENLY_PLAN_CATEGORY_BY_TYPE !== 'undefined' && VENLY_PLAN_CATEGORY_BY_TYPE[spaceType]) || 'event';
+  var _offered = (typeof venlyOfferedPlans === 'function') ? venlyOfferedPlans(_cat) : ['Basic', 'Premium'];
+  container.innerHTML = planOrder.filter(p => p !== currentPlan && _offered.indexOf(p) !== -1).map(p => {
     const isUpgrade = planOrder.indexOf(p) > planOrder.indexOf(currentPlan);
     const price = planPrices[p]?.[spaceType] || '';
     const caps = planCaps[p];
@@ -1938,7 +1966,7 @@ async function loadSubscriptionPanel(listing) {
     var currentRank = PLAN_RANK[currentPlanName] || 1;
     optionsEl.innerHTML = '';
 
-    ['Basic', 'Standard', 'Premium'].forEach(function(name) {
+    ((typeof venlyOfferedPlans === 'function') ? venlyOfferedPlans(cat) : ['Basic', 'Premium']).forEach(function(name) {
       var plan = plans[name];
       if (!plan) return;
       var isCurrent = name === currentPlanName;
@@ -1950,21 +1978,31 @@ async function loadSubscriptionPanel(listing) {
         'padding:12px 14px;border:1.5px solid ' + (isCurrent ? 'var(--red)' : 'var(--border)') +
         ';border-radius:8px;background:' + (isCurrent ? 'var(--red-light)' : 'var(--white)') + ';';
 
+      var isFree = !!plan.free;
+      var priceLine = isFree
+        ? 'Free <span style="opacity:0.7">(no monthly cost)</span>'
+        : '$' + plan.monthly + ' + GST <span style="opacity:0.7">($' + (plan.monthly * 1.15).toFixed(2) + '/mo)</span>';
       var left = document.createElement('div');
       left.innerHTML = '<div style="font-size:14px;font-weight:700">' + venlyPlanLabel(name) +
         (isCurrent ? ' <span style="font-size:11px;font-weight:600;color:var(--red)">· current</span>' : '') +
-        '</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px">$' + plan.monthly +
-        ' + GST <span style="opacity:0.7">($' + (plan.monthly * 1.15).toFixed(2) + '/mo)</span></div>';
+        '</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px">' + priceLine + '</div>';
       row.appendChild(left);
 
       if (!isCurrent) {
         var btn = document.createElement('button');
         btn.type = 'button';
-        btn.textContent = direction === 'upgrade' ? 'Upgrade' : 'Downgrade';
+        // Downgrading to the free plan means cancelling the paid subscription
+        // (the listing stays live on free Basic). Upgrading / paid changes use
+        // the normal plan-change flow.
+        btn.textContent = isFree ? 'Switch to Free' : (direction === 'upgrade' ? 'Upgrade' : 'Downgrade');
         btn.style.cssText = 'padding:8px 16px;border-radius:7px;font-family:Inter,sans-serif;' +
           'font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;border:1.5px solid ' +
           (direction === 'upgrade' ? 'var(--red);background:var(--red);color:#fff' : 'var(--border);background:var(--white);color:var(--text)');
-        btn.onclick = function() { changePlan(name, plan.stripePriceId, direction, plan.monthly); };
+        if (isFree) {
+          btn.onclick = function() { downgradeToFree(name); };
+        } else {
+          btn.onclick = function() { changePlan(name, plan.stripePriceId, direction, plan.monthly); };
+        }
         row.appendChild(btn);
       }
 
@@ -1978,6 +2016,54 @@ async function loadSubscriptionPanel(listing) {
     console.error('subscription_info failed:', e);
     document.getElementById('sub-manage-loading').textContent =
       'Could not load your subscription. Please close and try again.';
+  }
+}
+
+// Switch a paid listing down to the FREE Basic plan. This cancels the paid
+// Stripe subscription (at the end of the period they've already paid for) and
+// sets the venue to Basic — the listing STAYS LIVE the whole time, just on the
+// free tier with Basic limits. No refund, no immediate unlist.
+async function downgradeToFree(targetPlanName) {
+  var listing = _subPanelVenue;
+  if (!listing) { showToast('Could not find this listing — please reopen.'); return; }
+
+  var ok = await showPlanChangeConfirm({
+    direction: 'downgrade',
+    planName: 'Basic (Free)',
+    body: 'Your listing stays live, but moves to the free Basic plan (up to 4 ' +
+          'photos, 6 features). Your paid subscription will be cancelled — you ' +
+          'won\'t be charged again, and you keep what you\'ve already paid for ' +
+          'until the end of this period.'
+  });
+  if (!ok) return;
+
+  try {
+    // 1. Cancel the paid subscription in Stripe (grace: stays paid through the
+    //    current period, no new charge). Best-effort — if there's no live sub
+    //    the function just no-ops.
+    try { await callStripeFn('cancel_subscription', { venueId: listing.id }); }
+    catch (e) { console.warn('downgradeToFree: cancel_subscription returned an error (continuing):', e); }
+
+    // 2. Move the venue to Basic and keep it live. Free listings reuse the
+    //    'active' status so they show everywhere a live listing does.
+    if (SUPABASE_READY) {
+      var upd = await sb.from('venues')
+        .update({ plan: 'Basic', is_live: true, subscription_status: 'active' })
+        .eq('id', listing.id);
+      if (upd.error) { showToast('Could not switch to Free — please try again.'); return; }
+    }
+
+    listing.plan = 'Basic';
+    listing.subscriptionStatus = 'active';
+    if (typeof venlyInvalidateCache === 'function') venlyInvalidateCache();
+
+    // Close the editor modal (which holds the subscription panel) and refresh.
+    if (typeof closeModal === 'function') closeModal();
+    showToast('Switched to Free — your listing stays live on the Basic plan.');
+    await loadUserListings();
+  } catch (e) {
+    console.error('downgradeToFree failed:', e);
+    showToast('Something went wrong switching to Free. Please try again.');
   }
 }
 
@@ -2190,7 +2276,7 @@ function openDraftPlanChange() {
   var cat = (typeof VENLY_PLAN_CATEGORY_BY_TYPE !== 'undefined' && VENLY_PLAN_CATEGORY_BY_TYPE[activeType]) || 'event';
   var plans = VENLY_CONFIG.plans[cat] || {};
 
-  container.innerHTML = ['Basic', 'Standard', 'Premium'].map(function(p) {
+  container.innerHTML = ((typeof venlyOfferedPlans === 'function') ? venlyOfferedPlans(cat) : ['Basic', 'Premium']).map(function(p) {
     var info = plans[p];
     if (!info) return '';
     var caps = planCaps[p];
@@ -2626,11 +2712,20 @@ function updateStepUI() {
       editing.subscriptionStatus !== 'cancelled' &&
       editing.subscriptionStatus !== 'none');
 
+    // Free Basic (and not already a paid subscriber) -> instant free publish,
+    // no card, no Stripe. Otherwise the usual manage/checkout panels.
+    var planInfoNow = getCurrentPlanInfo();
+    var isFreePlan = !alreadySubscribed && !!(planInfoNow && planInfoNow.free);
+
     document.getElementById('sub-manage-panel').style.display = alreadySubscribed ? '' : 'none';
-    document.getElementById('sub-checkout-panel').style.display = alreadySubscribed ? 'none' : '';
+    document.getElementById('free-publish-panel').style.display = (!alreadySubscribed && isFreePlan) ? '' : 'none';
+    document.getElementById('sub-checkout-panel').style.display = (!alreadySubscribed && !isFreePlan) ? '' : 'none';
 
     if (alreadySubscribed) {
       loadSubscriptionPanel(editing);
+    } else if (isFreePlan) {
+      var fpe = document.getElementById('free-publish-error');
+      if (fpe) fpe.textContent = '';
     } else {
       // Deferred a tick so the container is visible when Stripe mounts.
       setTimeout(function() {
@@ -2640,8 +2735,10 @@ function updateStepUI() {
     }
   } else {
     nextBtn.style.display = 'inline-flex';
+    var _pi = getCurrentPlanInfo();
+    var _step3Label = (_pi && _pi.free) ? 'Review &amp; Publish' : 'Review &amp; Pay';
     nextBtn.innerHTML = currentStep === 3
-      ? 'Review & Pay <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>'
+      ? _step3Label + ' <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>'
       : 'Continue <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
   }
 }
@@ -3049,6 +3146,56 @@ function removeCoupon() {
   document.getElementById('coupon-wrap').style.display = '';
   document.getElementById('coupon-applied').style.display = 'none';
   refreshPaymentTotals();
+}
+
+// ---- Publish free (Basic) ----
+// Free listings skip Stripe entirely: save the venue, mark it live with the
+// Basic plan, and promote the host — no subscription, no card.
+async function publishFree() {
+  var btn = document.getElementById('btn-free-publish');
+  var errEl = document.getElementById('free-publish-error');
+  if (errEl) errEl.textContent = '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Publishing…'; }
+
+  // Save the listing first (silent: keep the modal open, no draft toast).
+  var saved = await saveListing(false, true);
+  if (!saved) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Publish my listing — Free'; }
+    return;
+  }
+  var venueIdStr = (typeof saved === 'object' && saved.id) ? saved.id : saved;
+  var user = (typeof getCurrentUser === 'function') ? await getCurrentUser() : null;
+
+  try {
+    if (SUPABASE_READY) {
+      // Free listings reuse 'active' so they show everywhere a live listing
+      // does. No stripe_subscription_id — there is no subscription.
+      var upd = await sb.from('venues')
+        .update({ plan: 'Basic', is_live: true, subscription_status: 'active' })
+        .eq('id', venueIdStr);
+      if (upd.error) {
+        if (errEl) errEl.textContent = 'Could not publish — please try again.';
+        if (btn) { btn.disabled = false; btn.textContent = 'Publish my listing — Free'; }
+        return;
+      }
+    }
+    if (user) {
+      sb.from('profiles').update({ role: 'Host' }).eq('id', user.id).then(function() {});
+    }
+    if (typeof venlyInvalidateCache === 'function') venlyInvalidateCache();
+
+    await loadUserListings();
+    closeModal();
+    showToast('Your free listing is now live!');
+    switchToPanel('listings');
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    var tabs = document.querySelectorAll('.tab-btn');
+    if (tabs[1]) tabs[1].classList.add('active');
+  } catch (e) {
+    console.error('publishFree failed:', e);
+    if (errEl) errEl.textContent = 'Something went wrong. Please try again.';
+    if (btn) { btn.disabled = false; btn.textContent = 'Publish my listing — Free'; }
+  }
 }
 
 // ---- Pay ----
