@@ -220,14 +220,14 @@ tbody tr:last-child td { border-bottom: none; }
 
 /* ── CRM toolbar: a single clean control bar ── */
 .crm-toolbar { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 14px; }
-/* Row 1 — search + primary action */
-.crm-toolbar-top { display: flex; align-items: center; gap: 10px; }
+/* Row 2 — search + primary action, divided from the filters above */
+.crm-toolbar-top { display: flex; align-items: center; gap: 10px; padding-top: 12px; border-top: 1px solid var(--border); }
 .crm-search-wrap { flex: 1 1 0%; min-width: 0; }
 .crm-search-wrap .search-input { width: 100%; padding-left: 32px; box-sizing: border-box; }
 .crm-add-prospect-btn { flex: 0 0 auto; width: auto; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; }
 
-/* Row 2 — status pills (left) spread from the sort/type selects (right) */
-.crm-toolbar-filters { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid var(--border); }
+/* Row 1 — status pills (left) spread from the sort/type selects (right) */
+.crm-toolbar-filters { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .crm-status-tabs { display: flex; gap: 6px; flex-wrap: wrap; flex: 1 1 auto; }
 .crm-toolbar-selects { display: flex; gap: 8px; flex: 0 0 auto; }
 .crm-select {
@@ -1676,16 +1676,7 @@ tbody tr:last-child td { border-bottom: none; }
     <div id="crm-shell">
       <div class="table-card">
         <div class="crm-toolbar">
-          <!-- Row 1: search grows to fill the width, the primary action anchors
-               the right edge — the two most-used controls, always on one line. -->
-          <div class="crm-toolbar-top">
-            <div class="search-wrap crm-search-wrap">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-              <input id="crm-search" class="search-input" placeholder="Search prospects..." oninput="crmFiltersChanged()" />
-            </div>
-            <button class="btn-sm btn-red crm-add-prospect-btn" onclick="createCrmRecord()">+ Add prospect</button>
-          </div>
-          <!-- Row 2: status pills (left) + sort/type refinements (right). -->
+          <!-- Row 1: status pills (left) + sort/type refinements (right). -->
           <div class="crm-toolbar-filters">
             <div id="crm-status-tabs" class="crm-status-tabs"></div>
             <div class="crm-toolbar-selects">
@@ -1702,6 +1693,15 @@ tbody tr:last-child td { border-bottom: none; }
                 <option value="Shoot Location">Shoot Location</option>
               </select>
             </div>
+          </div>
+          <!-- Row 2: search grows to fill the width, the primary action anchors
+               the right edge — the two most-used controls, always on one line. -->
+          <div class="crm-toolbar-top">
+            <div class="search-wrap crm-search-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+              <input id="crm-search" class="search-input" placeholder="Search prospects..." oninput="crmFiltersChanged()" />
+            </div>
+            <button class="btn-sm btn-red crm-add-prospect-btn" onclick="createCrmRecord()">+ Add prospect</button>
           </div>
         </div>
         <div id="crm-list-rows" class="crm-grid"></div>
