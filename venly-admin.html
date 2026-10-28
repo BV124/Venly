@@ -641,6 +641,39 @@ tbody tr:last-child td { border-bottom: none; }
 .msg-folder-select { padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 11px; font-family: inherit; color: var(--text); background: var(--white); cursor: pointer; }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
 
+/* ── NOTES: folder rail + crisp list ── */
+.notes-layout { display: grid; grid-template-columns: 220px 1fr; align-items: stretch; }
+.notes-rail { border-right: 1px solid var(--border); padding: 14px; display: flex; flex-direction: column; gap: 2px; background: #fcfcfc; border-radius: var(--radius) 0 0 var(--radius); }
+.notes-rail-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); padding: 4px 10px 8px; }
+.notes-folder { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 8px; font-size: 13px; color: var(--text); cursor: pointer; border: none; background: none; width: 100%; text-align: left; font-family: inherit; transition: background 0.12s, color 0.12s; }
+.notes-folder svg { width: 15px; height: 15px; flex-shrink: 0; color: var(--text-muted); }
+.notes-folder:hover { background: #f1f1f1; }
+.notes-folder.active { background: var(--red-light); color: var(--red); font-weight: 600; }
+.notes-folder.active svg { color: var(--red); }
+.notes-folder .nf-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.notes-folder .nf-count { font-size: 11px; color: var(--text-muted); font-weight: 600; flex-shrink: 0; }
+.notes-folder.active .nf-count { color: var(--red); }
+.notes-newfolder { margin-top: 6px; color: var(--text-muted); font-weight: 500; }
+.notes-newfolder svg { width: 14px; height: 14px; }
+.notes-main { min-width: 0; display: flex; flex-direction: column; }
+.notes-main-head { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--border); }
+.notes-main-head .notes-current-folder { font-size: 14px; font-weight: 700; flex: 1; min-width: 0; }
+.note-row { display: block; padding: 15px 20px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
+.note-row:last-child { border-bottom: none; }
+.note-row:hover { background: #fafafa; }
+.note-row-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 3px; }
+.note-row-title { font-size: 14px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.note-row-time { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+.note-row-preview { font-size: 12.5px; color: var(--text-muted); line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.note-row-folder { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: var(--text-muted); margin-top: 6px; }
+.note-row-folder svg { width: 11px; height: 11px; }
+@media (max-width: 760px) {
+  .notes-layout { grid-template-columns: 1fr; }
+  .notes-rail { flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--border); border-radius: var(--radius) var(--radius) 0 0; gap: 6px; }
+  .notes-rail-label { display: none; }
+  .notes-folder { width: auto; white-space: nowrap; }
+}
+
 /* ── BLOG EDITOR ───────────────────────────────────────────── */
 .editor-layout { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
 .editor-main { display: flex; flex-direction: column; gap: 16px; }
@@ -1716,11 +1749,18 @@ tbody tr:last-child td { border-bottom: none; }
     </div>
 
     <div class="table-card">
-      <div class="table-card-header">
-        <div style="display:flex;gap:6px;flex-wrap:wrap;flex:1" id="notes-tag-tabs"></div>
-        <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input id="notes-search" class="search-input" style="padding-left:28px;width:200px" placeholder="Search notes..." oninput="renderNotesList()" /></div>
+      <div class="notes-layout">
+        <!-- Folder rail -->
+        <div class="notes-rail" id="notes-folder-rail"></div>
+        <!-- Notes list -->
+        <div class="notes-main">
+          <div class="notes-main-head">
+            <div class="notes-current-folder" id="notes-current-folder">All notes</div>
+            <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input id="notes-search" class="search-input" style="padding-left:28px;width:200px" placeholder="Search notes..." oninput="renderNotesList()" /></div>
+          </div>
+          <div id="notes-list-rows"></div>
+        </div>
       </div>
-      <div id="notes-list-rows"></div>
     </div>
   </div>
 
@@ -2750,6 +2790,14 @@ async function downloadVenueSnapshot() {
 var _notesCache = null;
 var _currentNoteId = null;
 var _notesTagFilter = 'all';
+// Folders the admin has created but hasn't filed a note into yet. note.tag IS
+// the folder, so a folder "persists" once any note uses it; this keeps a
+// freshly-made empty folder visible in the rail in the meantime.
+var _notesNewFolders = [];
+
+// Small glyphs reused across the rail and list rows.
+var NOTE_FOLDER_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>';
+var NOTE_ALL_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>';
 
 async function adminBootstrapNotes() {
   if (!SUPABASE_READY) return;
@@ -2760,28 +2808,51 @@ async function adminBootstrapNotes() {
   } catch(e) { console.error('adminBootstrapNotes failed:', e); _notesCache = []; }
 }
 
+// Distinct folder names in use (note tags) plus any just-created empties.
+function getNoteFolders() {
+  var notes = _notesCache || [];
+  var set = [];
+  notes.forEach(function(n) { if (n.tag && set.indexOf(n.tag) === -1) set.push(n.tag); });
+  _notesNewFolders.forEach(function(f) { if (f && set.indexOf(f) === -1) set.push(f); });
+  set.sort(function(a, b) { return a.toLowerCase().localeCompare(b.toLowerCase()); });
+  return set;
+}
+
 function renderNotesList() {
   var notes = _notesCache || [];
   var search = (document.getElementById('notes-search') ? document.getElementById('notes-search').value : '').toLowerCase();
+  var folders = getNoteFolders();
 
-  // Build tag tabs
-  var tags = ['all'];
-  notes.forEach(function(n) { if (n.tag && !tags.includes(n.tag)) tags.push(n.tag); });
-  var tabsEl = document.getElementById('notes-tag-tabs');
-  if (tabsEl) {
-    tabsEl.innerHTML = tags.map(function(t) {
-      var isActive = _notesTagFilter === t;
-      return '<button class="action-btn msg-folder-tab' + (isActive ? ' active' : '') + '" onclick="setNotesTag(\'' + escapeHtml(t) + '\')">' +
-        (t === 'all' ? 'All notes' : escapeHtml(t)) + '</button>';
+  // If the active folder vanished (its last note moved away), fall back to All.
+  if (_notesTagFilter !== 'all' && folders.indexOf(_notesTagFilter) === -1) _notesTagFilter = 'all';
+
+  // ── Folder rail ──
+  var railEl = document.getElementById('notes-folder-rail');
+  if (railEl) {
+    var rail = '<div class="notes-rail-label">Folders</div>';
+    rail += '<button class="notes-folder' + (_notesTagFilter === 'all' ? ' active' : '') + '" onclick="setNotesTag(\'all\')">' +
+      NOTE_ALL_SVG + '<span class="nf-name">All notes</span><span class="nf-count">' + notes.length + '</span></button>';
+    rail += folders.map(function(f) {
+      var count = notes.filter(function(n) { return n.tag === f; }).length;
+      return '<button class="notes-folder' + (_notesTagFilter === f ? ' active' : '') + '" onclick="setNotesTag(\'' + escapeHtml(f).replace(/'/g, "\\'") + '\')">' +
+        NOTE_FOLDER_SVG + '<span class="nf-name">' + escapeHtml(f) + '</span><span class="nf-count">' + count + '</span></button>';
     }).join('');
+    rail += '<button class="notes-folder notes-newfolder" onclick="createNoteFolder()">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+      '<span class="nf-name">New folder</span></button>';
+    railEl.innerHTML = rail;
   }
 
-  // Filter
+  var curEl = document.getElementById('notes-current-folder');
+  if (curEl) curEl.textContent = _notesTagFilter === 'all' ? 'All notes' : _notesTagFilter;
+
+  // ── Filter + rows ──
   var filtered = notes.filter(function(n) {
     var matchTag = _notesTagFilter === 'all' || n.tag === _notesTagFilter;
     var matchSearch = !search ||
       (n.title || '').toLowerCase().includes(search) ||
-      (n.tag || '').toLowerCase().includes(search);
+      (n.tag || '').toLowerCase().includes(search) ||
+      ((n.body || '').replace(/<[^>]*>/g, ' ').toLowerCase().includes(search));
     return matchTag && matchSearch;
   });
 
@@ -2789,8 +2860,10 @@ function renderNotesList() {
   if (!rowsEl) return;
 
   if (!filtered.length) {
-    rowsEl.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-size:13px">' +
-      (notes.length ? 'No notes match your search.' : 'No notes yet — click "+ New note" to get started.') + '</div>';
+    var emptyMsg = search ? 'No notes match your search.'
+      : (_notesTagFilter !== 'all' ? 'This folder is empty — add a note to it with “+ New note”.'
+      : 'No notes yet — click “+ New note” to get started.');
+    rowsEl.innerHTML = '<div style="padding:48px 20px;text-align:center;color:var(--text-muted);font-size:13px">' + emptyMsg + '</div>';
     return;
   }
 
@@ -2799,18 +2872,19 @@ function renderNotesList() {
     if (n.body) {
       var tmp = document.createElement('div');
       tmp.innerHTML = n.body;
-      preview = (tmp.innerText || tmp.textContent || '').slice(0, 120).trim();
+      preview = (tmp.innerText || tmp.textContent || '').slice(0, 200).trim();
     }
     var updated = fmtActivityDate(n.updated_at);
-    return '<div class="msg-row" onclick="openNoteEditor(\'' + n.id + '\')" style="cursor:pointer">' +
-      '<div style="flex:1;min-width:0">' +
-        '<div class="msg-top">' +
-          '<span class="msg-name">' + escapeHtml(n.title || 'Untitled') + '</span>' +
-          '<span class="msg-time">' + updated + '</span>' +
+    // Folder chip only on "All notes" — inside a folder it would be redundant.
+    var folderChip = (_notesTagFilter === 'all' && n.tag)
+      ? '<div class="note-row-folder">' + NOTE_FOLDER_SVG + escapeHtml(n.tag) + '</div>' : '';
+    return '<div class="note-row" onclick="openNoteEditor(\'' + n.id + '\')">' +
+        '<div class="note-row-top">' +
+          '<span class="note-row-title">' + escapeHtml(n.title || 'Untitled') + '</span>' +
+          '<span class="note-row-time">' + updated + '</span>' +
         '</div>' +
-        (n.tag ? '<div style="margin-bottom:4px"><span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--bg);border:1px solid var(--border);color:var(--text-muted)">' + escapeHtml(n.tag) + '</span></div>' : '') +
-        '<div class="msg-preview" style="color:var(--text-muted)">' + escapeHtml(preview || 'Empty note') + '</div>' +
-      '</div>' +
+        '<div class="note-row-preview">' + escapeHtml(preview || 'Empty note') + '</div>' +
+        folderChip +
     '</div>';
   }).join('');
 }
@@ -2820,11 +2894,56 @@ function setNotesTag(tag) {
   renderNotesList();
 }
 
+// "New folder" in the rail opens a fresh note with the folder field focused —
+// one creation path, no extra modal. The folder is saved when the note is.
+function createNoteFolder() {
+  openNoteEditor(null);
+  setTimeout(function() {
+    var sel = document.getElementById('note-folder-select');
+    if (sel) { sel.value = '__new__'; onNoteFolderChange(); }
+  }, 120);
+}
+
+// Fill the editor's Folder dropdown with existing folders + a "New folder…"
+// option, and preselect the note's current folder (or the folder currently
+// being viewed, so a note made inside a folder lands there by default).
+function populateNoteFolderSelect(currentFolder) {
+  var sel = document.getElementById('note-folder-select');
+  if (!sel) return;
+  var folders = getNoteFolders();
+  var opts = '<option value="">No folder</option>';
+  opts += folders.map(function(f) { return '<option value="' + escapeHtml(f) + '">' + escapeHtml(f) + '</option>'; }).join('');
+  // Keep a note's folder selectable even if it's not in the derived list yet.
+  if (currentFolder && folders.indexOf(currentFolder) === -1) {
+    opts += '<option value="' + escapeHtml(currentFolder) + '">' + escapeHtml(currentFolder) + '</option>';
+  }
+  opts += '<option value="__new__">+ New folder…</option>';
+  sel.innerHTML = opts;
+  sel.value = currentFolder || '';
+  var newInput = document.getElementById('note-folder-new');
+  if (newInput) { newInput.style.display = 'none'; newInput.value = ''; }
+}
+
+// Toggle the inline "new folder name" input when "+ New folder…" is picked.
+function onNoteFolderChange() {
+  var sel = document.getElementById('note-folder-select');
+  var newInput = document.getElementById('note-folder-new');
+  if (!sel || !newInput) return;
+  if (sel.value === '__new__') {
+    newInput.style.display = '';
+    newInput.focus();
+  } else {
+    newInput.style.display = 'none';
+  }
+}
+
 function openNoteEditor(id) {
   _currentNoteId = id;
   var note = id ? (_notesCache || []).find(function(n) { return n.id === id; }) : null;
   document.getElementById('note-title-input').value = note ? (note.title || '') : '';
-  document.getElementById('note-tag-input').value = note ? (note.tag || '') : '';
+  // Existing note → its folder. New note → default to the folder being viewed.
+  var startFolder = note ? (note.tag || '') : (_notesTagFilter !== 'all' ? _notesTagFilter : '');
+  populateNoteFolderSelect(startFolder);
   document.getElementById('note-body-editor').innerHTML = note ? (note.body || '') : '';
   document.getElementById('note-delete-btn').style.display = id ? '' : 'none';
   document.getElementById('note-editor-overlay').classList.remove('hidden');
@@ -2838,7 +2957,16 @@ function closeNoteEditor() {
 
 async function saveCurrentNote() {
   var title = document.getElementById('note-title-input').value.trim() || 'Untitled';
-  var tag = document.getElementById('note-tag-input').value.trim() || null;
+  // Resolve the folder: either a chosen one, or a freshly typed new folder name.
+  var sel = document.getElementById('note-folder-select');
+  var newInput = document.getElementById('note-folder-new');
+  var tag;
+  if (sel && sel.value === '__new__') {
+    tag = (newInput && newInput.value.trim()) ? newInput.value.trim() : null;
+  } else {
+    tag = (sel && sel.value) ? sel.value : null;
+  }
+  if (tag) { _notesTagFilter = tag; } // jump to the note's folder after saving
   var body = document.getElementById('note-body-editor').innerHTML.replace(/(<br\s*\/?>)+$/gi,'').trim();
   var now = new Date().toISOString();
 
@@ -7431,9 +7559,13 @@ document.querySelector('nav .btn-red') && document.querySelector('nav .btn-red')
     <div style="padding:20px 28px 0;flex-shrink:0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
       <div style="flex:1">
         <input id="note-title-input" style="width:100%;font-size:20px;font-weight:800;border:none;outline:none;font-family:Inter,sans-serif;color:var(--text);padding:0;background:transparent" placeholder="Note title..." />
-        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center">
-          <input id="note-tag-input" class="crm-input" style="width:140px" placeholder="Tag (e.g. Strategy)" />
-          <div style="font-size:11px;color:var(--text-muted)">Tags help organise notes by topic</div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center">
+          <div style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            Folder
+          </div>
+          <select id="note-folder-select" class="crm-input" style="width:auto;min-width:170px;cursor:pointer" onchange="onNoteFolderChange()"></select>
+          <input id="note-folder-new" class="crm-input" style="width:170px;display:none" placeholder="New folder name…" />
         </div>
       </div>
       <button onclick="closeNoteEditor()" style="background:none;border:none;cursor:pointer;padding:8px;color:var(--text-muted);flex-shrink:0">
@@ -7457,10 +7589,10 @@ document.querySelector('nav .btn-red') && document.querySelector('nav .btn-red')
         <button type="button" onclick="richCmd('removeFormat')" style="font-size:11px">Clear</button>
       </div>
     </div>
-    <div style="flex:1;overflow-y:auto;padding:16px 28px">
+    <div style="flex:1;overflow-y:auto;padding:8px 28px 20px">
       <div id="note-body-editor" class="rich-editor" contenteditable="true"
-        data-placeholder="Start writing your note..."
-        style="min-height:300px;border:1px solid var(--border);border-radius:8px;padding:16px;font-size:14px;line-height:1.8">
+        data-placeholder="Start writing your note…"
+        style="min-height:320px;border:none;border-radius:0;padding:12px 2px;font-size:14.5px;line-height:1.75">
       </div>
     </div>
     <div style="padding:14px 28px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
