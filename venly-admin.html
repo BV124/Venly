@@ -218,6 +218,31 @@ tbody tr:last-child td { border-bottom: none; }
 .crm-filter-select.is-active { border-color: var(--red); background-color: var(--red-light); color: var(--red); font-weight: 600; }
 .crm-list-count { font-size: 11px; color: var(--text-muted); padding: 10px 14px 0; flex-shrink: 0; }
 
+/* ── CRM toolbar: a single clean control bar ── */
+.crm-toolbar { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 14px; }
+/* Row 1 — search + primary action */
+.crm-toolbar-top { display: flex; align-items: center; gap: 10px; }
+.crm-search-wrap { flex: 1 1 0%; min-width: 0; }
+.crm-search-wrap .search-input { width: 100%; padding-left: 32px; box-sizing: border-box; }
+.crm-add-prospect-btn { flex: 0 0 auto; width: auto; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; }
+
+/* Row 2 — status pills (left) spread from the sort/type selects (right) */
+.crm-toolbar-filters { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid var(--border); }
+.crm-status-tabs { display: flex; gap: 6px; flex-wrap: wrap; flex: 1 1 auto; }
+.crm-toolbar-selects { display: flex; gap: 8px; flex: 0 0 auto; }
+.crm-select {
+  padding: 7px 30px 7px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 13px; font-family: 'Inter', sans-serif; color: var(--text); background-color: var(--bg);
+  cursor: pointer; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath fill='%236b6b6b' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+}
+.crm-select:focus { outline: none; border-color: var(--red); }
+@media (max-width: 640px) {
+  .crm-toolbar-selects { flex: 1 1 100%; }
+  .crm-select { flex: 1 1 calc(50% - 4px); }
+}
+
 .crm-due-summary { display: flex; gap: 6px; padding: 10px 14px 0; flex-shrink: 0; }
 .crm-due-summary button {
   flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
@@ -1640,7 +1665,6 @@ tbody tr:last-child td { border-bottom: none; }
   <div id="section-crm" class="page-section">
     <div class="section-header">
       <div><div class="section-title">CRM</div><div class="section-subtitle">Track outreach to venue prospects — notes, calls, emails and next steps.</div></div>
-      <button class="btn-sm btn-red" onclick="createCrmRecord()">+ Add prospect</button>
     </div>
 
     <div id="crm-access-denied" style="display:none;padding:60px 20px;text-align:center;color:var(--text-muted)">
@@ -1651,24 +1675,32 @@ tbody tr:last-child td { border-bottom: none; }
 
     <div id="crm-shell">
       <div class="table-card">
-        <div class="table-card-header" style="flex-direction:column;align-items:stretch;gap:10px">
-          <!-- Row 1: status tabs left, search + filter right -->
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
-            <div id="crm-status-tabs" style="display:flex;gap:6px;flex-wrap:wrap"></div>
-            <div style="display:flex;gap:8px;align-items:center">
-              <select id="crm-sort" class="search-input" style="width:auto;padding-left:10px;cursor:pointer" onchange="crmFiltersChanged()">
+        <div class="crm-toolbar">
+          <!-- Row 1: search grows to fill the width, the primary action anchors
+               the right edge — the two most-used controls, always on one line. -->
+          <div class="crm-toolbar-top">
+            <div class="search-wrap crm-search-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+              <input id="crm-search" class="search-input" placeholder="Search prospects..." oninput="crmFiltersChanged()" />
+            </div>
+            <button class="btn-sm btn-red crm-add-prospect-btn" onclick="createCrmRecord()">+ Add prospect</button>
+          </div>
+          <!-- Row 2: status pills (left) + sort/type refinements (right). -->
+          <div class="crm-toolbar-filters">
+            <div id="crm-status-tabs" class="crm-status-tabs"></div>
+            <div class="crm-toolbar-selects">
+              <select id="crm-sort" class="crm-select" onchange="crmFiltersChanged()">
                 <option value="activity">Sort: Recent activity</option>
                 <option value="due">Sort: Due date</option>
                 <option value="name">Sort: Name A–Z</option>
                 <option value="status">Sort: Status</option>
               </select>
-              <select id="crm-filter-category" class="search-input" style="width:auto;padding-left:10px;cursor:pointer" onchange="crmFiltersChanged()">
+              <select id="crm-filter-category" class="crm-select" onchange="crmFiltersChanged()">
                 <option value="">All types</option>
                 <option value="Event space">Event space</option>
                 <option value="Meeting space">Meeting space</option>
                 <option value="Shoot Location">Shoot Location</option>
               </select>
-              <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input id="crm-search" class="search-input" style="padding-left:28px;width:200px" placeholder="Search prospects..." oninput="crmFiltersChanged()" /></div>
             </div>
           </div>
         </div>
