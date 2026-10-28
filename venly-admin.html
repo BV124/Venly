@@ -6943,6 +6943,17 @@ function removeCrmTag() {} // tags removed from simplified UI
 // the site adds a row to it), so waiting for it before showing anything
 // meant the whole dashboard felt only as fast as its slowest table, even
 // though almost nothing else here actually depends on it.
+// Render the Venues table the moment the venue data is ready — it already
+// carries host_name / host_email / host_user_id, so it does NOT need to wait on
+// the users, blog or messages bootstraps. Gating it behind all of them made the
+// Host column (and the whole table) appear only as fast as the slowest of those
+// unrelated loads. This shows venues + hosts immediately; the Promise.all below
+// still re-renders once everything else is in.
+Promise.resolve(window.venlyReady).then(function() {
+  if (typeof renderAllFilters === 'function') renderAllFilters();
+  buildVenuesTable();
+}).catch(function(){});
+
 Promise.all([window.venlyReady, adminBootstrapUsers(), adminBootstrapBlog(), adminBootstrapMessages()]).then(function() {
 buildUsersTable();
 buildRecentSignups(); buildRecentVenues();
