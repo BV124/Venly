@@ -6347,6 +6347,24 @@ function crmSystemEntry(text) {
   return { id: 'sys-' + Math.random().toString(36).slice(2), type: 'system', text: text, ts: now, createdAt: now };
 }
 
+// Fills the CRM prospect modal's Region dropdown from the regions managed on
+// the Filters page (the same source the venue editor uses), then selects the
+// prospect's current region.
+function populateCrmRegionOptions(currentVal) {
+  var select = document.getElementById('crm-modal-region');
+  if (!select) return;
+  var filters = (typeof getFilters === 'function') ? getFilters() : { regions: [] };
+  var regions = (filters && filters.regions) ? filters.regions : [];
+  select.innerHTML = '<option value="">Choose region</option>' +
+    regions.map(function(r) { return '<option value="' + escapeHtml(r) + '">' + escapeHtml(r) + '</option>'; }).join('');
+  // Keep a stored region even if it's no longer in the filters list, so it isn't
+  // silently blanked on save.
+  if (currentVal && regions.indexOf(currentVal) === -1) {
+    select.innerHTML += '<option value="' + escapeHtml(currentVal) + '">' + escapeHtml(currentVal) + '</option>';
+  }
+  select.value = currentVal || '';
+}
+
 // The last REAL interaction (note/email/call/meeting), ignoring hidden system
 // entries — so "last activity" sort and labels reflect what's actually shown.
 function crmLastRealEntry(timeline) {
@@ -6361,9 +6379,11 @@ function crmLastRealEntry(timeline) {
 var _crmCache = null;
 
 function _mapCrmFromDb(row) {
+  // Region reuses the existing `address` column (the Address field was removed
+  // from the UI), so no DB schema change is needed to persist it.
   return {
     id: row.id, venueName: row.venue_name || '', website: row.website || '',
-    category: row.category || 'Event space', address: row.address || '',
+    category: row.category || 'Event space', address: row.address || '', region: row.address || '',
     contactName: row.contact_name || '', email: row.email || '', phone: row.phone || '',
     status: row.status || 'New', nextStep: row.next_step || '', nextAction: row.next_step || '',
     dueDate: row.due_date || '', tags: row.tags || [], timeline: row.timeline || [],
@@ -6372,7 +6392,9 @@ function _mapCrmFromDb(row) {
 function _mapCrmToDb(record) {
   return {
     id: record.id, venue_name: record.venueName || '', website: record.website || '',
-    category: record.category || 'Event space', address: record.address || '',
+    category: record.category || 'Event space',
+    // Persist region into the `address` column (see _mapCrmFromDb).
+    address: record.region || record.address || '',
     contact_name: record.contactName || '', email: record.email || '', phone: record.phone || '',
     status: record.status || 'New', next_step: record.nextStep || record.nextAction || '',
     due_date: record.dueDate || '', tags: record.tags || [], timeline: record.timeline || [],
@@ -6731,10 +6753,7 @@ function selectCrmRecord(id) {
   if (emailEl) emailEl.value = r.email || '';
   var phoneEl = document.getElementById('crm-modal-phone');
   if (phoneEl) phoneEl.value = r.phone || '';
-  var websiteEl = document.getElementById('crm-modal-website');
-  if (websiteEl) websiteEl.value = r.website || '';
-  var addressEl = document.getElementById('crm-modal-address');
-  if (addressEl) addressEl.value = r.address || '';
+  populateCrmRegionOptions(r.region || '');
   var nextEl = document.getElementById('crm-modal-nextstep');
   if (nextEl) nextEl.value = r.nextStep || r.nextAction || '';
   var dueDateEl = document.getElementById('crm-modal-duedate');
@@ -7317,12 +7336,8 @@ document.querySelector('nav .btn-red') && document.querySelector('nav .btn-red')
               <input id="crm-modal-phone" class="crm-input" placeholder="021 000 0000" onblur="saveCrmField('phone',this.value)" />
             </div>
             <div>
-              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Website</div>
-              <input id="crm-modal-website" class="crm-input" placeholder="https://..." onblur="saveCrmField('website',this.value)" />
-            </div>
-            <div style="grid-column:1/-1">
-              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Address</div>
-              <input id="crm-modal-address" class="crm-input" placeholder="123 Main St, Auckland" onblur="saveCrmField('address',this.value)" />
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Region</div>
+              <select id="crm-modal-region" class="crm-input" onchange="saveCrmField('region',this.value)"></select>
             </div>
             <div style="grid-column:1/-1">
               <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px">Next step</div>
