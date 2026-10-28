@@ -6347,6 +6347,16 @@ function crmSystemEntry(text) {
   return { id: 'sys-' + Math.random().toString(36).slice(2), type: 'system', text: text, ts: now, createdAt: now };
 }
 
+// The last REAL interaction (note/email/call/meeting), ignoring hidden system
+// entries — so "last activity" sort and labels reflect what's actually shown.
+function crmLastRealEntry(timeline) {
+  if (!timeline || !timeline.length) return null;
+  for (var i = timeline.length - 1; i >= 0; i--) {
+    if (timeline[i] && timeline[i].type !== 'system') return timeline[i];
+  }
+  return null;
+}
+
 // ---- CRM STORAGE — Supabase (shared across all admins) ----
 var _crmCache = null;
 
@@ -6542,9 +6552,10 @@ function renderCrmList() {
       var order = ['New','Contacted','Interested','Listed','Not Now','Lost','Do Not Contact'];
       return order.indexOf(a.status) - order.indexOf(b.status);
     }
-    // Default: recent activity
-    var aTime = a.timeline && a.timeline.length ? (a.timeline[a.timeline.length-1].ts || a.timeline[a.timeline.length-1].createdAt) : '0';
-    var bTime = b.timeline && b.timeline.length ? (b.timeline[b.timeline.length-1].ts || b.timeline[b.timeline.length-1].createdAt) : '0';
+    // Default: recent activity (by the last real interaction)
+    var aE = crmLastRealEntry(a.timeline), bE = crmLastRealEntry(b.timeline);
+    var aTime = aE ? (aE.ts || aE.createdAt) : '0';
+    var bTime = bE ? (bE.ts || bE.createdAt) : '0';
     return bTime.localeCompare(aTime);
   });
 
@@ -6583,8 +6594,9 @@ function renderCrmList() {
       else { dueText = 'Follow up in ' + diffDays + ' ' + dayWord(diffDays); }
     }
 
-    var lastActivity = r.timeline && r.timeline.length
-      ? fmtActivityDate(r.timeline[r.timeline.length - 1].ts || r.timeline[r.timeline.length - 1].createdAt)
+    var _lastReal = crmLastRealEntry(r.timeline);
+    var lastActivity = _lastReal
+      ? fmtActivityDate(_lastReal.ts || _lastReal.createdAt)
       : 'No activity';
     var initials = ((r.venueName || '?')[0] || '?').toUpperCase();
     var avatarColor = msgAvatarColor(r.venueName || '');
@@ -6670,7 +6682,7 @@ async function createCrmRecord() {
     venueName: 'New venue', website: '', category: 'Event space', address: '',
     contactName: '', email: '', phone: '', status: 'New',
     nextStep: '', nextAction: '', dueDate: '', tags: [],
-    timeline: [ crmSystemEntry('Added to CRM') ],
+    timeline: [],
   };
   await saveCrmRecord(newRecord);
   renderCrmList();
@@ -6748,8 +6760,13 @@ function getCrmRecord(id) {
 }
 
 function renderCrmTimelineItems(items) {
-  if (!items || !items.length) return '<div style="padding:20px 0;text-align:center;color:var(--text-muted);font-size:13px">No activity logged yet.</div>';
-  return items.slice().reverse().map(function(e) {
+  // Only show real interactions — notes, emails, calls, meetings. 'system'
+  // entries (status changes, follow-up dates, "Added to CRM") are hidden; they
+  // just clutter the log. Old records keep their system entries in storage,
+  // they simply aren't rendered.
+  var shown = (items || []).filter(function(e) { return e && e.type !== 'system'; });
+  if (!shown.length) return '<div style="padding:20px 0;text-align:center;color:var(--text-muted);font-size:13px">No activity logged yet.</div>';
+  return shown.slice().reverse().map(function(e) {
     var icon = e.type === 'email' ? '📧' : e.type === 'call' ? '📞' : e.type === 'meeting' ? '📅' : e.type === 'system' ? '🔔' : '📝';
     var isSystem = e.type === 'system';
     return '<div style="padding:10px 0;border-bottom:1px solid var(--border)">' +
@@ -6833,22 +6850,9 @@ async function saveCrmField(field, value) {
     r[field] = value;
   }
 
-  // Auto-log meaningful changes to the timeline
-  var fieldLabels = { venueName: 'Venue name', status: 'Status', category: 'Category',
-    website: 'Website', address: 'Address', contactName: 'Contact name', phone: 'Phone',
-    email: 'Email', nextStep: 'Next step', nextAction: 'Next step', dueDate: 'Due date' };
-  if (fieldLabels[field] && value) {
-    r.timeline = r.timeline || [];
-    if (field === 'status') {
-      r.timeline.push(crmSystemEntry('Status changed to ' + value));
-    } else if (field === 'nextStep' || field === 'nextAction') {
-      r.timeline.push(crmSystemEntry('Next step: ' + value));
-    } else if (field === 'dueDate') {
-      var d = new Date(value + 'T00:00:00');
-      var label = d.getDate() + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()] + ' ' + d.getFullYear();
-      r.timeline.push(crmSystemEntry('Follow-up date set: ' + label));
-    }
-  }
+  // Field changes (status, next step, follow-up date, etc.) are saved on the
+  // record itself but no longer logged as "System" timeline entries — the
+  // timeline is kept to real interactions only (notes, emails, calls, meetings).
 
   await saveCrmRecord(r);
 }
