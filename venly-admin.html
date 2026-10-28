@@ -1763,6 +1763,7 @@ tbody tr:last-child td { border-bottom: none; }
         <div class="notes-main">
           <div class="notes-main-head">
             <div class="notes-current-folder" id="notes-current-folder">All notes</div>
+            <button id="notes-folder-newnote" class="btn-sm btn-red" style="display:none;flex-shrink:0;white-space:nowrap" onclick="newNoteInCurrentFolder()">+ New note</button>
             <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input id="notes-search" class="search-input" style="padding-left:28px;width:200px" placeholder="Search notes..." oninput="renderNotesList()" /></div>
           </div>
           <div id="notes-list-rows"></div>
@@ -2860,6 +2861,11 @@ function renderNotesList() {
   var curEl = document.getElementById('notes-current-folder');
   if (curEl) curEl.textContent = _notesTagFilter === 'all' ? 'All notes' : _notesTagFilter;
 
+  // Show a "+ New note" button in the header only when a specific folder is
+  // open — it creates a note already filed into that folder.
+  var newBtn = document.getElementById('notes-folder-newnote');
+  if (newBtn) newBtn.style.display = (_notesTagFilter === 'all') ? 'none' : '';
+
   // ── Filter + rows ──
   var filtered = notes.filter(function(n) {
     var matchTag = _notesTagFilter === 'all' || n.tag === _notesTagFilter;
@@ -2906,6 +2912,12 @@ function renderNotesList() {
 function setNotesTag(tag) {
   _notesTagFilter = tag;
   renderNotesList();
+}
+
+// New note pre-filed into the folder currently being viewed. openNoteEditor
+// already defaults a new note's folder to _notesTagFilter, so this just opens it.
+function newNoteInCurrentFolder() {
+  openNoteEditor(null);
 }
 
 // "New folder" in the rail opens a fresh note with the folder field focused —
