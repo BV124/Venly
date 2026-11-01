@@ -626,20 +626,14 @@ tbody tr:last-child td { border-bottom: none; }
             </div>
             <div class="rich-editor" id="v-desc" contenteditable="true" data-placeholder="Describe your space — what makes it special, what it's great for..." style="min-height:120px"></div>
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Type of space</label>
-              <select id="v-type" onchange="renderFeatures()">
-                <option value="">Choose</option>
-                <option>Event space</option>
-                <option>Meeting space</option>
-                <option>Shoot Location</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Capacity (e.g. 1–10, 50–100)</label>
-              <input type="text" id="v-capacity" inputmode="numeric" placeholder="e.g. 20–150" oninput="filterCapacityInput(this)" onblur="tidyCapacity(this)" />
-            </div>
+          <div class="form-group" style="margin-bottom:16px">
+            <label>Type of space</label>
+            <select id="v-type" onchange="renderFeatures()">
+              <option value="">Choose</option>
+              <option>Event space</option>
+              <option>Meeting space</option>
+              <option>Shoot Location</option>
+            </select>
           </div>
           <!-- Region and District sit together: District's options depend on
                the selected Region, so pairing them makes that relationship
@@ -666,7 +660,10 @@ tbody tr:last-child td { border-bottom: none; }
                 <option value="">Choose</option>
               </select>
             </div>
-            <div class="form-group"></div>
+            <div class="form-group">
+              <label>Capacity <span style="font-weight:400;color:var(--text-muted)">(e.g. 1–10, 50–100)</span></label>
+              <input type="text" id="v-capacity" inputmode="numeric" placeholder="e.g. 20–150" oninput="filterCapacityInput(this)" onblur="tidyCapacity(this)" />
+            </div>
           </div>
           <div class="form-group">
             <label>Website (optional)</label>
