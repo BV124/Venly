@@ -4948,7 +4948,57 @@ function getFilters() {
   return getVenlyFilters();
 }
 
-async function saveFilters(filters) {
+// site_filters is a single JSON row updated last-write-wins. Two quick edits
+// (e.g. successive "Add" clicks) used to race: each read the filters, changed
+// its copy, and saved — so whichever wrote last wiped out the other's addition,
+// even though the toast said "Added".
+//
+// Fix: run every filter change through a serial queue of MUTATORS. Each queued
+// mutator runs only when its turn comes — AFTER the previous save has landed and
+// refreshed the cache — and applies its change to the freshest filters. So no
+// change is ever built on stale data and nothing clobbers anything.
+var _filtersOpChain = Promise.resolve();
+
+function cloneFilters(filters) {
+  return JSON.parse(JSON.stringify({
+    regions: filters.regions || [],
+    districtsByRegion: filters.districtsByRegion || {},
+    amenities: filters.amenities || [],
+    eventsByType: filters.eventsByType || {},
+    blogCategories: filters.blogCategories || [],
+    trendingChips: filters.trendingChips || [],
+  }));
+}
+
+// Queue a change. mutateFn receives the freshest filters (a clone) to mutate.
+// Return false from it to abort the save (e.g. a duplicate was detected).
+// Resolves true on a confirmed save, false on abort/failure.
+function queueFilterOp(mutateFn) {
+  var run = _filtersOpChain.then(async function() {
+    var filters = cloneFilters(getFilters());   // freshest state, at run time
+    var proceed = mutateFn(filters);
+    if (proceed === false) return false;
+    return _doSaveFilters(filters);
+  });
+  _filtersOpChain = run.then(function(){}, function(){});
+  return run;
+}
+
+// Back-compat wrapper for callers that already hold a mutated filters object —
+// still routed through the queue so every save is serialized.
+function saveFilters(filters) {
+  var snapshot = cloneFilters(filters);
+  return queueFilterOp(function(target) {
+    target.regions = snapshot.regions;
+    target.districtsByRegion = snapshot.districtsByRegion;
+    target.amenities = snapshot.amenities;
+    target.eventsByType = snapshot.eventsByType;
+    target.blogCategories = snapshot.blogCategories;
+    target.trendingChips = snapshot.trendingChips;
+  });
+}
+
+async function _doSaveFilters(filters) {
   if (SUPABASE_READY) {
     var dbRow = {
       regions: filters.regions || [],
@@ -5024,32 +5074,47 @@ async function addFilterItem(listPath, containerId) {
   var value = input.value.trim();
   if (!value) return;
 
-  var filters = getFilters();
-  var list = getByPath(filters, listPath);
+  // Disable the Add button while saving so a double-click can't fire two races.
+  var addBtn = input && input.parentElement ? input.parentElement.querySelector('button') : null;
+  if (addBtn) addBtn.disabled = true;
+  input.value = '';
 
-  if (list.some(function(item) { return item.toLowerCase() === value.toLowerCase(); })) {
-    showToast('"' + value + '" already exists in this list');
-    return;
-  }
-
-  list.push(value);
-  setByPath(filters, listPath, list);
-
-  // Adding a new region needs a matching (initially empty) districts list
-  if (listPath === 'regions' && !filters.districtsByRegion[value]) {
-    filters.districtsByRegion[value] = [];
-  }
-
-  if (await saveFilters(filters)) {
-    input.value = '';
-    renderEditableTagList(containerId, listPath);
-    if (listPath === 'regions') {
-      renderRegionSelect();
-      renderDistrictsForRegion();
+  var duplicate = false;
+  // The mutator runs against the FRESHEST filters when its turn in the queue
+  // comes up, so concurrent adds each build on the previous one's result.
+  var ok = await queueFilterOp(function(filters) {
+    var list = getByPath(filters, listPath);
+    if (!Array.isArray(list)) { setByPath(filters, listPath, []); list = getByPath(filters, listPath); }
+    if (list.some(function(item) { return item.toLowerCase() === value.toLowerCase(); })) {
+      duplicate = true;
+      return false; // abort the save — nothing to add
     }
-    refreshDependentDropdowns();
+    list.push(value);
+    setByPath(filters, listPath, list);
+    // A new region needs a matching (initially empty) districts list.
+    if (listPath === 'regions' && !filters.districtsByRegion[value]) {
+      filters.districtsByRegion[value] = [];
+    }
+    return true;
+  });
+
+  if (addBtn) addBtn.disabled = false;
+
+  if (duplicate) {
+    showToast('"' + value + '" already exists in this list');
+  } else if (ok) {
     showToast('Added "' + value + '"');
+  } else {
+    showToast('Could not save — please try again');
   }
+
+  // Always re-render from the authoritative cache so the UI reflects reality.
+  renderEditableTagList(containerId, listPath);
+  if (listPath === 'regions') {
+    renderRegionSelect();
+    renderDistrictsForRegion();
+  }
+  refreshDependentDropdowns();
 }
 
 // Step 1: clicking the × opens a confirmation modal instead of deleting immediately
@@ -5305,10 +5370,12 @@ function renderDistrictsForRegion() {
   var region = select.value;
   var filters = getFilters();
 
-  // Make sure this region has a districts array to work with, even if newly added
+  // Ensure this region has a districts array just for rendering. We do NOT save
+  // here — a fire-and-forget write from a render pass used to race with (and
+  // clobber) a district the admin had just added. The array is persisted when
+  // the region is created, or when the first district is added to it.
   if (!filters.districtsByRegion[region]) {
     filters.districtsByRegion[region] = [];
-    saveFilters(filters);
   }
 
   renderEditableTagList('filter-districts', 'districtsByRegion.' + region);
