@@ -159,6 +159,9 @@ var VENLY_DEFAULT_FILTERS = {
     'Hamilton': ['Hamilton Central', 'Chartwell', 'Rototuna'],
     'Bay of Plenty': ['Tauranga', 'Mount Maunganui', 'Rotorua', 'Whakatane'],
   },
+  // Third geographic layer: suburbs keyed by district name. Admins fill this in
+  // on the Filters page; venues can then pick a suburb within their district.
+  suburbsByDistrict: {},
   amenities: ['WiFi', 'Parking', 'AV Equipment', 'Catering', 'Wheelchair Access', 'Outdoor Space'],
   eventsByType: {
     event:   ['Wedding', '18th Party', '21st Party', 'Corporate Event', 'Private Party', 'Product Launch', 'Gala / Awards', 'Market / Expo', 'Live Performance'],
@@ -203,13 +206,14 @@ function getVenlyFilters() {
     // Never fall back to demo defaults once live — an empty-but-valid
     // shape instead, so callers can safely read .regions etc. without
     // crashing, but never see fake placeholder options.
-    merged = _venlyCache.filters || { regions: [], districtsByRegion: {}, amenities: [], eventsByType: {}, blogCategories: [], trendingChips: [] };
+    merged = _venlyCache.filters || { regions: [], districtsByRegion: {}, suburbsByDistrict: {}, amenities: [], eventsByType: {}, blogCategories: [], trendingChips: [] };
   } else {
     var stored = JSON.parse(localStorage.getItem('venly_filters') || 'null');
     merged = stored
       ? Object.assign({}, VENLY_DEFAULT_FILTERS, stored, {
           eventsByType: Object.assign({}, VENLY_DEFAULT_FILTERS.eventsByType, stored.eventsByType || {}),
-          districtsByRegion: Object.assign({}, VENLY_DEFAULT_FILTERS.districtsByRegion, stored.districtsByRegion || {})
+          districtsByRegion: Object.assign({}, VENLY_DEFAULT_FILTERS.districtsByRegion, stored.districtsByRegion || {}),
+          suburbsByDistrict: Object.assign({}, VENLY_DEFAULT_FILTERS.suburbsByDistrict, stored.suburbsByDistrict || {})
         })
       : JSON.parse(JSON.stringify(VENLY_DEFAULT_FILTERS));
   }
@@ -295,6 +299,7 @@ function _mapVenueFromDb(row) {
     type: row.type,
     region: row.region,
     district: row.district,
+    suburb: row.suburb,
     address: row.address,
     capacity: row.capacity,
     website: row.website,
@@ -335,6 +340,7 @@ function _mapFiltersFromDb(row) {
   return {
     regions: row.regions || [],
     districtsByRegion: row.districts_by_region || {},
+    suburbsByDistrict: row.suburbs_by_district || {},
     amenities: row.amenities || [],
     eventsByType: row.events_by_type || {},
     blogCategories: row.blog_categories || [],
@@ -395,7 +401,7 @@ async function venlyBootstrapVenues() {
     }
     // 2. Use the early-fired promise if available, otherwise fire fresh.
     // Photos are now Storage URLs, so fetching the full photos array is cheap.
-    var cols = 'id,name,type,region,district,capacity,plan,hits,is_live,featured_home,featured_occasion,event_types,lat,lng,price_from,price_to,price_type,pricing_details,subscription_status,created_at,photos,host_user_id,host_email,host_name,discount_percent,discount_code';
+    var cols = 'id,name,type,region,district,suburb,capacity,plan,hits,is_live,featured_home,featured_occasion,event_types,lat,lng,price_from,price_to,price_type,pricing_details,subscription_status,created_at,photos,host_user_id,host_email,host_name,discount_percent,discount_code';
     var venuesPromise = window._venlyEarlyVenues
       ? window._venlyEarlyVenues
       : sb.from('venues').select(cols).order('created_at', { ascending: false });
@@ -537,6 +543,7 @@ function _venueToDbRow(v) {
     type: v.type,
     region: v.region,
     district: v.district,
+    suburb: v.suburb || null,
     address: v.address,
     capacity: v.capacity,
     website: v.website,
@@ -656,7 +663,7 @@ async function venlyFetchVenueById(id) {
   if (!SUPABASE_READY || !id) return null;
   try {
     var cols = [
-      'id','name','type','region','district','address','capacity','website',
+      'id','name','type','region','district','suburb','address','capacity','website',
       'price_from','price_to','price_type','pricing_details','plan','hits',
       'host_user_id','host_email','host_name','host_phone','enquiry_email',
       'description','is_live','subscription_status','created_by',

@@ -1314,8 +1314,15 @@ tbody tr:last-child td { border-bottom: none; }
               </div>
               <div class="editor-field">
                 <label>District</label>
-                <select id="ven-district"></select>
+                <select id="ven-district" onchange="populateVenueSuburbOptions()"></select>
               </div>
+            </div>
+            <div class="editor-row">
+              <div class="editor-field">
+                <label>Suburb <span style="font-weight:400;text-transform:none;color:#bbb">(optional)</span></label>
+                <select id="ven-suburb"></select>
+              </div>
+              <div class="editor-field"></div>
             </div>
             <div class="editor-row">
               <div class="editor-field">
@@ -1812,6 +1819,14 @@ tbody tr:last-child td { border-bottom: none; }
         <h3>Districts<button class="filter-lock-btn" onclick="toggleCardLock('card-districts', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Locked</button></h3>
         <select id="districts-region-select" class="district-region-select" onchange="renderDistrictsForRegion()"></select>
         <div id="filter-districts" style="margin-top:10px"></div>
+      </div>
+
+      <!-- EDITABLE: Suburbs (grouped per district, which is grouped per region) -->
+      <div class="filter-card is-locked" id="card-suburbs">
+        <h3>Suburbs<button class="filter-lock-btn" onclick="toggleCardLock('card-suburbs', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Locked</button></h3>
+        <select id="suburbs-region-select" class="district-region-select" onchange="onSuburbRegionChange()"></select>
+        <select id="suburbs-district-select" class="district-region-select" style="margin-top:8px" onchange="renderSuburbsForDistrict()"></select>
+        <div id="filter-suburbs" style="margin-top:10px"></div>
       </div>
 
       <!-- EDITABLE: Features -->
@@ -4963,6 +4978,7 @@ function cloneFilters(filters) {
   return JSON.parse(JSON.stringify({
     regions: filters.regions || [],
     districtsByRegion: filters.districtsByRegion || {},
+    suburbsByDistrict: filters.suburbsByDistrict || {},
     amenities: filters.amenities || [],
     eventsByType: filters.eventsByType || {},
     blogCategories: filters.blogCategories || [],
@@ -4991,6 +5007,7 @@ function saveFilters(filters) {
   return queueFilterOp(function(target) {
     target.regions = snapshot.regions;
     target.districtsByRegion = snapshot.districtsByRegion;
+    target.suburbsByDistrict = snapshot.suburbsByDistrict;
     target.amenities = snapshot.amenities;
     target.eventsByType = snapshot.eventsByType;
     target.blogCategories = snapshot.blogCategories;
@@ -5003,6 +5020,7 @@ async function _doSaveFilters(filters) {
     var dbRow = {
       regions: filters.regions || [],
       districts_by_region: filters.districtsByRegion || {},
+      suburbs_by_district: filters.suburbsByDistrict || {},
       amenities: filters.amenities || [],
       events_by_type: filters.eventsByType || {},
       blog_categories: filters.blogCategories || [],
@@ -5147,8 +5165,13 @@ function removeFilterItem(listPath, idx, containerId) {
   if (listPath === 'regions') {
     var districtCount = (filters.districtsByRegion[itemName] || []).length;
     desc = districtCount > 0
-      ? 'This will also remove all ' + districtCount + ' district' + (districtCount === 1 ? '' : 's') + ' under "' + itemName + '". This can\'t be undone.'
+      ? 'This will also remove all ' + districtCount + ' district' + (districtCount === 1 ? '' : 's') + ' (and their suburbs) under "' + itemName + '". This can\'t be undone.'
       : desc;
+  } else if (listPath.indexOf('districtsByRegion.') === 0) {
+    var subCount = (filters.suburbsByDistrict && filters.suburbsByDistrict[itemName] || []).length;
+    if (subCount > 0) {
+      desc = 'This will also remove all ' + subCount + ' suburb' + (subCount === 1 ? '' : 's') + ' under "' + itemName + '". This can\'t be undone.';
+    }
   }
   document.getElementById('confirm-delete-desc').textContent = desc;
 
@@ -5168,9 +5191,18 @@ async function performFilterRemoval(listPath, idx, containerId, itemName) {
   list.splice(idx, 1);
   setByPath(filters, listPath, list);
 
-  // Removing a region also removes its districts, since they can't exist without a parent
+  // Removing a region also removes its districts (and those districts' suburbs),
+  // since they can't exist without a parent.
   if (listPath === 'regions') {
+    var removedDistricts = filters.districtsByRegion[itemName] || [];
     delete filters.districtsByRegion[itemName];
+    if (filters.suburbsByDistrict) {
+      removedDistricts.forEach(function(d) { delete filters.suburbsByDistrict[d]; });
+    }
+  }
+  // Removing a district also removes its suburbs.
+  if (listPath.indexOf('districtsByRegion.') === 0 && filters.suburbsByDistrict) {
+    delete filters.suburbsByDistrict[itemName];
   }
 
   if (await saveFilters(filters)) {
@@ -5211,6 +5243,13 @@ function refreshDependentDropdowns() {
       categorySelect.value = currentVal;
     }
   }
+  // Keep the Suburbs card's region/district dropdowns in sync when regions or
+  // districts change elsewhere on this page.
+  if (document.getElementById('suburbs-region-select')) {
+    renderSuburbRegionSelect();
+    renderSuburbDistrictSelect();
+    renderSuburbsForDistrict();
+  }
 }
 
 // Locks/unlocks an editable filter card. Locked cards hide their remove (×)
@@ -5234,6 +5273,9 @@ function renderAllFilters() {
   renderEditableTagList('filter-regions', 'regions');
   renderRegionSelect();
   renderDistrictsForRegion();
+  renderSuburbRegionSelect();
+  renderSuburbDistrictSelect();
+  renderSuburbsForDistrict();
   renderEditableTagList('filter-amenities', 'amenities');
   renderEditableTagList('filter-events-event', 'eventsByType.event');
   renderEditableTagList('filter-events-meeting', 'eventsByType.meeting');
@@ -5397,6 +5439,59 @@ function renderDistrictsForRegion() {
   }
 
   renderEditableTagList('filter-districts', 'districtsByRegion.' + region);
+}
+
+// ── Suburbs card: region → district → suburbs (keyed by district name) ──
+function renderSuburbRegionSelect() {
+  var select = document.getElementById('suburbs-region-select');
+  if (!select) return;
+  var filters = getFilters();
+  var currentVal = select.value;
+  select.innerHTML = filters.regions.map(function(r) {
+    return '<option value="' + escapeHtml(r) + '">' + escapeHtml(r) + '</option>';
+  }).join('');
+  if (filters.regions.indexOf(currentVal) > -1) select.value = currentVal;
+}
+
+// When the suburb card's region changes, repopulate its district dropdown.
+function onSuburbRegionChange() {
+  renderSuburbDistrictSelect();
+  renderSuburbsForDistrict();
+}
+
+function renderSuburbDistrictSelect() {
+  var regionSel = document.getElementById('suburbs-region-select');
+  var distSel = document.getElementById('suburbs-district-select');
+  if (!regionSel || !distSel) return;
+  var filters = getFilters();
+  var region = regionSel.value;
+  var districts = (filters.districtsByRegion && filters.districtsByRegion[region]) || [];
+  var currentVal = distSel.value;
+  if (!districts.length) {
+    distSel.innerHTML = '<option value="">No districts in this region yet</option>';
+    distSel.value = '';
+    return;
+  }
+  distSel.innerHTML = districts.map(function(d) {
+    return '<option value="' + escapeHtml(d) + '">' + escapeHtml(d) + '</option>';
+  }).join('');
+  if (districts.indexOf(currentVal) > -1) distSel.value = currentVal;
+}
+
+// Renders the suburb tag list for whichever district is currently selected.
+function renderSuburbsForDistrict() {
+  var distSel = document.getElementById('suburbs-district-select');
+  var listEl = document.getElementById('filter-suburbs');
+  if (!distSel || !listEl) return;
+  var district = distSel.value;
+  if (!district) {
+    listEl.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:4px 0">Add a district first, then choose it here to manage its suburbs.</div>';
+    return;
+  }
+  var filters = getFilters();
+  if (!filters.suburbsByDistrict) filters.suburbsByDistrict = {};
+  if (!filters.suburbsByDistrict[district]) filters.suburbsByDistrict[district] = []; // render-only, not saved
+  renderEditableTagList('filter-suburbs', 'suburbsByDistrict.' + district);
 }
 
 // ---- VENUE MANAGEMENT ----
@@ -5839,6 +5934,26 @@ function populateVenueDistrictOptions() {
     return '<option value="' + escapeHtml(d) + '">' + escapeHtml(d) + '</option>';
   }).join('');
   if (districts.indexOf(currentVal) > -1) districtSelect.value = currentVal;
+  populateVenueSuburbOptions();
+}
+
+// Suburb cascades from the selected district. Optional, so it always has a
+// blank first option; a stored suburb no longer in the list is still kept.
+function populateVenueSuburbOptions() {
+  var districtSelect = document.getElementById('ven-district');
+  var suburbSelect = document.getElementById('ven-suburb');
+  if (!suburbSelect) return;
+  var filters = getFilters();
+  var district = districtSelect ? districtSelect.value : '';
+  var suburbs = (filters.suburbsByDistrict && filters.suburbsByDistrict[district]) || [];
+  var currentVal = suburbSelect.value;
+  var opts = '<option value="">— Select suburb (optional) —</option>';
+  opts += suburbs.map(function(s) { return '<option value="' + escapeHtml(s) + '">' + escapeHtml(s) + '</option>'; }).join('');
+  if (currentVal && suburbs.indexOf(currentVal) === -1) {
+    opts += '<option value="' + escapeHtml(currentVal) + '">' + escapeHtml(currentVal) + '</option>';
+  }
+  suburbSelect.innerHTML = opts;
+  suburbSelect.value = currentVal && (suburbs.indexOf(currentVal) > -1 || currentVal) ? currentVal : '';
 }
 
 // ── Host lookup by email ──────────────────────────────────────
@@ -6102,6 +6217,8 @@ async function openVenueEditor(venueId) {
     document.getElementById('ven-region').value = venue.region || '';
     populateVenueDistrictOptions();
     document.getElementById('ven-district').value = venue.district || '';
+    populateVenueSuburbOptions();
+    if (document.getElementById('ven-suburb')) document.getElementById('ven-suburb').value = venue.suburb || '';
     var descEl = document.getElementById('ven-description');
     if (descEl) descEl.innerHTML = venue.description || '';
     document.getElementById('ven-capacity').value = venue.capacity || '';
@@ -6140,6 +6257,7 @@ async function openVenueEditor(venueId) {
     hideAddressDropdown();
     document.getElementById('ven-type').value = 'Event space';
     document.getElementById('ven-plan').value = 'Basic';
+    if (document.getElementById('ven-suburb')) document.getElementById('ven-suburb').value = '';
     populateVenueDistrictOptions();
     var descEl = document.getElementById('ven-description');
     if (descEl) descEl.innerHTML = '';
@@ -6319,6 +6437,7 @@ async function saveVenue() {
     plan: document.getElementById('ven-plan').value,
     region: document.getElementById('ven-region').value,
     district: document.getElementById('ven-district').value,
+    suburb: (document.getElementById('ven-suburb') ? document.getElementById('ven-suburb').value : '') || null,
     description: (document.getElementById('ven-description').innerHTML || '').replace(/(<br\s*\/?>)+$/gi,'').trim(),
     capacity: document.getElementById('ven-capacity').value.trim(),
     website: document.getElementById('ven-website').value.trim(),

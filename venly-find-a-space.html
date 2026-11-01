@@ -622,7 +622,7 @@ nav {
       var key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhdXB0d2F3dmpzbnNzd3VtaXlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTE3NjAsImV4cCI6MjA5Njg2Nzc2MH0.wEuNw75JhWFHDdvYLCzhg2K466U45BsLPappxMgJdCw';
       try {
         var _sb = window.supabase.createClient(url, key);
-        var cols = 'id,name,type,region,district,capacity,plan,hits,is_live,featured_home,featured_occasion,event_types,lat,lng,price_from,price_to,price_type,pricing_details,subscription_status,created_at,photos';
+        var cols = 'id,name,type,region,district,suburb,capacity,plan,hits,is_live,featured_home,featured_occasion,event_types,lat,lng,price_from,price_to,price_type,pricing_details,subscription_status,created_at,photos';
         window._venlyEarlyVenues = _sb.from('venues').select(cols).order('created_at', { ascending: false });
         window._venlyEarlyFilters = _sb.from('site_filters').select('*').eq('id', 1).maybeSingle();
       } catch(e) {}
@@ -724,6 +724,21 @@ nav {
       </div>
     </div>
 
+    <!-- Suburb — only shown once a district is chosen; options cascade from it -->
+    <div class="filter-chip" id="chip-suburb" style="display:none">
+      <button class="chip-btn" onclick="toggleChip('chip-suburb')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-3"/></svg>
+        <span id="label-suburb">Suburb</span>
+        <svg class="chip-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="chip-dropdown" style="min-width:220px">
+        <input class="chip-search" id="suburb-search" placeholder="Search suburbs…" oninput="filterChipOptions('suburb-options', this.value)" />
+        <div class="chip-options-scroll" id="suburb-options">
+          <button class="chip-option selected" onclick="selectChip('chip-suburb','filter-suburb','','Suburb',this)">All suburbs</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Event type — options are rebuilt from the admin's Filters data on load -->
     <div class="filter-chip" id="chip-event">
       <button class="chip-btn" onclick="toggleChip('chip-event')">
@@ -744,6 +759,7 @@ nav {
     <input type="hidden" id="filter-type" value="" />
     <input type="hidden" id="filter-region" value="" />
     <input type="hidden" id="filter-district" value="" />
+    <input type="hidden" id="filter-suburb" value="" />
     <input type="hidden" id="filter-event" value="" />
 
     <div class="filter-divider"></div>
@@ -827,6 +843,7 @@ function getSpacesForDisplay() {
       type: v.type,
       region: v.region,
       district: v.district,
+      suburb: v.suburb || '',
       capacity: v.capacity,
       premium: v.plan === 'Premium',
       plan: v.plan || 'Basic',
@@ -1235,12 +1252,13 @@ function toggleChip(id) {
   var isOpen = chip.classList.contains('open');
   document.querySelectorAll('.filter-chip').forEach(function(c) { c.classList.remove('open'); });
   // Clear all search inputs and reset visibility
-  ['region-search','district-search','event-type-search'].forEach(function(searchId) {
+  ['region-search','district-search','suburb-search','event-type-search'].forEach(function(searchId) {
     var el = document.getElementById(searchId);
     if (el) { el.value = ''; }
   });
   filterChipOptions('region-options', '');
   filterChipOptions('district-options', '');
+  filterChipOptions('suburb-options', '');
   filterChipOptions('event-type-options', '');
   if (!isOpen) chip.classList.add('open');
 }
@@ -1266,7 +1284,7 @@ function updateFiltersTriggerBadge() {
   var badge = document.getElementById('filters-trigger-badge');
   if (!trigger || !badge) return;
   var f = currentFilters();
-  var count = ['type', 'region', 'district', 'event'].filter(function(k) { return f[k]; }).length;
+  var count = ['type', 'region', 'district', 'suburb', 'event'].filter(function(k) { return f[k]; }).length;
   trigger.classList.toggle('active', count > 0);
   badge.style.display = count > 0 ? 'inline-flex' : 'none';
   badge.textContent = count;
@@ -1283,6 +1301,18 @@ function selectChip(chipId, inputId, value, label, optEl) {
   // Bidirectional region <-> district sync
   var key = inputId.replace('filter-','');
   if (key === 'region' || key === 'district') syncRegionDistrict(key, value);
+  // Changing region or district invalidates any chosen suburb — clear it so the
+  // suburb chip rebuilds (or hides) against the new district in updateChipAvailability.
+  if (key === 'region' || key === 'district') {
+    var subInput = document.getElementById('filter-suburb');
+    if (subInput) {
+      subInput.value = '';
+      var subLabel = document.getElementById('label-suburb');
+      if (subLabel) subLabel.textContent = 'Suburb';
+      var subBtn = document.querySelector('#chip-suburb .chip-btn');
+      if (subBtn) subBtn.classList.remove('active');
+    }
+  }
   filterCards();
 }
 
@@ -1304,6 +1334,7 @@ function currentFilters() {
     type: document.getElementById('filter-type').value,
     region: document.getElementById('filter-region').value,
     district: document.getElementById('filter-district').value,
+    suburb: document.getElementById('filter-suburb') ? document.getElementById('filter-suburb').value : '',
     event: document.getElementById('filter-event').value,
   };
 }
@@ -1318,8 +1349,9 @@ function spacesIgnoring(except) {
     const matchType     = except === 'type'     || !f.type     || s.type === f.type;
     const matchRegion   = except === 'region'   || !f.region   || s.region === f.region;
     const matchDistrict = except === 'district' || !f.district || s.district === f.district;
+    const matchSuburb   = except === 'suburb'   || !f.suburb   || s.suburb === f.suburb;
     const matchEvent    = except === 'event'    || !f.event    || (s.events && s.events.includes(f.event));
-    return matchType && matchRegion && matchDistrict && matchEvent;
+    return matchType && matchRegion && matchDistrict && matchSuburb && matchEvent;
   });
 }
 
@@ -1358,8 +1390,8 @@ function rebuildChipOptions(key, possibleValues, allLabel, clearLabel) {
     });
   }
 
-  // Region and district: write into the scroll container
-  if (key === 'region' || key === 'district') {
+  // Region, district and suburb: write into the scroll container
+  if (key === 'region' || key === 'district' || key === 'suburb') {
     var optContainer = document.getElementById(key + '-options');
     if (optContainer) { optContainer.innerHTML = html; return; }
   }
@@ -1397,6 +1429,28 @@ function updateChipAvailability() {
     : Object.keys(filters.districtsByRegion || {}).reduce(function(acc, r) { return acc.concat(filters.districtsByRegion[r] || []); }, []);
   rebuildChipOptions('district', districtOptions, 'District', 'All districts');
 
+  // Suburb chip only appears once a district is chosen (its options come from
+  // that district). With no district selected it's hidden to keep the bar clean.
+  var suburbChip = document.getElementById('chip-suburb');
+  if (suburbChip) {
+    var suburbOptions = f.district ? (filters.suburbsByDistrict && filters.suburbsByDistrict[f.district] || []) : [];
+    if (f.district && suburbOptions.length) {
+      suburbChip.style.display = '';
+      rebuildChipOptions('suburb', suburbOptions, 'Suburb', 'All suburbs');
+    } else {
+      suburbChip.style.display = 'none';
+      // Clear any stale suburb selection when the chip is hidden.
+      var subInput = document.getElementById('filter-suburb');
+      if (subInput && subInput.value) {
+        subInput.value = '';
+        var subLabel = document.getElementById('label-suburb');
+        if (subLabel) subLabel.textContent = 'Suburb';
+        var subBtn = document.querySelector('#chip-suburb .chip-btn');
+        if (subBtn) subBtn.classList.remove('active');
+      }
+    }
+  }
+
   const eventOptions = f.type
     ? (filters.eventsByType[EVENT_TYPE_GROUP_KEY[f.type]] || [])
     : ['event', 'meeting', 'shoot'].reduce(function(acc, k) { return acc.concat(filters.eventsByType[k] || []); }, []);
@@ -1412,8 +1466,9 @@ function filterCards() {
     const matchType = !f.type || s.type === f.type;
     const matchRegion = !f.region || s.region === f.region;
     const matchDistrict = !f.district || s.district === f.district;
+    const matchSuburb = !f.suburb || s.suburb === f.suburb;
     const matchEvent = !f.event || (s.events && s.events.includes(f.event));
-    return matchSearch && matchType && matchRegion && matchDistrict && matchEvent;
+    return matchSearch && matchType && matchRegion && matchDistrict && matchSuburb && matchEvent;
   });
 
   updateChipAvailability();
@@ -1426,10 +1481,13 @@ function clearFilters() {
   document.getElementById('filter-type').value = '';
   document.getElementById('filter-region').value = '';
   document.getElementById('filter-district').value = '';
+  if (document.getElementById('filter-suburb')) document.getElementById('filter-suburb').value = '';
   document.getElementById('filter-event').value = '';
+  var subChip = document.getElementById('chip-suburb');
+  if (subChip) subChip.style.display = 'none';
 
   // Reset visible chip labels and active styling
-  var defaultLabels = { type: 'Space type', region: 'Region', district: 'District', event: 'Event type', price: 'Price' };
+  var defaultLabels = { type: 'Space type', region: 'Region', district: 'District', suburb: 'Suburb', event: 'Event type', price: 'Price' };
   Object.keys(defaultLabels).forEach(function(key) {
     var label = document.getElementById('label-' + key);
     if (label) label.textContent = defaultLabels[key];

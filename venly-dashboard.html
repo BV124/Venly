@@ -654,10 +654,19 @@ tbody tr:last-child td { border-bottom: none; }
             </div>
             <div class="form-group">
               <label>District</label>
-              <select id="v-district">
+              <select id="v-district" onchange="populateSuburbOptions()">
                 <option value="">Choose</option>
               </select>
             </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Suburb <span style="font-weight:400;color:var(--text-muted)">(optional)</span></label>
+              <select id="v-suburb">
+                <option value="">Choose</option>
+              </select>
+            </div>
+            <div class="form-group"></div>
           </div>
           <div class="form-group">
             <label>Website (optional)</label>
@@ -2561,6 +2570,8 @@ function openEditListing(i) {
     document.getElementById('v-region').value = venue.region || '';
     populateDistrictOptions();
     document.getElementById('v-district').value = venue.district || '';
+    populateSuburbOptions();
+    if (document.getElementById('v-suburb')) document.getElementById('v-suburb').value = venue.suburb || '';
 
     photoDataUrls = (venue.photos && venue.photos.length) ? venue.photos.slice() : [];
     coverPhotoIndex = 0; // photos[0] is always saved as the cover photo
@@ -2750,7 +2761,7 @@ function markDirty() { _isDirty = true; }
 function attachDirtyListeners() {
   var ids = ['v-title','v-address','v-desc','v-capacity','v-website','v-price','v-price-to',
              'v-price-type','v-pricing-details',
-             'v-type','v-region','v-district','h-name','h-phone','h-enquiry-email'];
+             'v-type','v-region','v-district','v-suburb','h-name','h-phone','h-enquiry-email'];
   ids.forEach(function(id) {
     var el = document.getElementById(id);
     if (el) el.addEventListener('input', markDirty);
@@ -3042,6 +3053,7 @@ async function saveListing(isLive, silent) {
       type: document.getElementById('v-type').value || activeType,
       region: document.getElementById('v-region').value,
       district: document.getElementById('v-district').value,
+      suburb: (document.getElementById('v-suburb') ? document.getElementById('v-suburb').value : '') || null,
       address: document.getElementById('v-address').value.trim(),
       lat: document.getElementById('v-lat').value || null,
       lng: document.getElementById('v-lng').value || null,
@@ -3110,6 +3122,7 @@ async function saveListing(isLive, silent) {
     plan: _planToWrite,
     region: document.getElementById('v-region').value,
     district: document.getElementById('v-district').value,
+    suburb: (document.getElementById('v-suburb') ? document.getElementById('v-suburb').value : '') || null,
     description: (document.getElementById('v-desc').innerHTML || '').replace(/(<br\s*\/?>)+$/gi,'').trim(),
     capacity: document.getElementById('v-capacity').value.trim(),
     website: document.getElementById('v-website').value.trim(),
@@ -3842,6 +3855,26 @@ function populateDistrictOptions() {
   districtSelect.innerHTML = '<option value="">Choose</option>' +
     districts.map(function(d) { return '<option>' + d + '</option>'; }).join('');
   if (districts.indexOf(currentVal) > -1) districtSelect.value = currentVal;
+  populateSuburbOptions();
+}
+
+// Suburb cascades from district. Optional, so "Choose" stays as the default;
+// a stored suburb no longer in the list is preserved so it isn't lost on edit.
+function populateSuburbOptions() {
+  var districtSelect = document.getElementById('v-district');
+  var suburbSelect = document.getElementById('v-suburb');
+  if (!suburbSelect || typeof getVenlyFilters !== 'function') return;
+  var filters = getVenlyFilters();
+  var district = districtSelect ? districtSelect.value : '';
+  var suburbs = (filters.suburbsByDistrict && filters.suburbsByDistrict[district]) || [];
+  var currentVal = suburbSelect.value;
+  var opts = '<option value="">Choose</option>' +
+    suburbs.map(function(s) { return '<option>' + s + '</option>'; }).join('');
+  if (currentVal && suburbs.indexOf(currentVal) === -1) {
+    opts += '<option>' + currentVal + '</option>';
+  }
+  suburbSelect.innerHTML = opts;
+  if (suburbs.indexOf(currentVal) > -1 || currentVal) suburbSelect.value = currentVal;
 }
 
 function renderFeatures() {
