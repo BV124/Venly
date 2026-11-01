@@ -654,7 +654,7 @@ nav {
   <!-- Search -->
   <div class="search-row">
     <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-    <input type="text" id="search-input" placeholder="Search spaces by name or keyword…" oninput="filterCards()" />
+    <input type="text" id="search-input" placeholder="Search by name, region, district or suburb…" oninput="filterCards()" />
     <button class="filters-trigger" id="filters-trigger" onclick="openFilterSheet()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
       Filters
@@ -1035,7 +1035,7 @@ function showAllPinsInView() {
   const visible = spaces.filter(s => {
     if (s.lat === undefined || s.lng === undefined) return false;
     if (!bounds.contains([s.lat, s.lng])) return false;
-    const matchSearch = !search || s.name.toLowerCase().includes(search) || s.type.toLowerCase().includes(search);
+    const matchSearch = matchesSearch(s, search);
     const matchType  = !f.type  || s.type === f.type;
     const matchEvent = !f.event || (s.events && s.events.includes(f.event));
     return matchSearch && matchType && matchEvent;
@@ -1457,12 +1457,23 @@ function updateChipAvailability() {
   rebuildChipOptions('event', eventOptions, 'Event type', 'All event types');
 }
 
+// Free-text search match: name, space type, and the three location layers
+// (region, district, suburb) so e.g. "auckland city" finds venues there.
+function matchesSearch(s, search) {
+  if (!search) return true;
+  var hay = [s.name, s.type, s.region, s.district, s.suburb]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+  return hay.includes(search);
+}
+
 function filterCards() {
   if (!_venuesReady) return; // don't filter until real data is loaded
   const search = document.getElementById('search-input').value.toLowerCase();
   const f = currentFilters();
   const filtered = spaces.filter(s => {
-    const matchSearch = !search || s.name.toLowerCase().includes(search) || s.type.toLowerCase().includes(search);
+    const matchSearch = matchesSearch(s, search);
     const matchType = !f.type || s.type === f.type;
     const matchRegion = !f.region || s.region === f.region;
     const matchDistrict = !f.district || s.district === f.district;
