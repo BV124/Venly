@@ -5008,12 +5008,30 @@ async function _doSaveFilters(filters) {
       blog_categories: filters.blogCategories || [],
       trending_chips: filters.trendingChips || [],
     };
-    var res = await sb.from('site_filters').update(dbRow).eq('id', 1);
+    // .select() so we can see HOW MANY rows were actually written. An RLS policy
+    // (or a missing id=1 row) makes the update a no-op that returns NO error —
+    // which previously looked like success and showed a false "Added" toast while
+    // nothing persisted. Checking the returned rows catches that.
+    var res = await sb.from('site_filters').update(dbRow).eq('id', 1).select();
     if (res.error) {
       showToast('Could not save filters: ' + res.error.message);
       return false;
     }
-    await venlyBootstrapFilters(); // refresh the cache so every page reflects this change
+    if (!res.data || res.data.length === 0) {
+      // Update matched/returned no rows. Either the row doesn't exist yet, or a
+      // write policy blocked it. Try to create the row once (covers a fresh DB);
+      // if that also fails/returns nothing, it's a permissions block.
+      var ins = await sb.from('site_filters').upsert(Object.assign({ id: 1 }, dbRow)).select();
+      if (ins.error || !ins.data || ins.data.length === 0) {
+        showToast('Save was blocked — changes did not persist. (Check site_filters write access.)');
+        return false;
+      }
+    }
+    // Clear the sessionStorage filter cache BEFORE re-bootstrapping. Otherwise
+    // venlyBootstrapFilters() serves the stale cached copy and the new item never
+    // appears even though it saved — the exact "said added but isn't there" bug.
+    if (typeof venlyInvalidateCache === 'function') venlyInvalidateCache();
+    await venlyBootstrapFilters(); // now re-fetches fresh data from Supabase
     return true;
   }
 
