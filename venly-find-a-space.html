@@ -1468,12 +1468,35 @@ function foldText(str) {
     .toLowerCase();
 }
 
-// Free-text search match: name, space type, and the three location layers
-// (region, district, suburb) so e.g. "auckland city" finds venues there.
+// Free-text search across everything meaningful about a venue: its name, space
+// type, the three location layers (region/district/suburb) and its event types.
+//
+// Multi-term AND match: the query is split into words and EVERY word must appear
+// somewhere in that combined text. So "auckland wedding space" matches a venue
+// whose region is Auckland, whose events include Wedding, and whose type is
+// "Event space" — even though no single field holds the whole phrase. Order and
+// extra spaces don't matter, and it's macron/accent-insensitive via foldText.
+//
+// Filler words ignored in a query: ordinary connectors, plus generic words that
+// every listing already is ("space", "venue", "location" and plurals), so
+// phrases like "wedding venues in auckland" or "event spaces" still match.
+var SEARCH_STOPWORDS = {
+  'in':1,'a':1,'an':1,'the':1,'for':1,'near':1,'at':1,'of':1,'to':1,'with':1,'and':1,'or':1,'on':1,
+  'space':1,'spaces':1,'venue':1,'venues':1,'location':1,'locations':1,'place':1,'places':1,'hire':1,'rental':1
+};
+
 function matchesSearch(s, search) {
   if (!search) return true;
-  var hay = foldText([s.name, s.type, s.region, s.district, s.suburb].filter(Boolean).join(' '));
-  return hay.includes(foldText(search));
+  // Build the searchable text once per venue, including event types.
+  var parts = [s.name, s.type, s.region, s.district, s.suburb];
+  if (s.events && s.events.length) parts = parts.concat(s.events);
+  var hay = foldText(parts.filter(Boolean).join(' '));
+
+  var terms = foldText(search).split(/\s+/).filter(function(t) {
+    return t && !SEARCH_STOPWORDS[t];
+  });
+  if (!terms.length) return true; // query was only filler words — show everything
+  return terms.every(function(t) { return hay.indexOf(t) !== -1; });
 }
 
 function filterCards() {
