@@ -1457,15 +1457,23 @@ function updateChipAvailability() {
   rebuildChipOptions('event', eventOptions, 'Event type', 'All event types');
 }
 
+// Fold macrons/accents so search is diacritic-insensitive — essential for NZ
+// place names: "waitakere" matches "Waitākere", "otahuhu" matches "Ōtāhuhu",
+// and vice versa. Normalizes to NFD then strips the combining marks.
+function foldText(str) {
+  return (str || '')
+    .toString()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '') // remove combining accent marks (incl. macron)
+    .toLowerCase();
+}
+
 // Free-text search match: name, space type, and the three location layers
 // (region, district, suburb) so e.g. "auckland city" finds venues there.
 function matchesSearch(s, search) {
   if (!search) return true;
-  var hay = [s.name, s.type, s.region, s.district, s.suburb]
-    .filter(Boolean)
-    .join(' ')
-    .toLowerCase();
-  return hay.includes(search);
+  var hay = foldText([s.name, s.type, s.region, s.district, s.suburb].filter(Boolean).join(' '));
+  return hay.includes(foldText(search));
 }
 
 function filterCards() {
